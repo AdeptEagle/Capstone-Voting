@@ -1,0 +1,257 @@
+/* SuperAdminDashboard.css */
+.superadmin-dashboard {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Super Admin Dashboard Header - Clean White Background */
+.dashboard-header {
+  background: #fff;
+  color: #1f2937;
+  padding: 2rem 0 1rem 0;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.dashboard-header h3, .dashboard-header h2, .dashboard-header h1 {
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.dashboard-header p {
+  color: #374151;
+}
+
+/* Unified Professional Dashboard Header */
+.dashboard-header-pro {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.dashboard-title-pro {
+  color: #1e293b;
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -1px;
+}
+.dashboard-subtitle-pro {
+  color: #64748b;
+  font-size: 1.05rem;
+  margin: 0;
+}
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 24px;
+  color: white;
+}
+
+.admin-icon {
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+}
+
+.position-icon {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.candidate-icon {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
+.voter-icon {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+}
+
+.vote-icon {
+  background: linear-gradient(135deg, #ea580c, #f97316);
+}
+
+.stat-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 5px;
+}
+
+.stat-content p {
+  color: #64748b;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Quick Actions */
+.action-btn {
+  padding: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* System Status */
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.status-item:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.status-value {
+  font-weight: 600;
+}
+
+/* Recent Activity */
+.activity-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item i {
+  font-size: 8px;
+}
+
+.activity-item span {
+  flex: 1;
+  margin-left: 10px;
+  color: #374151;
+}
+
+.activity-item small {
+  color: #64748b;
+}
+
+/* Cards */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 12px 12px 0 0;
+  padding: 15px 20px;
+}
+
+.card-header h5 {
+  color: #1e40af;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .superadmin-dashboard {
+    padding: 15px;
+  }
+  
+  .stat-card {
+    margin-bottom: 15px;
+  }
+  
+  .action-btn {
+    margin-bottom: 10px;
+  }
+}
+
+/* Loading Spinner */
+.spinner-border {
+  color: #1e40af;
+}
+
+/* Alert Styling */
+.alert {
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+} 
+
+/* Standardized Card Spacing */
+.superadmin-dashboard .card {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+
+.superadmin-dashboard .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  border-radius: 8px 8px 0 0;
+}
+
+.superadmin-dashboard .card-body {
+  padding: 1.5rem;
+} 
+
+.superadmin-dashboard .card:first-child {
+  margin-top: 0;
+} 

@@ -1,0 +1,130 @@
+/* ManageAdmins.css */
+/* Standardized Container and Card Spacing */
+.manage-admins-container {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.manage-admins-container .table {
+  margin-bottom: 0;
+}
+
+.manage-admins-container .table th,
+.manage-admins-container .table td {
+  padding: 0.75rem 1rem;
+}
+
+.manage-admins-container .table th {
+  background-color: #f8fafc;
+  color: #374151;
+  border: none;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.manage-admins-container .table td {
+  vertical-align: middle;
+  border-color: #e2e8f0;
+}
+
+.manage-admins-container .badge {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.manage-admins-container .modal {
+  z-index: 1050;
+}
+
+.manage-admins-container .modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.manage-admins-container .modal-header {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 12px 12px 0 0;
+}
+
+.manage-admins-container .modal-title {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.manage-admins-container .form-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.manage-admins-container .form-control,
+.manage-admins-container .form-select {
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.manage-admins-container .form-control:focus,
+.manage-admins-container .form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.manage-admins-container .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.manage-admins-container .btn-primary {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+.manage-admins-container .btn-primary:hover {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+  transform: translateY(-1px);
+}
+
+.manage-admins-container .btn-outline-primary {
+  color: #1e40af;
+  border-color: #1e40af;
+}
+
+.manage-admins-container .btn-outline-primary:hover {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+.manage-admins-container .btn-outline-danger {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.manage-admins-container .btn-outline-danger:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}
+
+.manage-admins-container .alert {
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+}
+
+.manage-admins-container .spinner-border {
+  color: #1e40af;
+}
+
+.admin-table-block {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+} 

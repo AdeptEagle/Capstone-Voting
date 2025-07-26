@@ -1,0 +1,158 @@
+.election-status-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  z-index: 9999;
+}
+
+.election-status-message.loading {
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.election-status-message.loading .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.election-status-message.loading p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.message-content {
+  max-width: 600px;
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 4rem 3rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  margin: 0 auto;
+}
+
+.message-icon {
+  margin-bottom: 1.5rem;
+}
+
+.message-icon i {
+  font-size: 4rem;
+  color: #6c757d;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.election-status-message.warning .message-icon i {
+  color: #ffc107;
+}
+
+.election-status-message.info .message-icon i {
+  color: #17a2b8;
+}
+
+.election-status-message.success .message-icon i {
+  color: #28a745;
+}
+
+.election-status-message.danger .message-icon i {
+  color: #dc3545;
+}
+
+.message-text h3 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.message-text p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .election-status-message {
+    padding: 1rem;
+    min-height: 100vh;
+  }
+
+  .message-content {
+    padding: 3rem 2rem;
+    margin: 0 1rem;
+  }
+
+  .message-icon i {
+    font-size: 3rem;
+  }
+
+  .message-text h3 {
+    font-size: 1.3rem;
+  }
+
+  .message-text p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .election-status-message {
+    padding: 0.5rem;
+  }
+
+  .message-content {
+    padding: 2rem 1.5rem;
+    margin: 0 0.5rem;
+  }
+
+  .message-icon i {
+    font-size: 2.5rem;
+  }
+
+  .message-text h3 {
+    font-size: 1.2rem;
+  }
+
+  .message-text p {
+    font-size: 0.95rem;
+  }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-content {
+  animation: fadeInUp 0.5s ease-out;
+} 

@@ -1,0 +1,310 @@
+/* UserRegister.css */
+.user-register-split-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.user-register-left-panel {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  padding: 0 3vw;
+  background: linear-gradient(135deg, #667eea 0%, #2193b0 100%);
+  min-width: 320px;
+  box-shadow: 2px 0 24px 0 rgba(33,147,176,0.10);
+}
+
+.user-register-branding {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.user-register-logo {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: #fff;
+  filter: drop-shadow(0 2px 8px rgba(33,147,176,0.15));
+}
+.user-register-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 0.5rem;
+}
+.user-register-subtitle {
+  font-size: 1.1rem;
+  color: #e0e0e0;
+  margin-bottom: 1.5rem;
+}
+
+.user-register-intro {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 350px;
+  box-shadow: 0 4px 12px rgba(33,147,176,0.06);
+}
+.user-register-intro h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+}
+.user-register-intro p {
+  margin: 0 0 0.8rem 0;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+}
+.user-register-intro ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+.user-register-intro li {
+  margin-bottom: 0.5rem;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.user-register-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 350px;
+  margin: 0 auto;
+}
+.user-register-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(33,147,176,0.06);
+}
+.user-register-benefit-item i {
+  font-size: 1.5rem;
+  margin-top: 0.2rem;
+  color: #4ade80;
+  min-width: 24px;
+  text-shadow: 0 2px 8px rgba(74,222,128,0.2);
+}
+.user-register-benefit-item h4 {
+  margin: 0 0 0.2rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+.user-register-benefit-item p {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.user-register-right-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 320px;
+  background: transparent;
+  padding: 0 3vw;
+}
+
+.user-register-form {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 3rem 2.5rem;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+  margin: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.user-register-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.user-register-form h2 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.user-register-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-register-field label {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-register-field input {
+  padding: 1rem 1.2rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #f7fafc;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.user-register-field input:focus {
+  border-color: #667eea;
+  outline: none;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.user-register-field input::placeholder {
+  color: #a0aec0;
+}
+
+.user-register-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-register-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.user-register-btn:hover::before {
+  left: 100%;
+}
+
+.user-register-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.user-register-btn:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.user-register-error {
+  color: #e53e3e;
+  background: #fed7d7;
+  border: 1px solid #feb2b2;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.user-register-success {
+  color: #38a169;
+  background: #c6f6d5;
+  border: 1px solid #9ae6b4;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.back-to-login-link {
+  text-align: center;
+  margin-top: 1rem;
+}
+.back-to-login-link button {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  transition: color 0.2s;
+}
+.back-to-login-link button:hover {
+  color: #5a67d8;
+}
+
+@media (max-width: 900px) {
+  .user-register-split-container {
+    flex-direction: column;
+  }
+  .user-register-left-panel, .user-register-right-panel {
+    min-width: 0;
+    width: 100%;
+    padding: 2rem 1rem;
+  }
+  .user-register-left-panel {
+    min-height: 260px;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .user-register-split-container {
+    flex-direction: column;
+    min-height: unset;
+    width: 100vw;
+  }
+  .user-register-left-panel, .user-register-right-panel {
+    padding: 1.2rem 0.5rem;
+  }
+  .user-register-form {
+    padding: 2rem 0.7rem;
+    max-width: 100%;
+  }
+  .user-register-logo {
+    font-size: 2.2rem;
+  }
+  .user-register-title {
+    font-size: 1.3rem;
+  }
+  .user-register-intro {
+    padding: 1rem;
+  }
+} 

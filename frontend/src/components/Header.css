@@ -1,0 +1,29 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: #dbeafe; /* Soft blue background for contrast */
+  color: #1e40af;
+  padding: 0.5rem 1rem;
+  z-index: 1030;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  color: #1e40af;
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.app-header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e40af;
+  letter-spacing: 1px;
+} 

@@ -1,0 +1,382 @@
+.election-status-container {
+  margin-bottom: 2rem;
+}
+
+/* Alert Messages */
+.election-status-container .alert {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: none;
+  padding: 0.75rem 1rem;
+}
+
+.election-status-container .alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.election-status-container .alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+/* Active Election Actions */
+.active-election-actions {
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.active-election-actions .btn {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+.election-status-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+/* Active Election Card */
+.election-details {
+  margin-top: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 120px;
+}
+
+.detail-value {
+  color: #212529;
+  text-align: right;
+}
+
+/* Voting Statistics */
+.voting-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #28a745;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.turnout-progress {
+  margin-top: 0.5rem;
+}
+
+.turnout-progress .progress {
+  height: 1.5rem;
+  border-radius: 0.75rem;
+  background-color: #e9ecef;
+}
+
+.turnout-progress .progress-bar {
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+/* Elections List */
+.elections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.election-item {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.election-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #dee2e6;
+}
+
+.election-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.election-title h6 {
+  color: #212529;
+  margin-bottom: 0.25rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.text-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.text-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.text-secondary {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.status-badge.text-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.election-meta {
+  text-align: right;
+}
+
+.election-info {
+  color: #6c757d;
+}
+
+.election-description {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.election-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.election-positions {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Election Actions */
+.election-actions {
+  margin: 1rem 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid #e9ecef;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.election-actions .btn {
+  font-size: 0.8rem;
+  padding: 0.375rem 0.75rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.election-actions .btn:last-child {
+  margin-right: 0;
+}
+
+.election-actions .btn i {
+  font-size: 0.75rem;
+}
+
+/* Button states */
+.election-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.election-actions .btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.election-actions .btn-success:hover:not(:disabled) {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+.election-actions .btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+}
+
+.election-actions .btn-warning:hover:not(:disabled) {
+  background-color: #e0a800;
+  border-color: #d39e00;
+  color: #212529;
+}
+
+.election-actions .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.election-actions .btn-danger:hover:not(:disabled) {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.election-actions .btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.election-actions .btn-outline-danger:hover:not(:disabled) {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .election-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .election-meta {
+    text-align: left;
+  }
+  
+  .detail-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .detail-value {
+    text-align: left;
+  }
+  
+  .election-dates {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .voting-stats {
+    margin-top: 1rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animation for loading states */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.election-item {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Card header enhancements */
+.card-header.bg-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.card-header.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+}
+
+/* Progress bar enhancements */
+.progress {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effects for interactive elements */
+.election-item:hover .election-title h6 {
+  color: #007bff;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Print styles */
+@media print {
+  .election-status-container {
+    margin-bottom: 1rem;
+  }
+  
+  .election-item {
+    break-inside: avoid;
+    border: 1px solid #000;
+  }
+  
+  .card-header {
+    background: #f8f9fa !important;
+    color: #000 !important;
+  }
+} 

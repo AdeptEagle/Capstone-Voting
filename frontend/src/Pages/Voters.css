@@ -1,0 +1,33 @@
+/* Standardized Container and Card Spacing */
+.voters-container {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.voters-container .card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.voters-container .card-header {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.5rem;
+  border-radius: 8px 8px 0 0;
+}
+
+.voters-container .card-body {
+  padding: 1.5rem;
+}
+
+.voters-container .table {
+  margin-bottom: 0;
+}
+
+.voters-container .table th,
+.voters-container .table td {
+  padding: 0.75rem 1rem;
+} 

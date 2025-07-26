@@ -1,0 +1,266 @@
+/* UserDashboard.css */
+.user-dashboard-container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(30, 64, 175, 0.08);
+  padding: 2.5rem 2rem;
+}
+
+.user-dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.user-dashboard-header h2 {
+  color: #1e40af;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.user-dashboard-header p {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+/* Election Status Notification */
+.election-status-notification {
+  margin-bottom: 2rem;
+}
+
+.election-info-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.election-info-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.election-info-header i {
+  font-size: 2rem;
+}
+
+.election-info-header h3 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.3rem;
+}
+
+.election-description {
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.election-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detail-item i {
+  width: 20px;
+  opacity: 0.8;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+}
+
+.status-badge.active {
+  background-color: #10b981;
+  color: white;
+}
+
+.status-badge.draft {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.status-badge.ended {
+  background-color: #6b7280;
+  color: white;
+}
+
+.status-badge.cancelled {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* No Election Notification */
+.no-election-notification {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.notification-icon {
+  margin-bottom: 1rem;
+}
+
+.notification-icon i {
+  font-size: 3rem;
+  color: #64748b;
+}
+
+.notification-content h3 {
+  color: #1e293b;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.notification-content p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.notification-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Voting Status */
+.user-dashboard-status {
+  margin-bottom: 2rem;
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  padding: 1rem 1.25rem;
+}
+
+.alert-success {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border-left: 4px solid #16a34a;
+}
+
+.alert-info {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-left: 4px solid #1e40af;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  color: #d97706;
+  border-left: 4px solid #f59e0b;
+}
+
+.user-dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.btn-primary:disabled {
+  background: #cbd5e1;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.btn-outline-secondary {
+  background: #fff;
+  color: #64748b;
+  border: 2px solid #e5e7eb;
+}
+
+.btn-outline-info {
+  background: #fff;
+  color: #1e40af;
+  border: 2px solid #dbeafe;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12);
+}
+
+.user-dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 1rem;
+}
+
+.user-dashboard-loading .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.user-dashboard-loading p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .user-dashboard-container {
+    padding: 1.2rem 0.5rem;
+  }
+  .user-dashboard-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .election-info-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  .election-details {
+    gap: 0.5rem;
+  }
+  .notification-actions {
+    flex-direction: column;
+  }
+  .election-info-card {
+    padding: 1rem;
+  }
+  .no-election-notification {
+    padding: 1.5rem;
+  }
+} 
