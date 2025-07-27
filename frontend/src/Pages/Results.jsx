@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getPositions, getCandidates, getVoters, getVotes, getElectionPositions } from '../services/api';
+import { getResults, getPositions, getCandidates, getVoters, getElectionPositions } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
@@ -15,7 +15,7 @@ const formatTime = (timeInSeconds) => {
 };
 
 // Print function for admin users
-const printResults = (electionStats, positions, candidates, votes) => {
+const printResults = (electionStats, positions, candidates, resultsData) => {
   try {
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     if (!printWindow) {
@@ -302,23 +302,26 @@ const LoadingSpinner = () => (
 );
 
 // --- Main Content: Candidates by Position ---
-const CandidatesByPosition = ({ positions, candidates, votes, electionPositions }) => {
+const CandidatesByPosition = ({ positions, candidates, resultsData, electionPositions }) => {
   // Group candidates by position for the current election
   const candidatesByPosition = useMemo(() => {
-    const electionPositionIds = electionPositions.map(ep => ep.positionId);
+    const electionPositionIds = electionPositions.map(ep => ep.id); // Changed from ep.positionId to ep.id
     const electionPositionsList = positions.filter(pos => electionPositionIds.includes(pos.id));
     
     return electionPositionsList.map(pos => {
       const candidatesForPos = candidates
         .filter(c => c.positionId === pos.id)
-        .map(candidate => ({
-          ...candidate,
-          voteCount: votes.filter(v => v.candidateId === candidate.id).length
-        }))
+        .map(candidate => {
+          const result = resultsData.find(r => r.candidateId === candidate.id && r.positionId === pos.id);
+          return {
+            ...candidate,
+            voteCount: result ? result.voteCount : 0
+          };
+        })
         .sort((a, b) => b.voteCount - a.voteCount);
       return { position: pos, candidates: candidatesForPos };
     });
-  }, [positions, candidates, votes, electionPositions]);
+  }, [positions, candidates, resultsData, electionPositions]);
 
   return (
     <div className="candidates-by-position">
@@ -359,23 +362,26 @@ const CandidatesByPosition = ({ positions, candidates, votes, electionPositions 
 };
 
 // --- Sidebar: Top Candidates Per Position ---
-const TopCandidatesPerPosition = ({ positions, candidates, votes, electionPositions, topN = 3 }) => {
+const TopCandidatesPerPosition = ({ positions, candidates, resultsData, electionPositions, topN = 3 }) => {
   const topByPosition = useMemo(() => {
-    const electionPositionIds = electionPositions.map(ep => ep.positionId);
+    const electionPositionIds = electionPositions.map(ep => ep.id); // Changed from ep.positionId to ep.id
     const electionPositionsList = positions.filter(pos => electionPositionIds.includes(pos.id));
     
     return electionPositionsList.map(pos => {
       const candidatesForPos = candidates
         .filter(c => c.positionId === pos.id)
-        .map(candidate => ({
-          ...candidate,
-          voteCount: votes.filter(v => v.candidateId === candidate.id).length
-        }))
+        .map(candidate => {
+          const result = resultsData.find(r => r.candidateId === candidate.id && r.positionId === pos.id);
+          return {
+            ...candidate,
+            voteCount: result ? result.voteCount : 0
+          };
+        })
         .sort((a, b) => b.voteCount - a.voteCount)
         .slice(0, topN);
       return { position: pos, candidates: candidatesForPos };
     });
-  }, [positions, candidates, votes, electionPositions, topN]);
+  }, [positions, candidates, resultsData, electionPositions, topN]);
 
   return (
     <>
@@ -401,11 +407,11 @@ const TopCandidatesPerPosition = ({ positions, candidates, votes, electionPositi
 // --- Main Page Component ---
 const Results = () => {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
+  const [resultsData, setResultsData] = useState([]);
+  const [additionalData, setAdditionalData] = useState({
     positions: [],
     candidates: [],
     voters: [],
-    votes: [],
     electionPositions: []
   });
   const { canViewResults, hasAnyElection, triggerImmediateRefresh, activeElection } = useElection();
@@ -419,22 +425,25 @@ const Results = () => {
         
         if (!activeElection) {
           if (isMounted) {
-            setData({ positions: [], candidates: [], voters: [], votes: [], electionPositions: [] });
+            setResultsData([]);
+            setAdditionalData({ positions: [], candidates: [], voters: [], electionPositions: [] });
             setLoading(false);
           }
           return;
         }
 
-        const [positions, candidates, voters, votes, electionPositions] = await Promise.all([
+        // Use the dedicated results API
+        const [results, positions, candidates, voters, electionPositions] = await Promise.all([
+          getResults(),
           getPositions(),
           getCandidates(),
           getVoters(),
-          getVotes(),
           getElectionPositions(activeElection.id)
         ]);
         
         if (isMounted) {
-          setData({ positions, candidates, voters, votes, electionPositions });
+          setResultsData(results);
+          setAdditionalData({ positions, candidates, voters, electionPositions });
         }
       } catch (error) {
         console.error('Error fetching results data:', error);
@@ -453,10 +462,10 @@ const Results = () => {
   }, [activeElection?.id]); // Only depend on activeElection.id, not the entire object
 
   const electionStats = useMemo(() => {
-    const { positions, candidates, voters, votes, electionPositions } = data;
+    const { positions, candidates, voters, electionPositions } = additionalData;
     
     // Only consider positions that are part of the current election
-    const electionPositionIds = electionPositions.map(ep => ep.positionId);
+    const electionPositionIds = electionPositions.map(ep => ep.id); // Changed from ep.positionId to ep.id
     const electionPositionsList = positions.filter(pos => electionPositionIds.includes(pos.id));
     
     // Only consider candidates for positions in the current election
@@ -464,40 +473,44 @@ const Results = () => {
       electionPositionIds.includes(candidate.positionId)
     );
     
-    // Only consider votes for candidates in the current election
-    const electionVotes = votes.filter(vote => {
-      const candidate = electionCandidates.find(c => c.id === vote.candidateId);
-      return candidate !== undefined;
-    });
+    // Use the results data from the API
+    const electionResults = resultsData.filter(result => 
+      electionPositionIds.includes(result.positionId)
+    );
     
-    const totalVotes = electionVotes.length;
-    const votersVotedCount = new Set(electionVotes.map(v => v.voterId)).size;
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Election Position IDs:', electionPositionIds);
+      console.log('All Results Data:', resultsData);
+      console.log('Filtered Election Results:', electionResults);
+    }
+    
+    const totalVotes = electionResults.reduce((sum, result) => sum + result.voteCount, 0);
+    const votersVotedCount = new Set(electionResults.map(r => r.voterId)).size;
     const voterTurnout = voters.length > 0 ? ((votersVotedCount / voters.length) * 100).toFixed(0) : '0';
 
     // Calculate votes per position for the current election
     const votesPerPosition = electionPositionsList.map(pos => {
-      const positionVotes = electionVotes.filter(vote => {
-        const candidate = electionCandidates.find(c => c.id === vote.candidateId);
-        return candidate && candidate.positionId === pos.id;
-      });
+      const positionResults = electionResults.filter(result => result.positionId === pos.id);
+      const positionVoteCount = positionResults.reduce((sum, result) => sum + result.voteCount, 0);
       
       return {
         name: pos.name,
-        count: positionVotes.length,
+        count: positionVoteCount,
       };
     }).sort((a, b) => b.count - a.count);
 
     // Calculate candidate performance with rankings for the current election
-    const candidatePerformance = electionCandidates.map(candidate => {
-      const candidateVotes = electionVotes.filter(v => v.candidateId === candidate.id);
-      const position = electionPositionsList.find(p => p.id === candidate.positionId);
+    const candidatePerformance = electionResults.map(result => {
+      const candidate = electionCandidates.find(c => c.id === result.candidateId);
+      const position = electionPositionsList.find(p => p.id === result.positionId);
       
       return {
-        id: candidate.id,
-        name: candidate.name,
+        id: result.candidateId,
+        name: result.candidateName || candidate?.name || 'Unknown Candidate',
         position: position?.name || 'Unknown Position',
-        voteCount: candidateVotes.length,
-        positionId: candidate.positionId
+        voteCount: result.voteCount,
+        positionId: result.positionId
       };
     }).sort((a, b) => b.voteCount - a.voteCount);
 
@@ -524,7 +537,7 @@ const Results = () => {
       candidatePerformance: candidatePerformanceWithRanking,
       topCandidates 
     };
-  }, [data]);
+  }, [resultsData, additionalData]);
 
   // Meaningful timer based on election status
   const [timeDisplay, setTimeDisplay] = useState('');
@@ -605,13 +618,15 @@ const Results = () => {
     return <LoadingSpinner />;
   }
 
-  // Minimal debug logging (only in development)
+  // Debug logging (only in development)
   if (process.env.NODE_ENV === 'development') {
-    console.log('Results component:', {
+    console.log('Results component render:', {
       canViewResults,
       hasAnyElection,
       activeElectionId: activeElection?.id,
-      dataLoaded: !loading
+      dataLoaded: !loading,
+      resultsDataLength: resultsData.length,
+      additionalDataLength: Object.keys(additionalData).length
     });
   }
 
@@ -635,7 +650,7 @@ const Results = () => {
   }
 
   const { totalVotes, voterTurnout } = electionStats;
-  const { positions, candidates, votes, electionPositions } = data;
+  const { positions, candidates, electionPositions } = additionalData;
   const userRole = checkCurrentUser().role;
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
@@ -662,7 +677,7 @@ const Results = () => {
             <div className="dashboard-header-actions">
               <button 
                 className="btn btn-custom-blue"
-                onClick={() => printResults(electionStats, positions, candidates, votes)}
+                onClick={() => printResults(electionStats, positions, candidates, resultsData)}
               >
                 <i className="fas fa-print me-2"></i>
                 Print Results
@@ -679,7 +694,7 @@ const Results = () => {
             <CandidatesByPosition 
               positions={positions} 
               candidates={candidates} 
-              votes={votes} 
+              resultsData={resultsData} 
               electionPositions={electionPositions}
             />
           </div>
@@ -713,7 +728,7 @@ const Results = () => {
             <TopCandidatesPerPosition 
               positions={positions} 
               candidates={candidates} 
-              votes={votes} 
+              resultsData={resultsData} 
               electionPositions={electionPositions}
               topN={3} 
             />

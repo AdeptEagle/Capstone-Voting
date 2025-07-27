@@ -7,7 +7,7 @@ export class PositionModel {
       let query;
       
       if (showAll) {
-        query = "SELECT * FROM positions ORDER BY name";
+        query = "SELECT * FROM positions ORDER BY displayOrder, name";
       } else {
         query = `
           SELECT p.* 
@@ -15,7 +15,7 @@ export class PositionModel {
           INNER JOIN election_positions ep ON p.id = ep.positionId
           INNER JOIN elections e ON ep.electionId = e.id
           WHERE e.status = 'active'
-          ORDER BY p.name
+          ORDER BY p.displayOrder, p.name
         `;
       }
       
@@ -35,7 +35,7 @@ export class PositionModel {
         FROM positions p
         INNER JOIN election_positions ep ON p.id = ep.positionId
         WHERE ep.electionId = ?
-        ORDER BY p.name
+        ORDER BY p.displayOrder, p.name
       `;
       db.query(query, [electionId], (err, data) => {
         db.end();
@@ -48,7 +48,7 @@ export class PositionModel {
   static async getAllPositions() {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM positions ORDER BY name";
+      const query = "SELECT * FROM positions ORDER BY displayOrder, name";
       db.query(query, (err, data) => {
         db.end();
         if (err) reject(err);
@@ -60,8 +60,8 @@ export class PositionModel {
   static async create(positionData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "INSERT INTO positions (id, name, voteLimit) VALUES (?, ?, ?)";
-      const values = [positionData.id, positionData.name, positionData.voteLimit];
+      const query = "INSERT INTO positions (id, name, voteLimit, displayOrder) VALUES (?, ?, ?, ?)";
+      const values = [positionData.id, positionData.name, positionData.voteLimit, positionData.displayOrder || 0];
       db.query(query, values, (err, data) => {
         db.end();
         if (err) reject(err);
@@ -73,8 +73,8 @@ export class PositionModel {
   static async update(id, positionData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "UPDATE positions SET name = ?, voteLimit = ? WHERE id = ?";
-      const values = [positionData.name, positionData.voteLimit, id];
+      const query = "UPDATE positions SET name = ?, voteLimit = ?, displayOrder = ? WHERE id = ?";
+      const values = [positionData.name, positionData.voteLimit, positionData.displayOrder || 0, id];
       db.query(query, values, (err, data) => {
         db.end();
         if (err) reject(err);

@@ -34,6 +34,7 @@ async function ensureDatabaseAndTables() {
       id VARCHAR(36) PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
       voteLimit INT NOT NULL DEFAULT 1,
+      displayOrder INT NOT NULL DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     )`);
@@ -44,6 +45,7 @@ async function ensureDatabaseAndTables() {
       positionId VARCHAR(36) NOT NULL,
       photoUrl TEXT,
       description TEXT,
+      displayOrder INT NOT NULL DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
@@ -117,6 +119,29 @@ async function ensureDatabaseAndTables() {
     });
     if (passwordColumns.length === 0) {
       await runQuery(db, `ALTER TABLE voters ADD COLUMN password VARCHAR(255)`);
+    }
+
+    // Add displayOrder columns to existing tables if they don't exist
+    const [positionDisplayOrderColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM positions LIKE 'displayOrder'`, (err, result) => {
+        if (err) reject(err);
+        else resolve([result]);
+      });
+    });
+    if (positionDisplayOrderColumns.length === 0) {
+      await runQuery(db, `ALTER TABLE positions ADD COLUMN displayOrder INT NOT NULL DEFAULT 0`);
+      console.log('Added displayOrder column to positions table');
+    }
+
+    const [candidateDisplayOrderColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM candidates LIKE 'displayOrder'`, (err, result) => {
+        if (err) reject(err);
+        else resolve([result]);
+      });
+    });
+    if (candidateDisplayOrderColumns.length === 0) {
+      await runQuery(db, `ALTER TABLE candidates ADD COLUMN displayOrder INT NOT NULL DEFAULT 0`);
+      console.log('Added displayOrder column to candidates table');
     }
 
     // Migrate existing election statuses to new enum values

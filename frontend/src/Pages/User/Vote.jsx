@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getPositions, getCandidates, getVoters, createVote } from '../../services/api';
+import { getPositions, getCandidates, getVoters, createVote, getElectionCandidates, getElectionPositions } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
@@ -31,26 +31,52 @@ const Vote = () => {
   const [success, setSuccess] = useState('');
   const [showVoteSummary, setShowVoteSummary] = useState(false);
   const navigate = useNavigate();
-  const { canVote, hasActiveElection, triggerImmediateRefresh } = useElection();
+  const { canVote, hasActiveElection, triggerImmediateRefresh, activeElection } = useElection();
+
+  // Helper function to get the correct image URL
+  const getImageUrl = (photoUrl) => {
+    if (!photoUrl) return null;
+    // If it's already a full URL, return as is
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return photoUrl;
+    }
+    // Otherwise, construct the full URL
+    return `http://localhost:3000/uploads/${photoUrl}`;
+  };
 
   useEffect(() => {
     // Trigger immediate election status refresh
     triggerImmediateRefresh();
     
-    const userId = localStorage.getItem('userId') || JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id;
-    Promise.all([
-      getPositions(),
-      getCandidates(),
-      getVoters()
-    ]).then(([positions, candidates, voters]) => {
-      setPositions(positions);
-      setCandidates(candidates);
-      const voter = voters.find(v => v.id === userId);
-      setUser(voter);
-      setHasVoted(voter?.hasVoted);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
+    const fetchData = async () => {
+      try {
+        const userId = localStorage.getItem('userId') || JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id;
+        
+        if (!activeElection) {
+          setLoading(false);
+          return;
+        }
+
+        const [positions, candidates, voters] = await Promise.all([
+          getElectionPositions(activeElection.id), // Only positions assigned to this election
+          getElectionCandidates(activeElection.id), // Only candidates assigned to this election
+          getVoters()
+        ]);
+        
+        setPositions(positions);
+        setCandidates(candidates);
+        const voter = voters.find(v => v.id === userId);
+        setUser(voter);
+        setHasVoted(voter?.hasVoted);
+      } catch (error) {
+        console.error('Error fetching vote data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [activeElection?.id]);
 
   const handleSelect = (positionId, candidateId) => {
     const currentPosition = positions.find(p => p.id === positionId);
@@ -340,15 +366,18 @@ const Vote = () => {
               <div className="vote-candidate-photo">
                 {candidate.photoUrl ? (
                   <img 
-                    src={candidate.photoUrl} 
+                    src={getImageUrl(candidate.photoUrl)} 
                     alt={candidate.name} 
                     className="candidate-photo"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
-                ) : (
-                  <div className="candidate-photo-placeholder">
-                    <i className="fas fa-user"></i>
-                  </div>
-                )}
+                ) : null}
+                <div className="candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
+                  <i className="fas fa-user"></i>
+                </div>
               </div>
               <div className="vote-candidate-content">
                 <h4 className="vote-candidate-name">{candidate.name}</h4>
@@ -459,15 +488,18 @@ const Vote = () => {
                           <div key={candidate.id} className="selected-candidate-item">
                             {candidate.photoUrl ? (
                               <img 
-                                src={candidate.photoUrl} 
+                                src={getImageUrl(candidate.photoUrl)} 
                                 alt={candidate.name} 
                                 className="selected-candidate-photo"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
                               />
-                            ) : (
-                              <div className="selected-candidate-photo-placeholder">
-                                <i className="fas fa-user"></i>
-                              </div>
-                            )}
+                            ) : null}
+                            <div className="selected-candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
+                              <i className="fas fa-user"></i>
+                            </div>
                             <span className="selected-candidate-name">{candidate.name}</span>
                           </div>
                         ))}
@@ -512,15 +544,18 @@ const Vote = () => {
                               <div key={candidate.id} className="confirmation-candidate-item">
                                 {candidate.photoUrl ? (
                                   <img 
-                                    src={candidate.photoUrl} 
+                                    src={getImageUrl(candidate.photoUrl)} 
                                     alt={candidate.name} 
                                     className="confirmation-candidate-photo"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
                                   />
-                                ) : (
-                                  <div className="confirmation-candidate-photo-placeholder">
-                                    <i className="fas fa-user"></i>
-                                  </div>
-                                )}
+                                ) : null}
+                                <div className="confirmation-candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
+                                  <i className="fas fa-user"></i>
+                                </div>
                                 <span className="confirmation-candidate-name">{candidate.name}</span>
                               </div>
                             ))}
@@ -590,15 +625,18 @@ const Vote = () => {
                               <div key={candidate.id} className="confirmation-candidate-item">
                                 {candidate.photoUrl ? (
                                   <img 
-                                    src={candidate.photoUrl} 
+                                    src={getImageUrl(candidate.photoUrl)} 
                                     alt={candidate.name} 
                                     className="confirmation-candidate-photo"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'flex';
+                                    }}
                                   />
-                                ) : (
-                                  <div className="confirmation-candidate-photo-placeholder">
-                                    <i className="fas fa-user"></i>
-                                  </div>
-                                )}
+                                ) : null}
+                                <div className="confirmation-candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
+                                  <i className="fas fa-user"></i>
+                                </div>
                                 <span className="confirmation-candidate-name">{candidate.name}</span>
                               </div>
                             ))}

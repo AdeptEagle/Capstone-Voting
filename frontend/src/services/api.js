@@ -195,6 +195,17 @@ export const getResults = async () => {
   }
 };
 
+// Debug: Get raw vote data for troubleshooting
+export const getDebugResults = async () => {
+  try {
+    const response = await api.get('/api/votes/debug/results');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching debug results:', error);
+    throw error;
+  }
+};
+
 // Elections API Functions
 export const getElections = async () => {
   try {
@@ -228,7 +239,7 @@ export const getElection = async (id) => {
 
 export const getElectionPositions = async (id) => {
   try {
-    const response = await api.get(`/api/elections/${id}/positions`);
+    const response = await api.get(`/api/votes/ballot/positions/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election positions:', error);
@@ -411,7 +422,7 @@ export const getAssignedElectionPositions = async (electionId) => {
 
 export const getElectionCandidates = async (electionId) => {
   try {
-    const response = await api.get(`/api/election-assignments/elections/${electionId}/candidates`);
+    const response = await api.get(`/api/votes/ballot/candidates/${electionId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election candidates:', error);

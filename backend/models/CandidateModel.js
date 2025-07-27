@@ -22,7 +22,7 @@ export class CandidateModel {
       }
       
       query += `
-        ORDER BY p.name, c.name
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;
       
       db.query(query, (err, data) => {
@@ -54,7 +54,7 @@ export class CandidateModel {
           FROM election_candidates ec 
           WHERE ec.electionId = ?
         )
-        ORDER BY p.name, c.name
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;
       db.query(query, [electionId], (err, data) => {
         db.end();
@@ -76,13 +76,14 @@ export class CandidateModel {
   static async create(candidateData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "INSERT INTO candidates (id, name, positionId, photoUrl, description) VALUES (?, ?, ?, ?, ?)";
+      const query = "INSERT INTO candidates (id, name, positionId, photoUrl, description, displayOrder) VALUES (?, ?, ?, ?, ?, ?)";
       const values = [
         candidateData.id,
         candidateData.name,
         candidateData.positionId,
         candidateData.photoUrl,
-        candidateData.description || null
+        candidateData.description || null,
+        candidateData.displayOrder || 0
       ];
       db.query(query, values, (err, data) => {
         db.end();
@@ -95,12 +96,13 @@ export class CandidateModel {
   static async update(id, candidateData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "UPDATE candidates SET name = ?, positionId = ?, photoUrl = ?, description = ? WHERE id = ?";
+      const query = "UPDATE candidates SET name = ?, positionId = ?, photoUrl = ?, description = ?, displayOrder = ? WHERE id = ?";
       const values = [
         candidateData.name,
         candidateData.positionId,
         candidateData.photoUrl,
         candidateData.description || null,
+        candidateData.displayOrder || 0,
         id
       ];
       db.query(query, values, (err, data) => {

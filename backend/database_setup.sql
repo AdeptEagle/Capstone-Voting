@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS positions (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     voteLimit INT NOT NULL DEFAULT 1,
+    displayOrder INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     positionId VARCHAR(36) NOT NULL,
     photoUrl TEXT,
     description TEXT,
+    displayOrder INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
@@ -99,31 +101,31 @@ CREATE TABLE IF NOT EXISTS admins (
 INSERT IGNORE INTO admins (id, username, password, role) VALUES
 ('superadmin-001', 'superadmin', 'superadmin123', 'superadmin');
 
--- Insert some initial positions
-INSERT IGNORE INTO positions (id, name, voteLimit) VALUES
-('president-001', 'President', 1),
-('vice-president-001', 'Vice President', 1),
-('secretary-001', 'Secretary', 1),
-('treasurer-001', 'Treasurer', 1),
-('auditor-001', 'Auditor', 1),
-('pio-internal-001', 'Public Information Officer (Internal)', 1),
-('pio-external-001', 'Public Information Officer (External)', 1),
-('senator-001', 'Senator 1', 1),
-('senator-002', 'Senator 2', 1),
-('senator-003', 'Senator 3', 1),
-('senator-004', 'Senator 4', 1),
-('senator-005', 'Senator 5', 1),
-('senator-006', 'Senator 6', 1),
-('senator-007', 'Senator 7', 1),
-('senator-008', 'Senator 8', 1);
+-- Insert some initial positions with display order
+INSERT IGNORE INTO positions (id, name, voteLimit, displayOrder) VALUES
+('president-001', 'President', 1, 1),
+('vice-president-001', 'Vice President', 1, 2),
+('secretary-001', 'Secretary', 1, 3),
+('treasurer-001', 'Treasurer', 1, 4),
+('auditor-001', 'Auditor', 1, 5),
+('pio-internal-001', 'Public Information Officer (Internal)', 1, 6),
+('pio-external-001', 'Public Information Officer (External)', 1, 7),
+('senator-001', 'Senator 1', 1, 8),
+('senator-002', 'Senator 2', 1, 9),
+('senator-003', 'Senator 3', 1, 10),
+('senator-004', 'Senator 4', 1, 11),
+('senator-005', 'Senator 5', 1, 12),
+('senator-006', 'Senator 6', 1, 13),
+('senator-007', 'Senator 7', 1, 14),
+('senator-008', 'Senator 8', 1, 15);
 
--- Insert some sample candidates
-INSERT IGNORE INTO candidates (id, name, positionId, description) VALUES
-('candidate-001', 'John Doe', 'president-001', 'Experienced leader with strong communication skills'),
-('candidate-002', 'Jane Smith', 'president-001', 'Dedicated student advocate with innovative ideas'),
-('candidate-003', 'Mike Johnson', 'vice-president-001', 'Organized and detail-oriented team player'),
-('candidate-004', 'Sarah Wilson', 'secretary-001', 'Excellent record-keeping and organizational skills'),
-('candidate-005', 'David Brown', 'treasurer-001', 'Strong financial management background');
+-- Insert some sample candidates with display order
+INSERT IGNORE INTO candidates (id, name, positionId, description, displayOrder) VALUES
+('candidate-001', 'John Doe', 'president-001', 'Experienced leader with strong communication skills', 1),
+('candidate-002', 'Jane Smith', 'president-001', 'Dedicated student advocate with innovative ideas', 2),
+('candidate-003', 'Mike Johnson', 'vice-president-001', 'Organized and detail-oriented team player', 1),
+('candidate-004', 'Sarah Wilson', 'secretary-001', 'Excellent record-keeping and organizational skills', 1),
+('candidate-005', 'David Brown', 'treasurer-001', 'Strong financial management background', 1);
 
 -- Insert some sample voters
 INSERT IGNORE INTO voters (id, name, email, studentId, password) VALUES

@@ -20,42 +20,14 @@
   font-size: 1.1rem;
 }
 
-/* Position Section Styles */
-.position-section {
-  margin-bottom: 3rem;
-}
-
-.position-title {
-  color: #1e293b;
-  font-weight: 700;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  position: relative;
-  padding-bottom: 0.5rem;
-}
-
-.position-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
-  border-radius: 2px;
-}
-
 .candidate-card-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
   margin-top: 2rem;
-  max-width: 1400px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  padding: 0 1rem;
 }
 
 .candidate-card.facebook-style {
@@ -65,10 +37,6 @@
   overflow: hidden !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
   border: 1px solid #e2e8f0 !important;
-  min-height: 300px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  max-width: 320px !important;
 }
 
 .candidate-card.facebook-style:hover {
@@ -77,7 +45,7 @@
 }
 
 .candidate-card-header {
-  padding: 1rem !important;
+  padding: 1.5rem !important;
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%) !important;
   display: flex !important;
   flex-direction: column !important;
@@ -89,19 +57,20 @@
 }
 
 .candidate-photo {
-  width: 90px !important;
-  height:90px !important;
+  
+  width: 75px !important;
+  height: 75px !important;
   border-radius: 50% !important;
   object-fit: cover !important;
-  border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
-  flex-shrink: 0 !important;;
+  flex-shrink: 0 !important;
   margin-bottom: 1rem !important;
 }
 
 .candidate-photo-placeholder {
-  width: 90px !important;
-  height: 90px !important;
+  width: 75px !important;
+  height: 75px !important;
   border-radius: 50% !important;
   background: rgba(255, 255, 255, 0.2) !important;
   display: flex !important;
@@ -141,8 +110,7 @@
 }
 
 .candidate-card-body {
-  padding: 1rem !important;
-  flex: 1 !important;
+  padding: 1.5rem;
 }
 
 .candidate-brief {
@@ -152,10 +120,10 @@
 }
 
 .candidate-card-footer {
-  padding: 1rem !important;
-  border-top: 1px solid #f1f5f9 !important;
-  background: #f8f9fa !important;
-  text-align: right !important;
+  padding: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  background: #f8f9fa;
+  text-align: right;
 }
 
 .view-more-btn {

@@ -19,7 +19,7 @@ class ElectionAssignmentModel {
         FROM positions p
         INNER JOIN election_positions ep ON p.id = ep.positionId
         WHERE ep.electionId = ?
-        ORDER BY p.name
+        ORDER BY p.displayOrder, p.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
@@ -39,7 +39,7 @@ class ElectionAssignmentModel {
         INNER JOIN election_candidates ec ON c.id = ec.candidateId
         INNER JOIN positions p ON c.positionId = p.id
         WHERE ec.electionId = ?
-        ORDER BY p.name, c.name
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
@@ -61,7 +61,7 @@ class ElectionAssignmentModel {
           FROM election_positions ep 
           WHERE ep.electionId = ?
         )
-        ORDER BY p.name
+        ORDER BY p.displayOrder, p.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
@@ -84,7 +84,7 @@ class ElectionAssignmentModel {
           FROM election_candidates ec 
           WHERE ec.electionId = ?
         )
-        ORDER BY p.name, c.name
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
@@ -177,7 +177,7 @@ class ElectionAssignmentModel {
           CASE WHEN ep.positionId IS NOT NULL THEN 1 ELSE 0 END as isAssigned
         FROM positions p
         LEFT JOIN election_positions ep ON p.id = ep.positionId AND ep.electionId = ?
-        ORDER BY p.name
+        ORDER BY p.displayOrder, p.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
@@ -199,7 +199,7 @@ class ElectionAssignmentModel {
         FROM candidates c
         INNER JOIN positions p ON c.positionId = p.id
         LEFT JOIN election_candidates ec ON c.id = ec.candidateId AND ec.electionId = ?
-        ORDER BY p.name, c.name
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();

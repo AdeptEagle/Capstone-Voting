@@ -6,7 +6,7 @@ const Positions = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState(null);
-  const [formData, setFormData] = useState({ id: '', name: '', voteLimit: 1 });
+  const [formData, setFormData] = useState({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
 
   useEffect(() => {
     fetchPositions();
@@ -29,13 +29,15 @@ const Positions = () => {
       if (editingPosition) {
         await updatePosition(editingPosition.id, {
           name: formData.name,
-          voteLimit: Number(formData.voteLimit)
+          voteLimit: Number(formData.voteLimit),
+          displayOrder: Number(formData.displayOrder)
         });
       } else {
         await createPosition({
           id: formData.id,
           name: formData.name,
-          voteLimit: Number(formData.voteLimit)
+          voteLimit: Number(formData.voteLimit),
+          displayOrder: Number(formData.displayOrder)
         });
       }
       setShowModal(false);
@@ -49,7 +51,12 @@ const Positions = () => {
 
   const handleEdit = (position) => {
     setEditingPosition(position);
-    setFormData({ id: position.id, name: position.name, voteLimit: position.voteLimit });
+    setFormData({ 
+      id: position.id, 
+      name: position.name, 
+      voteLimit: position.voteLimit,
+      displayOrder: position.displayOrder || 0
+    });
     setShowModal(true);
   };
 
@@ -66,7 +73,7 @@ const Positions = () => {
 
   const openModal = () => {
     setEditingPosition(null);
-    setFormData({ id: '', name: '', voteLimit: 1 });
+    setFormData({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
     setShowModal(true);
   };
 
@@ -106,6 +113,7 @@ const Positions = () => {
                   <th>ID</th>
                   <th>Name</th>
                   <th>Vote Limit</th>
+                  <th>Display Order</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -115,6 +123,7 @@ const Positions = () => {
                     <td>{position.id}</td>
                     <td>{position.name}</td>
                     <td>{position.voteLimit}</td>
+                    <td>{position.displayOrder || 0}</td>
                     <td>
                       <button
                         className="btn btn-sm btn-outline-primary me-2"
@@ -187,6 +196,20 @@ const Positions = () => {
                       onChange={(e) => setFormData({ ...formData, voteLimit: e.target.value })}
                       required
                     />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Display Order (Priority)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      min={0}
+                      value={formData.displayOrder}
+                      onChange={(e) => setFormData({ ...formData, displayOrder: e.target.value })}
+                      placeholder="Lower numbers appear first (1 = highest priority)"
+                    />
+                    <small className="form-text text-muted">
+                      Lower numbers appear first. 1 = highest priority, 0 = default.
+                    </small>
                   </div>
                 </div>
                 <div className="modal-footer">

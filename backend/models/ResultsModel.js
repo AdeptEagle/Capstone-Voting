@@ -20,18 +20,16 @@ export class ResultsModel {
       
       if (!showAll) {
         query += `
-          WHERE p.id IN (
-            SELECT ep.positionId 
-            FROM election_positions ep 
-            INNER JOIN elections e ON ep.electionId = e.id 
-            WHERE e.status = 'active'
+          WHERE v.electionId IN (
+            SELECT id FROM elections 
+            WHERE status IN ('active', 'ended')
           )
         `;
       }
       
       query += `
         GROUP BY p.id, p.name, p.voteLimit, c.id, c.name, c.photoUrl
-        ORDER BY p.name, voteCount DESC
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name, voteCount DESC
       `;
       
       db.query(query, (err, data) => {
@@ -72,7 +70,7 @@ export class ResultsModel {
           WHERE ep.electionId = ?
         )
         GROUP BY p.id, p.name, p.voteLimit, c.id, c.name, c.photoUrl
-        ORDER BY p.name, voteCount DESC
+        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name, voteCount DESC
       `;
       db.query(query, [electionId], (err, data) => {
         db.end();
