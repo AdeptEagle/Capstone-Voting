@@ -117,6 +117,11 @@ const Vote = () => {
     setSuccess('');
     
     // Use the voter ID from the voters table, not the JWT user ID
+    if (!user) {
+      setError('User information not found. Please log in again.');
+      return;
+    }
+    
     const voterId = user.id; // This is the voter's ID from the voters table
     const studentId = user.studentId;
     
@@ -206,6 +211,20 @@ const Vote = () => {
   // Check if user can vote (has active election)
   if (!canVote) {
     return <ElectionStatusMessage type="vote" />;
+  }
+
+  // Check if user is found in voters list
+  if (!user) {
+    return (
+      <div className="vote-error">
+        <div className="alert alert-danger text-center">
+          <i className="fas fa-exclamation-triangle fa-2x mb-3"></i>
+          <h4>User Not Found</h4>
+          <p>Your account was not found in the voters list.</p>
+          <p className="mb-0">Please contact an administrator to register you as a voter.</p>
+        </div>
+      </div>
+    );
   }
 
   if (hasVoted && !showFinalScreen) {

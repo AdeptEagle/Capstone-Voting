@@ -6,6 +6,8 @@ import SuperAdminDashboard from './Pages/SuperAdmin/SuperAdminDashboard';
 import ManageAdmins from './Pages/SuperAdmin/ManageAdmins';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
 import VoteTraceability from './Pages/Admin/VoteTraceability';
+import BallotPositions from './Pages/Admin/BallotPositions';
+import BallotCandidates from './Pages/Admin/BallotCandidates';
 import UserDashboard from './Pages/User/UserDashboard';
 import Positions from './Pages/Positions';
 import Candidates from './Pages/Candidates';
@@ -190,6 +192,20 @@ function App() {
               <AdminRoute>
                 <AdminLayout>
                   <VoteTraceability />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/ballot-positions" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <BallotPositions />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/ballot-candidates" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <BallotCandidates />
                 </AdminLayout>
               </AdminRoute>
             } />

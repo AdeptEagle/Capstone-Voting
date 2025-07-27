@@ -1,3 +1,203 @@
+/* User View Styles - Original Purple Gradient Design */
+.candidates-user-view {
+  padding: 2rem !important;
+  background-color: #f8f9fa !important;
+  min-height: 100vh !important;
+}
+
+.candidates-page-title {
+  color: #1e293b;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-size: 2rem;
+}
+
+.candidates-page-subtitle {
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+/* Position Section Styles */
+.position-section {
+  margin-bottom: 3rem;
+}
+
+.position-title {
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.position-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+  border-radius: 2px;
+}
+
+.candidate-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+}
+
+.candidate-card.facebook-style {
+  background: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  border: 1px solid #e2e8f0 !important;
+  min-height: 300px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  max-width: 320px !important;
+}
+
+.candidate-card.facebook-style:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.candidate-card-header {
+  padding: 1rem !important;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  color: white !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.candidate-photo {
+  width: 90px !important;
+  height:90px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+  flex-shrink: 0 !important;;
+  margin-bottom: 1rem !important;
+}
+
+.candidate-photo-placeholder {
+  width: 90px !important;
+  height: 90px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
+  color: white !important;
+  font-size: 1.75rem !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+  flex-shrink: 0 !important;
+  margin-bottom: 1rem !important;
+}
+
+.candidate-info {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.candidate-name {
+  margin: 0 !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 1.4rem !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  line-height: 1.2 !important;
+}
+
+.candidate-position {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 1.1rem !important;
+  margin-top: 0.3rem !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  line-height: 1.2 !important;
+}
+
+.candidate-card-body {
+  padding: 1rem !important;
+  flex: 1 !important;
+}
+
+.candidate-brief {
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.candidate-card-footer {
+  padding: 1rem !important;
+  border-top: 1px solid #f1f5f9 !important;
+  background: #f8f9fa !important;
+  text-align: right !important;
+}
+
+.view-more-btn {
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  color: white !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.95rem !important;
+}
+
+.view-more-btn:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+.no-candidates {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  max-width: 400px;
+}
+
+.no-candidates i {
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.no-candidates h3 {
+  color: #475569;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
 /* Standardized Container and Card Spacing */
 .candidates-container {
   padding: 0 0 2rem 0;

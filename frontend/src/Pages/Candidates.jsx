@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button, Alert } from 'react-bootstrap';
 import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
@@ -39,6 +40,8 @@ const Candidates = () => {
         getCandidates(),
         getPositions()
       ]);
+      console.log('Fetched candidates data:', candidatesData);
+      console.log('Fetched positions data:', positionsData);
       setCandidates(candidatesData);
       setPositions(positionsData);
       setError('');
@@ -149,63 +152,79 @@ const Candidates = () => {
     }
   };
 
-  // User view: candidate cards with view more modal
+  // User view: candidate cards grouped by position
   if (role === 'user') {
     // Check if user can view candidates (has active election)
     if (!canViewCandidates) {
       return <ElectionStatusMessage type="candidates" />;
     }
 
+    // Group candidates by position
+    const candidatesByPosition = candidates.reduce((groups, candidate) => {
+      const position = candidate.positionName || 'Unknown Position';
+      if (!groups[position]) {
+        groups[position] = [];
+      }
+      groups[position].push(candidate);
+      return groups;
+    }, {});
+
     return (
       <div className="candidates-user-view">
         <h1 className="candidates-page-title">Meet the Candidates</h1>
         <p className="candidates-page-subtitle">Learn about each candidate and their platforms</p>
         {error && <Alert variant="danger">{error}</Alert>}
-        <div className="candidate-card-grid">
-          {candidates.length > 0 ? (
-            candidates.map(candidate => (
-              <div className="candidate-card facebook-style" key={candidate.id}>
-                <div className="candidate-card-header">
-                  {candidate.photoUrl ? (
-                    <img src={candidate.photoUrl} alt={candidate.name} className="candidate-photo" />
-                  ) : (
-                    <div className="candidate-photo-placeholder">
-                      <i className="fas fa-user"></i>
+        
+        {candidates.length > 0 ? (
+          Object.entries(candidatesByPosition).map(([position, positionCandidates]) => (
+            <div key={position} className="position-section">
+              <h2 className="position-title">{position}</h2>
+              <div className="candidate-card-grid">
+                {positionCandidates.map(candidate => (
+                  <div className="candidate-card facebook-style" key={candidate.id}>
+                    <div className="candidate-card-header">
+                      {candidate.photoUrl ? (
+                        <img src={candidate.photoUrl} alt={candidate.name} className="candidate-photo" />
+                      ) : (
+                        <div className="candidate-photo-placeholder">
+                          <i className="fas fa-user"></i>
+                        </div>
+                      )}
+                      <div className="candidate-info">
+                        <h3 className="candidate-name">{candidate.name}</h3>
+                        <p className="candidate-position">{candidate.positionName}</p>
+                      </div>
                     </div>
-                  )}
-                  <div className="candidate-info">
-                    <h3 className="candidate-name">{candidate.name}</h3>
-                    <p className="candidate-position">{candidate.positionName}</p>
+                    <div className="candidate-card-body">
+                      <p className="candidate-brief">
+                        {candidate.description ? 
+                          candidate.description.substring(0, 100) + (candidate.description.length > 100 ? '...' : '') :
+                          'Learn more about this candidate and their vision for the position.'
+                        }
+                      </p>
+                    </div>
+                    <div className="candidate-card-footer">
+                      <Button 
+                        variant="primary" 
+                        className="view-more-btn"
+                        onClick={() => setViewCandidate(candidate)}
+                      >
+                        <i className="fas fa-eye me-2"></i>
+                        View Platform
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="candidate-card-body">
-                  <p className="candidate-brief">
-                    {candidate.description ? 
-                      candidate.description.substring(0, 100) + (candidate.description.length > 100 ? '...' : '') :
-                      'Learn more about this candidate and their vision for the position.'
-                    }
-                  </p>
-                </div>
-                <div className="candidate-card-footer">
-                  <Button 
-                    variant="primary" 
-                    className="view-more-btn"
-                    onClick={() => setViewCandidate(candidate)}
-                  >
-                    <i className="fas fa-eye me-2"></i>
-                    View Platform
-                  </Button>
-                </div>
+                ))}
               </div>
-            ))
-          ) : (
-            <div className="no-candidates">
-              <i className="fas fa-users fa-3x mb-3"></i>
-              <h3>No Candidates Yet</h3>
-              <p>Candidates will appear here once they are added to the system.</p>
             </div>
-          )}
-        </div>
+          ))
+        ) : (
+          <div className="no-candidates">
+            <i className="fas fa-users fa-3x mb-3"></i>
+            <h3>No Candidates Yet</h3>
+            <p>Candidates will appear here once they are added to the system.</p>
+          </div>
+        )}
         
         {/* View Candidate Modal */}
         {viewCandidate && (

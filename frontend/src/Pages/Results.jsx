@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getPositions, getCandidates, getVoters, getVotes } from '../services/api';
+import { getPositions, getCandidates, getVoters, getVotes, getElectionPositions } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
@@ -302,10 +302,13 @@ const LoadingSpinner = () => (
 );
 
 // --- Main Content: Candidates by Position ---
-const CandidatesByPosition = ({ positions, candidates, votes }) => {
-  // Group candidates by position
+const CandidatesByPosition = ({ positions, candidates, votes, electionPositions }) => {
+  // Group candidates by position for the current election
   const candidatesByPosition = useMemo(() => {
-    return positions.map(pos => {
+    const electionPositionIds = electionPositions.map(ep => ep.positionId);
+    const electionPositionsList = positions.filter(pos => electionPositionIds.includes(pos.id));
+    
+    return electionPositionsList.map(pos => {
       const candidatesForPos = candidates
         .filter(c => c.positionId === pos.id)
         .map(candidate => ({
@@ -315,7 +318,7 @@ const CandidatesByPosition = ({ positions, candidates, votes }) => {
         .sort((a, b) => b.voteCount - a.voteCount);
       return { position: pos, candidates: candidatesForPos };
     });
-  }, [positions, candidates, votes]);
+  }, [positions, candidates, votes, electionPositions]);
 
   return (
     <div className="candidates-by-position">
@@ -356,9 +359,12 @@ const CandidatesByPosition = ({ positions, candidates, votes }) => {
 };
 
 // --- Sidebar: Top Candidates Per Position ---
-const TopCandidatesPerPosition = ({ positions, candidates, votes, topN = 3 }) => {
+const TopCandidatesPerPosition = ({ positions, candidates, votes, electionPositions, topN = 3 }) => {
   const topByPosition = useMemo(() => {
-    return positions.map(pos => {
+    const electionPositionIds = electionPositions.map(ep => ep.positionId);
+    const electionPositionsList = positions.filter(pos => electionPositionIds.includes(pos.id));
+    
+    return electionPositionsList.map(pos => {
       const candidatesForPos = candidates
         .filter(c => c.positionId === pos.id)
         .map(candidate => ({
@@ -369,7 +375,7 @@ const TopCandidatesPerPosition = ({ positions, candidates, votes, topN = 3 }) =>
         .slice(0, topN);
       return { position: pos, candidates: candidatesForPos };
     });
-  }, [positions, candidates, votes, topN]);
+  }, [positions, candidates, votes, electionPositions, topN]);
 
   return (
     <>
@@ -399,44 +405,79 @@ const Results = () => {
     positions: [],
     candidates: [],
     voters: [],
-    votes: []
+    votes: [],
+    electionPositions: []
   });
   const { canViewResults, hasAnyElection, triggerImmediateRefresh, activeElection } = useElection();
 
   useEffect(() => {
-    // Trigger immediate election status refresh
-    triggerImmediateRefresh();
+    let isMounted = true;
     
     const fetchData = async () => {
       try {
-        const [positions, candidates, voters, votes] = await Promise.all([
+        setLoading(true);
+        
+        if (!activeElection) {
+          if (isMounted) {
+            setData({ positions: [], candidates: [], voters: [], votes: [], electionPositions: [] });
+            setLoading(false);
+          }
+          return;
+        }
+
+        const [positions, candidates, voters, votes, electionPositions] = await Promise.all([
           getPositions(),
           getCandidates(),
           getVoters(),
-          getVotes()
+          getVotes(),
+          getElectionPositions(activeElection.id)
         ]);
         
-        setData({ positions, candidates, voters, votes });
+        if (isMounted) {
+          setData({ positions, candidates, voters, votes, electionPositions });
+        }
       } catch (error) {
         console.error('Error fetching results data:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, []);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [activeElection?.id]); // Only depend on activeElection.id, not the entire object
 
   const electionStats = useMemo(() => {
-    const { positions, candidates, voters, votes } = data;
-    const totalVotes = votes.length;
-    const votersVotedCount = new Set(votes.map(v => v.voterId)).size;
+    const { positions, candidates, voters, votes, electionPositions } = data;
+    
+    // Only consider positions that are part of the current election
+    const electionPositionIds = electionPositions.map(ep => ep.positionId);
+    const electionPositionsList = positions.filter(pos => electionPositionIds.includes(pos.id));
+    
+    // Only consider candidates for positions in the current election
+    const electionCandidates = candidates.filter(candidate => 
+      electionPositionIds.includes(candidate.positionId)
+    );
+    
+    // Only consider votes for candidates in the current election
+    const electionVotes = votes.filter(vote => {
+      const candidate = electionCandidates.find(c => c.id === vote.candidateId);
+      return candidate !== undefined;
+    });
+    
+    const totalVotes = electionVotes.length;
+    const votersVotedCount = new Set(electionVotes.map(v => v.voterId)).size;
     const voterTurnout = voters.length > 0 ? ((votersVotedCount / voters.length) * 100).toFixed(0) : '0';
 
-    // Calculate votes per position (keeping for reference)
-    const votesPerPosition = positions.map(pos => {
-      const positionVotes = votes.filter(vote => {
-        const candidate = candidates.find(c => c.id === vote.candidateId);
+    // Calculate votes per position for the current election
+    const votesPerPosition = electionPositionsList.map(pos => {
+      const positionVotes = electionVotes.filter(vote => {
+        const candidate = electionCandidates.find(c => c.id === vote.candidateId);
         return candidate && candidate.positionId === pos.id;
       });
       
@@ -446,10 +487,10 @@ const Results = () => {
       };
     }).sort((a, b) => b.count - a.count);
 
-    // Calculate candidate performance with rankings
-    const candidatePerformance = candidates.map(candidate => {
-      const candidateVotes = votes.filter(v => v.candidateId === candidate.id);
-      const position = positions.find(p => p.id === candidate.positionId);
+    // Calculate candidate performance with rankings for the current election
+    const candidatePerformance = electionCandidates.map(candidate => {
+      const candidateVotes = electionVotes.filter(v => v.candidateId === candidate.id);
+      const position = electionPositionsList.find(p => p.id === candidate.positionId);
       
       return {
         id: candidate.id,
@@ -490,10 +531,14 @@ const Results = () => {
   const [timeTitle, setTimeTitle] = useState('Time Left');
   
   useEffect(() => {
+    let isMounted = true;
+    
     const updateTimeDisplay = () => {
-      if (!activeElection) {
-        setTimeDisplay('No Active Election');
-        setTimeTitle('Election Status');
+      if (!isMounted || !activeElection) {
+        if (isMounted) {
+          setTimeDisplay('No Active Election');
+          setTimeTitle('Election Status');
+        }
         return;
       }
 
@@ -503,90 +548,94 @@ const Results = () => {
 
       if (activeElection.status === 'active') {
         // Election is active - show time remaining
-        setTimeTitle('Time Remaining');
-        const timeRemaining = electionEnd - now;
-        if (timeRemaining > 0) {
-          setTimeDisplay(formatTime(timeRemaining / 1000));
-        } else {
-          setTimeDisplay('Election Ended');
+        if (isMounted) {
+          setTimeTitle('Time Remaining');
+          const timeRemaining = electionEnd - now;
+          if (timeRemaining > 0) {
+            setTimeDisplay(formatTime(timeRemaining / 1000));
+          } else {
+            setTimeDisplay('Election Ended');
+          }
         }
       } else if (activeElection.status === 'ended') {
         // Election has ended - show time since end
-        setTimeTitle('Time Since End');
-        const timeSinceEnd = now - electionEnd;
-        const hoursSinceEnd = Math.floor(timeSinceEnd / (1000 * 60 * 60));
-        const daysSinceEnd = Math.floor(hoursSinceEnd / 24);
-        
-        if (daysSinceEnd > 0) {
-          setTimeDisplay(`${daysSinceEnd} day${daysSinceEnd > 1 ? 's' : ''} ago`);
-        } else if (hoursSinceEnd > 0) {
-          setTimeDisplay(`${hoursSinceEnd} hour${hoursSinceEnd > 1 ? 's' : ''} ago`);
-        } else {
-          setTimeDisplay('Recently ended');
+        if (isMounted) {
+          setTimeTitle('Time Since End');
+          const timeSinceEnd = now - electionEnd;
+          const hoursSinceEnd = Math.floor(timeSinceEnd / (1000 * 60 * 60));
+          const daysSinceEnd = Math.floor(hoursSinceEnd / 24);
+          
+          if (daysSinceEnd > 0) {
+            setTimeDisplay(`${daysSinceEnd} day${daysSinceEnd > 1 ? 's' : ''} ago`);
+          } else if (hoursSinceEnd > 0) {
+            setTimeDisplay(`${hoursSinceEnd} hour${hoursSinceEnd > 1 ? 's' : ''} ago`);
+          } else {
+            setTimeDisplay('Recently ended');
+          }
         }
-      } else if (activeElection.status === 'draft') {
+      } else if (activeElection.status === 'pending') {
         // Election hasn't started - show time until start
-        setTimeTitle('Time Until Start');
-        const timeUntilStart = electionStart - now;
-        if (timeUntilStart > 0) {
-          setTimeDisplay(`Starts in ${formatTime(timeUntilStart / 1000)}`);
-        } else {
-          setTimeDisplay('Starting soon');
+        if (isMounted) {
+          setTimeTitle('Time Until Start');
+          const timeUntilStart = electionStart - now;
+          if (timeUntilStart > 0) {
+            setTimeDisplay(`Starts in ${formatTime(timeUntilStart / 1000)}`);
+          } else {
+            setTimeDisplay('Starting soon');
+          }
         }
       } else {
-        setTimeTitle('Election Status');
-        setTimeDisplay('Election Paused');
+        if (isMounted) {
+          setTimeTitle('Election Status');
+          setTimeDisplay('Election Paused');
+        }
       }
     };
 
     updateTimeDisplay();
     const timerInterval = setInterval(updateTimeDisplay, 1000);
-    return () => clearInterval(timerInterval);
-  }, [activeElection]);
+    
+    return () => {
+      isMounted = false;
+      clearInterval(timerInterval);
+    };
+  }, [activeElection?.id, activeElection?.status, activeElection?.startTime, activeElection?.endTime]);
 
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  // Debug logging
-  console.log('Results component debug:', {
-    canViewResults,
-    hasAnyElection,
-    activeElection,
-            userRole: checkCurrentUser().role,
-    dataLengths: {
-      positions: data.positions.length,
-      candidates: data.candidates.length,
-      voters: data.voters.length,
-      votes: data.votes.length
-    }
-  });
+  // Minimal debug logging (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Results component:', {
+      canViewResults,
+      hasAnyElection,
+      activeElectionId: activeElection?.id,
+      dataLoaded: !loading
+    });
+  }
 
   // Check if user can view results (has elections)
   if (!canViewResults) {
-    console.log('Cannot view results - showing ElectionStatusMessage');
+    return <ElectionStatusMessage type="results" />;
+  }
+
+  // Check if there's no active election to show results for
+  if (!activeElection) {
     return (
-      <div>
-        <div style={{ background: '#f8f9fa', padding: '20px', margin: '20px', border: '1px solid #dee2e6', borderRadius: '8px' }}>
-          <h4>Debug Information:</h4>
-          <p><strong>User Role:</strong> {checkCurrentUser().role}</p>
-          <p><strong>Can View Results:</strong> {canViewResults ? 'Yes' : 'No'}</p>
-          <p><strong>Has Any Election:</strong> {hasAnyElection ? 'Yes' : 'No'}</p>
-          <p><strong>Active Election:</strong> {activeElection ? 'Yes' : 'No'}</p>
-          <p><strong>Active Election Status:</strong> {activeElection?.status || 'None'}</p>
-          <p><strong>Data Loaded:</strong> {!loading ? 'Yes' : 'No'}</p>
-          <p><strong>Positions:</strong> {data.positions.length}</p>
-          <p><strong>Candidates:</strong> {data.candidates.length}</p>
-          <p><strong>Voters:</strong> {data.voters.length}</p>
-          <p><strong>Votes:</strong> {data.votes.length}</p>
+      <div className="dashboard-content px-3 pb-3">
+        <div className="alert alert-info text-center">
+          <i className="fas fa-info-circle fa-2x mb-3"></i>
+          <h4>No Active Election</h4>
+          <p>There is currently no active election to display results for.</p>
+          <p className="mb-0">Results will be available once an election is created and started.</p>
         </div>
-        <ElectionStatusMessage type="results" />
       </div>
     );
   }
 
   const { totalVotes, voterTurnout } = electionStats;
-  const { positions, candidates, votes } = data;
+  const { positions, candidates, votes, electionPositions } = data;
   const userRole = checkCurrentUser().role;
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
@@ -596,10 +645,20 @@ const Results = () => {
       <div className="dashboard-header-pro">
         <div className="dashboard-header-row">
           <div>
-            <h1 className="dashboard-title-pro">Voting System Results Dashboard</h1>
-            <p className="dashboard-subtitle-pro">Real-time results showing candidate performance across all positions.</p>
+            <h1 className="dashboard-title-pro">
+              Election Results Dashboard
+              {activeElection && (
+                <span className="text-muted ms-2">- {activeElection.title}</span>
+              )}
+            </h1>
+            <p className="dashboard-subtitle-pro">
+              {activeElection 
+                ? `Real-time results for "${activeElection.title}" - showing candidate performance for positions in this election.`
+                : 'No active election to display results for.'
+              }
+            </p>
           </div>
-          {isAdmin && (
+          {isAdmin && activeElection && (
             <div className="dashboard-header-actions">
               <button 
                 className="btn btn-custom-blue"
@@ -617,7 +676,12 @@ const Results = () => {
         <div className="row h-100">
           {/* Main Content Column */}
           <div className="col-lg-8 mb-3 mb-lg-0 h-100 scrollable-col">
-            <CandidatesByPosition positions={positions} candidates={candidates} votes={votes} />
+            <CandidatesByPosition 
+              positions={positions} 
+              candidates={candidates} 
+              votes={votes} 
+              electionPositions={electionPositions}
+            />
           </div>
 
           {/* Right Sidebar Column */}
@@ -646,7 +710,13 @@ const Results = () => {
                 />
               </div>
             </div>
-            <TopCandidatesPerPosition positions={positions} candidates={candidates} votes={votes} topN={3} />
+            <TopCandidatesPerPosition 
+              positions={positions} 
+              candidates={candidates} 
+              votes={votes} 
+              electionPositions={electionPositions}
+              topN={3} 
+            />
           </div>
         </div>
       </div>

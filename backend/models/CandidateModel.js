@@ -12,10 +12,10 @@ export class CandidateModel {
       
       if (!showAll) {
         query += `
-          WHERE p.id IN (
-            SELECT ep.positionId 
-            FROM election_positions ep 
-            INNER JOIN elections e ON ep.electionId = e.id 
+          WHERE c.id IN (
+            SELECT ec.candidateId 
+            FROM election_candidates ec 
+            INNER JOIN elections e ON ec.electionId = e.id 
             WHERE e.status = 'active'
           )
         `;
@@ -49,10 +49,10 @@ export class CandidateModel {
         SELECT c.*, p.name as positionName 
         FROM candidates c 
         LEFT JOIN positions p ON c.positionId = p.id 
-        WHERE p.id IN (
-          SELECT ep.positionId 
-          FROM election_positions ep 
-          WHERE ep.electionId = ?
+        WHERE c.id IN (
+          SELECT ec.candidateId 
+          FROM election_candidates ec 
+          WHERE ec.electionId = ?
         )
         ORDER BY p.name, c.name
       `;

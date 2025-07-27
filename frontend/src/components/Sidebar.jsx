@@ -21,6 +21,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { path: '/admin/election-history', label: 'Election History' },
           { path: '/admin/positions', label: 'Positions' },
           { path: '/admin/candidates', label: 'Candidates' },
+          { path: '/admin/ballot-positions', label: 'Ballot Positions' },
+          { path: '/admin/ballot-candidates', label: 'Ballot Candidates' },
           { path: '/admin/voters', label: 'Voters' },
           { path: '/admin/results', label: 'Results' },
           { path: '/admin/vote-traceability', label: 'Vote Traceability' }
@@ -32,6 +34,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { path: '/admin/election-history', label: 'Election History' },
           { path: '/admin/positions', label: 'Positions' },
           { path: '/admin/candidates', label: 'Candidates' },
+          { path: '/admin/ballot-positions', label: 'Ballot Positions' },
+          { path: '/admin/ballot-candidates', label: 'Ballot Candidates' },
           { path: '/admin/voters', label: 'Voters' },
           { path: '/admin/results', label: 'Results' },
           { path: '/admin/vote-traceability', label: 'Vote Traceability' }

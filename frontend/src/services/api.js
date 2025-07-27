@@ -398,4 +398,122 @@ export const deleteAdmin = async (id) => {
   }
 };
 
+// Election Assignment API Functions
+export const getAssignedElectionPositions = async (electionId) => {
+  try {
+    const response = await api.get(`/api/election-assignments/elections/${electionId}/positions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching assigned election positions:', error);
+    throw error;
+  }
+};
+
+export const getElectionCandidates = async (electionId) => {
+  try {
+    const response = await api.get(`/api/election-assignments/elections/${electionId}/candidates`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching election candidates:', error);
+    throw error;
+  }
+};
+
+export const getUnassignedPositions = async (electionId) => {
+  try {
+    const response = await api.get(`/api/election-assignments/elections/${electionId}/unassigned-positions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unassigned positions:', error);
+    throw error;
+  }
+};
+
+export const getUnassignedCandidates = async (electionId) => {
+  try {
+    const response = await api.get(`/api/election-assignments/elections/${electionId}/unassigned-candidates`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching unassigned candidates:', error);
+    throw error;
+  }
+};
+
+export const getPositionAssignmentStatus = async (electionId) => {
+  try {
+    const response = await api.get(`/api/election-assignments/elections/${electionId}/position-status`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching position assignment status:', error);
+    throw error;
+  }
+};
+
+export const getCandidateAssignmentStatus = async (electionId) => {
+  try {
+    const response = await api.get(`/api/election-assignments/elections/${electionId}/candidate-status`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching candidate assignment status:', error);
+    throw error;
+  }
+};
+
+export const assignPositionToElection = async (electionId, positionId) => {
+  try {
+    const response = await api.post('/api/election-assignments/elections/assign-position', {
+      electionId,
+      positionId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error assigning position to election:', error);
+    throw error;
+  }
+};
+
+export const assignCandidateToElection = async (electionId, candidateId) => {
+  try {
+    const response = await api.post('/api/election-assignments/elections/assign-candidate', {
+      electionId,
+      candidateId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error assigning candidate to election:', error);
+    throw error;
+  }
+};
+
+export const removePositionFromElection = async (electionId, positionId) => {
+  try {
+    const response = await api.delete(`/api/election-assignments/elections/${electionId}/positions/${positionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error removing position from election:', error);
+    throw error;
+  }
+};
+
+export const removeCandidateFromElection = async (electionId, candidateId) => {
+  try {
+    const response = await api.delete(`/api/election-assignments/elections/${electionId}/candidates/${candidateId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error removing candidate from election:', error);
+    throw error;
+  }
+};
+
+// Test function to check if election_candidates table exists
+export const testElectionCandidatesTable = async () => {
+  try {
+    const response = await api.get('/api/election-assignments/test-table');
+    return response.data;
+  } catch (error) {
+    console.error('Error testing table:', error);
+    throw error;
+  }
+};
+
 export default api; 

@@ -75,6 +75,17 @@ CREATE TABLE IF NOT EXISTS election_positions (
     UNIQUE KEY unique_election_position (electionId, positionId)
 );
 
+-- Create election_candidates table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS election_candidates (
+    id VARCHAR(36) PRIMARY KEY,
+    electionId VARCHAR(36) NOT NULL,
+    candidateId VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
+    FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_election_candidate (electionId, candidateId)
+);
+
 -- Create admins table
 CREATE TABLE IF NOT EXISTS admins (
     id VARCHAR(36) PRIMARY KEY,

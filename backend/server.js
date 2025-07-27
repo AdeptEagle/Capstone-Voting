@@ -17,6 +17,7 @@ import electionRoutes from "./routes/electionRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import voteRoutes from "./routes/voteRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import electionAssignmentRoutes from "./routes/electionAssignmentRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +44,7 @@ app.use("/api/elections", electionRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/votes", voteRoutes);
 app.use("/api/admins", adminRoutes);
+app.use("/api/election-assignments", electionAssignmentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
