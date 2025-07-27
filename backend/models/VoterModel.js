@@ -5,7 +5,12 @@ export class VoterModel {
   static async getAll() {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM voters ORDER BY name";
+      const query = `
+        SELECT v.*, vg.name as groupName, vg.type as groupType 
+        FROM voters v 
+        LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id 
+        ORDER BY v.name
+      `;
       db.query(query, (err, data) => {
         db.end();
         if (err) reject(err);
@@ -18,7 +23,7 @@ export class VoterModel {
     const db = createConnection();
     return new Promise(async (resolve, reject) => {
       try {
-        const { name, email, studentId, password } = voterData;
+        const { name, email, studentId, password, voterGroupId } = voterData;
         
         // If no password provided (admin-created voter), set a default password
         let hashedPassword = null;
@@ -29,8 +34,8 @@ export class VoterModel {
           hashedPassword = await bcrypt.hash(studentId, 10);
         }
         
-        const query = "INSERT INTO voters (name, email, studentId, password) VALUES (?, ?, ?, ?)";
-        const values = [name, email, studentId, hashedPassword];
+        const query = "INSERT INTO voters (name, email, studentId, password, voterGroupId) VALUES (?, ?, ?, ?, ?)";
+        const values = [name, email, studentId, hashedPassword, voterGroupId || null];
         
         db.query(query, values, (err, data) => {
           db.end();
@@ -51,12 +56,13 @@ export class VoterModel {
   static async update(id, voterData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "UPDATE voters SET name = ?, email = ?, studentId = ?, hasVoted = ? WHERE id = ?";
+      const query = "UPDATE voters SET name = ?, email = ?, studentId = ?, hasVoted = ?, voterGroupId = ? WHERE id = ?";
       const values = [
         voterData.name,
         voterData.email,
         voterData.studentId,
         voterData.hasVoted,
+        voterData.voterGroupId || null,
         id
       ];
       db.query(query, values, (err, data) => {

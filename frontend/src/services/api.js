@@ -527,4 +527,130 @@ export const testElectionCandidatesTable = async () => {
   }
 };
 
+// Voter Groups API functions
+export const getVoterGroups = async () => {
+  try {
+    const response = await api.get('/api/voter-groups');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching voter groups:', error);
+    throw error;
+  }
+};
+
+export const getPublicVoterGroups = async () => {
+  try {
+    const response = await api.get('/api/voter-groups/public');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public voter groups:', error);
+    throw error;
+  }
+};
+
+export const getVoterGroupById = async (id) => {
+  try {
+    const response = await api.get(`/api/voter-groups/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching voter group:', error);
+    throw error;
+  }
+};
+
+export const createVoterGroup = async (voterGroup) => {
+  try {
+    const response = await api.post('/api/voter-groups', voterGroup);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating voter group:', error);
+    throw error;
+  }
+};
+
+export const updateVoterGroup = async (id, voterGroup) => {
+  try {
+    const response = await api.put(`/api/voter-groups/${id}`, voterGroup);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating voter group:', error);
+    throw error;
+  }
+};
+
+export const deleteVoterGroup = async (id) => {
+  try {
+    const response = await api.delete(`/api/voter-groups/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting voter group:', error);
+    throw error;
+  }
+};
+
+export const getVoterGroupMembers = async (id) => {
+  try {
+    const response = await api.get(`/api/voter-groups/${id}/members`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching voter group members:', error);
+    throw error;
+  }
+};
+
+export const addMemberToGroup = async (voterGroupId, voterId) => {
+  try {
+    const response = await api.post('/api/voter-groups/members', {
+      voterGroupId,
+      voterId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding member to group:', error);
+    throw error;
+  }
+};
+
+export const removeMemberFromGroup = async (voterGroupId, voterId) => {
+  try {
+    const response = await api.delete('/api/voter-groups/members', {
+      data: { voterGroupId, voterId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error removing member from group:', error);
+    throw error;
+  }
+};
+
+export const getVoterGroupsByType = async (type) => {
+  try {
+    const response = await api.get(`/api/voter-groups/type/${type}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching voter groups by type:', error);
+    throw error;
+  }
+};
+
+export const getVoterGroupsForVoter = async (voterId) => {
+  try {
+    const response = await api.get(`/api/voter-groups/voter/${voterId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching voter groups for voter:', error);
+    throw error;
+  }
+};
+
+export const getAvailableVoters = async () => {
+  try {
+    const response = await api.get('/api/voter-groups/available-voters');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available voters:', error);
+    throw error;
+  }
+};
+
 export default api; 

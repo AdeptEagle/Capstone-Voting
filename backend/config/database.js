@@ -57,9 +57,11 @@ async function ensureDatabaseAndTables() {
       email VARCHAR(255) NOT NULL UNIQUE,
       studentId VARCHAR(50) NOT NULL UNIQUE,
       password VARCHAR(255),
+      voterGroupId VARCHAR(36),
       hasVoted BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL
     )`);
 
     await runQuery(db, `CREATE TABLE IF NOT EXISTS votes (
@@ -79,6 +81,27 @@ async function ensureDatabaseAndTables() {
       password VARCHAR(255) NOT NULL,
       role ENUM('superadmin', 'admin') NOT NULL DEFAULT 'admin',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS voter_groups (
+      id VARCHAR(36) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL UNIQUE,
+      description TEXT,
+      type ENUM('department', 'class', 'year', 'custom') NOT NULL DEFAULT 'custom',
+      created_by VARCHAR(36) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS voter_group_members (
+      id VARCHAR(36) PRIMARY KEY,
+      voterGroupId VARCHAR(36) NOT NULL,
+      voterId INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE CASCADE,
+      FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
+      UNIQUE KEY unique_voter_group_member (voterGroupId, voterId)
     )`);
 
     await runQuery(db, `CREATE TABLE IF NOT EXISTS elections (
@@ -119,6 +142,23 @@ async function ensureDatabaseAndTables() {
     });
     if (passwordColumns.length === 0) {
       await runQuery(db, `ALTER TABLE voters ADD COLUMN password VARCHAR(255)`);
+    }
+
+    // Add voterGroupId column to voters table if it doesn't exist
+    const [voterGroupIdColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM voters LIKE 'voterGroupId'`, (err, result) => {
+        if (err) reject(err);
+        else resolve([result]);
+      });
+    });
+    if (voterGroupIdColumns.length === 0) {
+      await runQuery(db, `ALTER TABLE voters ADD COLUMN voterGroupId VARCHAR(36)`);
+      // Add foreign key constraint if voter_groups table exists
+      try {
+        await runQuery(db, `ALTER TABLE voters ADD CONSTRAINT fk_voters_group FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL`);
+      } catch (error) {
+        console.log('Foreign key constraint will be added when voter_groups table is created');
+      }
     }
 
     // Add displayOrder columns to existing tables if they don't exist

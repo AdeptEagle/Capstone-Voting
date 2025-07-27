@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getVoters, createVoter, updateVoter, deleteVoter } from '../services/api';
+import { getVoters, createVoter, updateVoter, deleteVoter, getVoterGroups } from '../services/api';
 
 const Voters = () => {
   const [voters, setVoters] = useState([]);
@@ -12,12 +12,24 @@ const Voters = () => {
     name: '',
     email: '',
     studentId: '',
-    hasVoted: false
+    hasVoted: false,
+    voterGroupId: ''
   });
+  const [voterGroups, setVoterGroups] = useState([]);
 
   useEffect(() => {
     fetchVoters();
+    fetchVoterGroups();
   }, []);
+
+  const fetchVoterGroups = async () => {
+    try {
+      const groups = await getVoterGroups();
+      setVoterGroups(groups);
+    } catch (error) {
+      console.error('Error fetching voter groups:', error);
+    }
+  };
 
   const fetchVoters = async () => {
     try {
@@ -40,7 +52,8 @@ const Voters = () => {
         name: voter.name,
         email: voter.email,
         studentId: voter.studentId,
-        hasVoted: voter.hasVoted
+        hasVoted: voter.hasVoted,
+        voterGroupId: voter.voterGroupId || ''
       });
     } else {
       setEditingVoter(null);
@@ -48,7 +61,8 @@ const Voters = () => {
         name: '',
         email: '',
         studentId: '',
-        hasVoted: false
+        hasVoted: false,
+        voterGroupId: ''
       });
     }
     setShowModal(true);
@@ -63,7 +77,8 @@ const Voters = () => {
       name: '',
       email: '',
       studentId: '',
-      hasVoted: false
+      hasVoted: false,
+      voterGroupId: ''
     });
     setSuccess('');
     setError('');
@@ -156,6 +171,7 @@ const Voters = () => {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Student ID</th>
+                  <th>Group</th>
                   <th>Voting Status</th>
                   <th>Actions</th>
                 </tr>
@@ -168,6 +184,15 @@ const Voters = () => {
                       <td>{voter.name}</td>
                       <td>{voter.email}</td>
                       <td>{voter.studentId}</td>
+                      <td>
+                        {voter.groupName ? (
+                          <span className="badge bg-info">
+                            {voter.groupName} ({voter.groupType})
+                          </span>
+                        ) : (
+                          <span className="text-muted">No group</span>
+                        )}
+                      </td>
                       <td>
                         {voter.hasVoted ? (
                           <span className="badge bg-success">Voted</span>
@@ -193,7 +218,7 @@ const Voters = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="text-center">No voters found</td>
+                    <td colSpan="7" className="text-center">No voters found</td>
                   </tr>
                 )}
               </tbody>
@@ -258,6 +283,22 @@ const Voters = () => {
                       onChange={handleChange}
                       required
                     />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Group (Optional)</label>
+                    <select
+                      className="form-control"
+                      name="voterGroupId"
+                      value={formData.voterGroupId}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select a group</option>
+                      {voterGroups.map(group => (
+                        <option key={group.id} value={group.id}>
+                          {group.name} ({group.type})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="mb-3">
                     <div className="form-check">

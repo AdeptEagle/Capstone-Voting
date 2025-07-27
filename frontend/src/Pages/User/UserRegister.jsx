@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import api, { getPublicVoterGroups } from '../../services/api';
 import './UserRegister.css';
 
 const UserRegister = () => {
@@ -9,12 +9,32 @@ const UserRegister = () => {
     email: '',
     studentId: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    voterGroupId: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [voterGroups, setVoterGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
   const navigate = useNavigate();
+
+  // Fetch voter groups on component mount
+  useEffect(() => {
+    const fetchVoterGroups = async () => {
+      try {
+        const groups = await getPublicVoterGroups();
+        setVoterGroups(groups);
+      } catch (error) {
+        console.error('Error fetching voter groups:', error);
+        setError('Failed to load voter groups. Please try again.');
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+
+    fetchVoterGroups();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -55,7 +75,8 @@ const UserRegister = () => {
         name: formData.name,
         email: formData.email,
         studentId: formData.studentId,
-        password: formData.password
+        password: formData.password,
+        voterGroupId: formData.voterGroupId || null
       });
 
       setSuccess('Registration successful! Redirecting to dashboard...');
@@ -170,6 +191,25 @@ const UserRegister = () => {
               placeholder="YYYY-NNNNN (e.g., 2022-00222)"
               required
             />
+          </div>
+
+          <div className="user-register-field">
+            <label htmlFor="voterGroupId">Department/Group (Optional)</label>
+            <select
+              id="voterGroupId"
+              name="voterGroupId"
+              value={formData.voterGroupId}
+              onChange={handleChange}
+              disabled={loadingGroups}
+            >
+              <option value="">Select your department or group</option>
+              {voterGroups.map(group => (
+                <option key={group.id} value={group.id}>
+                  {group.name} ({group.type})
+                </option>
+              ))}
+            </select>
+            {loadingGroups && <small>Loading groups...</small>}
           </div>
 
           <div className="user-register-field">

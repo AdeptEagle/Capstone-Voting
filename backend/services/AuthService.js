@@ -33,7 +33,7 @@ export class AuthService {
 
   static async userRegister(userData) {
     try {
-      const { name, email, studentId, password } = userData;
+      const { name, email, studentId, password, voterGroupId } = userData;
       
       // Check if user already exists
       const existingUser = await VoterModel.getByEmail(email) || await VoterModel.getByStudentId(studentId);
@@ -49,7 +49,8 @@ export class AuthService {
         name,
         email,
         studentId,
-        password: hashedPassword
+        password: hashedPassword,
+        voterGroupId: voterGroupId || null
       });
       
       // Create JWT token for immediate login
