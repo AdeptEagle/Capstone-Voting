@@ -152,7 +152,7 @@ const Candidates = () => {
     }
   };
 
-  // User view: candidate cards grouped by position
+  // User view: modern candidate cards grouped by position
   if (role === 'user') {
     // Check if user can view candidates (has active election)
     if (!canViewCandidates) {
@@ -171,47 +171,66 @@ const Candidates = () => {
 
     return (
       <div className="candidates-user-view">
-        <h1 className="candidates-page-title">Meet the Candidates</h1>
-        <p className="candidates-page-subtitle">Learn about each candidate and their platforms</p>
+        {/* Professional Header */}
+        <div className="dashboard-header-pro">
+          <div className="dashboard-header-row">
+            <div>
+              <h1 className="dashboard-title-pro">Meet the Candidates</h1>
+              <p className="dashboard-subtitle-pro">Explore each candidate's platform, vision, and qualifications for their respective positions.</p>
+            </div>
+          </div>
+        </div>
+
         {error && <Alert variant="danger">{error}</Alert>}
         
         {candidates.length > 0 ? (
           Object.entries(candidatesByPosition).map(([position, positionCandidates]) => (
             <div key={position} className="position-section">
-              <h2 className="position-title">{position}</h2>
+              <div className="position-header">
+                <h2 className="position-title">{position}</h2>
+                <span className="candidate-count">{positionCandidates.length} candidate{positionCandidates.length !== 1 ? 's' : ''}</span>
+              </div>
               <div className="candidate-card-grid">
-                {positionCandidates.map(candidate => (
-                  <div className="candidate-card facebook-style" key={candidate.id}>
+                {positionCandidates.map((candidate, index) => (
+                  <div className="candidate-card-modern" key={candidate.id}>
                     <div className="candidate-card-header">
-                      {candidate.photoUrl ? (
-                        <img src={candidate.photoUrl} alt={candidate.name} className="candidate-photo" />
-                      ) : (
-                        <div className="candidate-photo-placeholder">
-                          <i className="fas fa-user"></i>
-                        </div>
-                      )}
-                      <div className="candidate-info">
-                        <h3 className="candidate-name">{candidate.name}</h3>
-                        <p className="candidate-position">{candidate.positionName}</p>
+                      <div className="candidate-rank-badge">
+                        <span className="rank-number">{index + 1}</span>
+                      </div>
+                      <div className="candidate-photo-container">
+                        {candidate.photoUrl ? (
+                          <img src={candidate.photoUrl} alt={candidate.name} className="candidate-photo" />
+                        ) : (
+                          <div className="candidate-photo-placeholder">
+                            <i className="fas fa-user"></i>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="candidate-card-body">
-                      <p className="candidate-brief">
-                        {candidate.description ? 
-                          candidate.description.substring(0, 100) + (candidate.description.length > 100 ? '...' : '') :
-                          'Learn more about this candidate and their vision for the position.'
-                        }
-                      </p>
+                      <div className="candidate-info">
+                        <h3 className="candidate-name">
+                          {candidate.name}
+                          <span className="verified"><i className="fas fa-check-circle"></i></span>
+                        </h3>
+                        <p className="candidate-position">{candidate.positionName}</p>
+                      </div>
+                      <div className="candidate-brief">
+                        <p>
+                          {candidate.description ? 
+                            candidate.description.substring(0, 120) + (candidate.description.length > 120 ? '...' : '') :
+                            'Learn more about this candidate and their vision for the position.'
+                          }
+                        </p>
+                      </div>
                     </div>
                     <div className="candidate-card-footer">
-                      <Button 
-                        variant="primary" 
-                        className="view-more-btn"
+                      <button 
+                        className="expand-btn"
                         onClick={() => setViewCandidate(candidate)}
                       >
-                        <i className="fas fa-eye me-2"></i>
                         View Platform
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -220,9 +239,11 @@ const Candidates = () => {
           ))
         ) : (
           <div className="no-candidates">
-            <i className="fas fa-users fa-3x mb-3"></i>
-            <h3>No Candidates Yet</h3>
-            <p>Candidates will appear here once they are added to the system.</p>
+            <div className="no-candidates-content">
+              <i className="fas fa-users"></i>
+              <h3>No Candidates Yet</h3>
+              <p>Candidates will appear here once they are added to the system.</p>
+            </div>
           </div>
         )}
         
@@ -233,11 +254,17 @@ const Candidates = () => {
               <div className="modal-content">
                 <div className="modal-header">
                   <div className="modal-candidate-info">
-                    {viewCandidate?.photoUrl && (
-                      <img src={viewCandidate.photoUrl} alt={viewCandidate.name} className="modal-candidate-photo" />
-                    )}
-                    <div>
-                      <h4>{viewCandidate?.name}</h4>
+                    <div className="modal-candidate-photo-container">
+                      {viewCandidate?.photoUrl ? (
+                        <img src={viewCandidate.photoUrl} alt={viewCandidate.name} className="modal-candidate-photo" />
+                      ) : (
+                        <div className="modal-candidate-photo-placeholder">
+                          <i className="fas fa-user"></i>
+                        </div>
+                      )}
+                    </div>
+                    <div className="modal-candidate-details">
+                      <h4 className="modal-candidate-name">{viewCandidate?.name}</h4>
                       <p className="modal-position">{viewCandidate?.positionName}</p>
                     </div>
                   </div>
@@ -249,10 +276,17 @@ const Candidates = () => {
                 </div>
                 <div className="modal-body">
                   <div className="candidate-platform">
-                    <h5><i className="fas fa-bullhorn me-2"></i>Platform & Vision</h5>
+                    <div className="platform-header">
+                      <i className="fas fa-bullhorn"></i>
+                      <h5>Platform & Vision</h5>
+                    </div>
                     <div className="platform-content">
                       {viewCandidate?.description ? (
-                        <p>{viewCandidate.description}</p>
+                        <div className="platform-text">
+                          {viewCandidate.description.split('\n').map((paragraph, index) => (
+                            <p key={index}>{paragraph}</p>
+                          ))}
+                        </div>
                       ) : (
                         <div className="no-platform">
                           <i className="fas fa-info-circle"></i>
@@ -274,7 +308,7 @@ const Candidates = () => {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button className="btn btn-secondary" onClick={() => setViewCandidate(null)}>
+                  <button className="btn-custom-blue" onClick={() => setViewCandidate(null)}>
                     <i className="fas fa-times me-2"></i>
                     Close
                   </button>

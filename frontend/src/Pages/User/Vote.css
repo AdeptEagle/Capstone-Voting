@@ -186,14 +186,14 @@ body::after {
   color: rgba(255, 255, 255, 0.9);
 }
 
-/* Candidates Grid - Fixed Layout */
+/* Modern Vote Candidates Grid */
 .vote-candidates-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, 320px);
   gap: 2rem;
   margin-bottom: 2rem;
   max-width: 100%;
-  min-height: 400px;
+  justify-content: center;
 }
 
 /* Force consistent card sizing - No auto-adjustment */
@@ -273,6 +273,194 @@ body::after {
   transform: none;
   border-color: #e5e7eb;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Modern Vote Candidate Card - Full Image Template */
+.vote-candidate-card-modern {
+  width: 320px;
+  height: 500px;
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.vote-candidate-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.vote-candidate-card-modern.selected {
+  background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);
+  border: 2px solid #7dd3fc;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 20px rgba(125, 211, 252, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vote-candidate-card-modern.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+.vote-candidate-card-modern.disabled:hover {
+  transform: none;
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.08);
+}
+
+.vote-candidate-card-header {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.vote-candidate-rank-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, var(--accent-steel), var(--primary-navy));
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(29, 53, 87, 0.3);
+  border: 3px solid var(--white);
+  z-index: 20;
+}
+
+.vote-candidate-rank-badge .rank-number {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-white);
+  line-height: 1;
+}
+
+.vote-candidate-photo-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.vote-candidate-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vote-candidate-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--light-gray), var(--medium-gray));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 4rem;
+}
+
+.vote-candidate-selection-overlay {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 20;
+}
+
+.vote-selection-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vote-selection-indicator {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--white);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.vote-candidate-card-modern.selected .vote-selection-indicator {
+  background: var(--primary-navy);
+  border-color: var(--white);
+}
+
+.vote-candidate-card-modern.selected .vote-selection-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--white);
+  border-radius: 50%;
+}
+
+/* Remove card body since everything is in overlay */
+.vote-candidate-card-body {
+  display: none;
+}
+
+/* Overlay Information on Image */
+.vote-candidate-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.vote-candidate-overlay-name {
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.vote-candidate-overlay-position {
+  font-size: 16px;
+  font-weight: 500;
+  color: #f0f0f0;
+  margin: 0;
+  margin-top: -2px;
+}
+
+.vote-candidate-overlay-description {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #ddd;
+  margin: 0;
+}
+
+.vote-candidate-card-modern.selected .vote-candidate-overlay {
+  background: linear-gradient(to top, rgba(125, 211, 252, 0.75), transparent);
+}
+
+.vote-candidate-card-modern.selected .vote-candidate-name,
+.vote-candidate-card-modern.selected .vote-candidate-position,
+.vote-candidate-card-modern.selected .vote-candidate-group,
+.vote-candidate-card-modern.selected .vote-candidate-brief {
+  color: var(--text-dark);
 }
 
 /* Radio Button Styling */
@@ -375,7 +563,18 @@ body::after {
   margin: 0;
 }
 
-/* Candidate Photo Styling - Fixed Size */
+/* Candidate Photo Styling - Full Image for Modern Cards */
+.vote-candidate-card-modern .vote-candidate-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Keep old styles for backward compatibility */
 .vote-candidate-photo {
   flex-shrink: 0;
   width: 80px;

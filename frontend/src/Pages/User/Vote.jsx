@@ -346,50 +346,60 @@ const Vote = () => {
         {success && <div className="alert alert-success">{success}</div>}
 
         <div className="vote-candidates-grid">
-          {getCurrentCandidates().map(candidate => (
+          {getCurrentCandidates().map((candidate, index) => (
             <div 
               key={candidate.id} 
-              className={`vote-candidate-card ${isCandidateSelected(candidate.id) ? 'selected' : ''} ${!isCandidateSelected(candidate.id) && !canSelectMore() ? 'disabled' : ''}`}
+              className={`vote-candidate-card-modern ${isCandidateSelected(candidate.id) ? 'selected' : ''} ${!isCandidateSelected(candidate.id) && !canSelectMore() ? 'disabled' : ''}`}
               onClick={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
             >
-              <div className="vote-candidate-radio">
-                <input
-                  type={getVoteLimit() === 1 ? "radio" : "checkbox"}
-                  name={`position-${getCurrentPosition()?.id}`}
-                  value={candidate.id}
-                  checked={isCandidateSelected(candidate.id)}
-                  onChange={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
-                  disabled={!isCandidateSelected(candidate.id) && !canSelectMore()}
-                />
-                <span className={`${getVoteLimit() === 1 ? 'radio-custom' : 'checkbox-custom'}`}></span>
-              </div>
-              <div className="vote-candidate-photo">
-                {candidate.photoUrl ? (
-                  <img 
-                    src={getImageUrl(candidate.photoUrl)} 
-                    alt={candidate.name} 
-                    className="candidate-photo"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div className="candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
-                  <i className="fas fa-user"></i>
+              <div className="vote-candidate-card-header">
+                <div className="vote-candidate-rank-badge">
+                  <span className="rank-number">{index + 1}</span>
                 </div>
-              </div>
-              <div className="vote-candidate-content">
-                <h4 className="vote-candidate-name">{candidate.name}</h4>
-                {candidate.description && (
-                  <p className="vote-candidate-description">
-                    {candidate.description.length > 150 
-                      ? candidate.description.substring(0, 150) + '...' 
-                      : candidate.description
+                <div className="vote-candidate-photo-container">
+                  {candidate.photoUrl ? (
+                    <img 
+                      src={getImageUrl(candidate.photoUrl)} 
+                      alt={candidate.name} 
+                      className="vote-candidate-photo"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : (
+                    <div className="vote-candidate-photo-placeholder">
+                      <i className="fas fa-user"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="vote-candidate-overlay">
+                  <h3 className="vote-candidate-overlay-name">
+                    {candidate.name}
+                    <span className="verified"><i className="fas fa-check-circle"></i></span>
+                  </h3>
+                  <div className="vote-candidate-overlay-position">{candidate.positionName}</div>
+                  <p className="vote-candidate-overlay-description">
+                    {candidate.description ? 
+                      candidate.description.substring(0, 120) + (candidate.description.length > 120 ? '...' : '') :
+                      'Learn more about this candidate and their vision for the position.'
                     }
                   </p>
-                )}
+                </div>
+                <div className="vote-candidate-selection-overlay">
+                  <input
+                    type={getVoteLimit() === 1 ? "radio" : "checkbox"}
+                    name={`position-${getCurrentPosition()?.id}`}
+                    value={candidate.id}
+                    checked={isCandidateSelected(candidate.id)}
+                    onChange={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
+                    disabled={!isCandidateSelected(candidate.id) && !canSelectMore()}
+                    className="vote-selection-input"
+                  />
+                  <span className={`vote-selection-indicator ${getVoteLimit() === 1 ? 'radio-custom' : 'checkbox-custom'}`}></span>
+                </div>
               </div>
+
             </div>
           ))}
         </div>
