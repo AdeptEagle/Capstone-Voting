@@ -51,7 +51,7 @@ const UserRegister = () => {
     }
 
     try {
-      const response = await api.post('/api/user/register', {
+      const response = await api.post('/api/auth/user/register', {
         name: formData.name,
         email: formData.email,
         studentId: formData.studentId,
@@ -66,7 +66,7 @@ const UserRegister = () => {
       localStorage.setItem('role', role);
       
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/user/dashboard');
       }, 2000);
 
     } catch (err) {

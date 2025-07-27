@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { getPositions, getCandidates, getVoters, getVotes } from '../services/api';
-import { getRole } from '../services/auth';
+import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
 import './Results.css';
@@ -553,7 +553,7 @@ const Results = () => {
     canViewResults,
     hasAnyElection,
     activeElection,
-    userRole: getRole(),
+            userRole: checkCurrentUser().role,
     dataLengths: {
       positions: data.positions.length,
       candidates: data.candidates.length,
@@ -569,7 +569,7 @@ const Results = () => {
       <div>
         <div style={{ background: '#f8f9fa', padding: '20px', margin: '20px', border: '1px solid #dee2e6', borderRadius: '8px' }}>
           <h4>Debug Information:</h4>
-          <p><strong>User Role:</strong> {getRole()}</p>
+          <p><strong>User Role:</strong> {checkCurrentUser().role}</p>
           <p><strong>Can View Results:</strong> {canViewResults ? 'Yes' : 'No'}</p>
           <p><strong>Has Any Election:</strong> {hasAnyElection ? 'Yes' : 'No'}</p>
           <p><strong>Active Election:</strong> {activeElection ? 'Yes' : 'No'}</p>
@@ -587,7 +587,7 @@ const Results = () => {
 
   const { totalVotes, voterTurnout } = electionStats;
   const { positions, candidates, votes } = data;
-  const userRole = getRole();
+  const userRole = checkCurrentUser().role;
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   return (

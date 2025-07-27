@@ -15,11 +15,11 @@ const UserLogin = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await api.post('/api/user/login', { studentId, password });
+      const res = await api.post('/api/auth/user/login', { studentId, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.role);
       setLoading(false);
-      navigate('/dashboard');
+      navigate('/user/dashboard');
     } catch (err) {
       setLoading(false);
       setError(err.response?.data?.error || 'Login failed');

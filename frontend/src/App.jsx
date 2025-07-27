@@ -16,117 +16,221 @@ import UserRegister from './Pages/User/UserRegister';
 import Vote from './Pages/User/Vote';
 import AdminLogin from './Pages/AdminLogin';
 import UserLogin from './Pages/User/UserLogin';
-import { getRole, getToken } from './services/auth';
+import { getToken, checkCurrentUser } from './services/auth';
 import { ElectionProvider } from './contexts/ElectionContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-function PrivateRoute({ children, role }) {
-  const userRole = getRole();
+// Admin Route Protection (for admin and superadmin)
+function AdminRoute({ children }) {
   const token = getToken();
+  const currentUser = checkCurrentUser();
 
-  if (!token) return <Navigate to="/user-login" />;
-  if (role) {
-    if (Array.isArray(role)) {
-      if (!role.includes(userRole)) return <Navigate to="/user-login" />;
-    } else {
-      if (userRole !== role) return <Navigate to="/user-login" />;
-    }
+  if (!token || !currentUser.isAuthenticated) {
+    return <Navigate to="/admin-login" />;
   }
+  
+  if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+    return <Navigate to="/admin-login" />;
+  }
+  
   return children;
 }
 
-function App() {
+// SuperAdmin Route Protection (superadmin only)
+function SuperAdminRoute({ children }) {
+  const token = getToken();
+  const currentUser = checkCurrentUser();
+
+  if (!token || !currentUser.isAuthenticated) {
+    return <Navigate to="/admin-login" />;
+  }
+  
+  if (currentUser.role !== 'superadmin') {
+    return <Navigate to="/admin-login" />;
+  }
+  
+  return children;
+}
+
+// User Route Protection (user only)
+function UserRoute({ children }) {
+  const token = getToken();
+  const currentUser = checkCurrentUser();
+
+  if (!token || !currentUser.isAuthenticated) {
+    return <Navigate to="/user-login" />;
+  }
+  
+  if (currentUser.role !== 'user') {
+    return <Navigate to="/user-login" />;
+  }
+  
+  return children;
+}
+
+// Admin Layout Component (for admin and superadmin routes)
+function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    window.location.href = '/user-login';
+  return (
+    <>
+      <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
+      <Header onToggleSidebar={toggleSidebar} />
+      <main>
+        {children}
+      </main>
+    </>
+  );
+}
+
+// User Layout Component (for user routes)
+function UserLayout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   return (
+    <>
+      <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
+      <Header onToggleSidebar={toggleSidebar} />
+      <main>
+        {children}
+      </main>
+    </>
+  );
+}
+
+function App() {
+  return (
     <Router>
       <ElectionProvider>
-      <div className="App">
-        <Routes>
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/user-login" element={<UserLogin />} />
-          <Route path="/register" element={<UserRegister />} />
-          <Route path="/vote" element={
-            <PrivateRoute role="user">
-              <Vote />
-            </PrivateRoute>
-          } />
-          <Route path="/" element={<UserLogin />} />
-          <Route path="*" element={
-            <>
-              <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-              <Header onToggleSidebar={toggleSidebar} />
-              <main>
-                <Routes>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<UserLogin />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/user-login" element={<UserLogin />} />
+            <Route path="/register" element={<UserRegister />} />
+
+            {/* SuperAdmin Routes (SuperAdmin only) */}
             <Route path="/superadmin" element={
-              <PrivateRoute role="superadmin">
-                <SuperAdminDashboard />
-              </PrivateRoute>
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <SuperAdminDashboard />
+                </AdminLayout>
+              </SuperAdminRoute>
             } />
             <Route path="/superadmin/manage-admins" element={
-              <PrivateRoute role="superadmin">
-                <ManageAdmins />
-              </PrivateRoute>
+              <SuperAdminRoute>
+                <AdminLayout>
+                  <ManageAdmins />
+                </AdminLayout>
+              </SuperAdminRoute>
             } />
+
+            {/* Admin Routes (Admin and SuperAdmin) */}
             <Route path="/admin" element={
-              <PrivateRoute role="admin">
-                <AdminDashboard />
-              </PrivateRoute>
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/dashboard" element={
-              <PrivateRoute role={null}>
-                <UserDashboard />
-              </PrivateRoute>
+            <Route path="/admin/positions" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Positions />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/positions" element={
-              <PrivateRoute>
-                <Positions />
-              </PrivateRoute>
+            <Route path="/admin/candidates" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Candidates />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/candidates" element={
-              <PrivateRoute>
-                <Candidates />
-              </PrivateRoute>
+            <Route path="/admin/voters" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Voters />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/voters" element={
-              <PrivateRoute>
-                <Voters />
-              </PrivateRoute>
+            <Route path="/admin/elections" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Elections />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/elections" element={
-              <PrivateRoute role={['admin', 'superadmin']}>
-                <Elections />
-              </PrivateRoute>
+            <Route path="/admin/results" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Results />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/results" element={
-              <PrivateRoute>
-                <Results />
-              </PrivateRoute>
+            <Route path="/admin/vote-traceability" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <VoteTraceability />
+                </AdminLayout>
+              </AdminRoute>
             } />
-            <Route path="/vote-traceability" element={
-              <PrivateRoute role={['admin', 'superadmin']}>
-                <VoteTraceability />
-              </PrivateRoute>
+
+            {/* User Routes (User only) */}
+            <Route path="/user/dashboard" element={
+              <UserRoute>
+                <UserLayout>
+                  <UserDashboard />
+                </UserLayout>
+              </UserRoute>
             } />
+            <Route path="/user/vote" element={
+              <UserRoute>
+                <UserLayout>
+                  <Vote />
+                </UserLayout>
+              </UserRoute>
+            } />
+            <Route path="/user/candidates" element={
+              <UserRoute>
+                <UserLayout>
+                  <Candidates />
+                </UserLayout>
+              </UserRoute>
+            } />
+            <Route path="/user/results" element={
+              <UserRoute>
+                <UserLayout>
+                  <Results />
+                </UserLayout>
+              </UserRoute>
+            } />
+
+            {/* Legacy Route Redirects for backward compatibility */}
+            <Route path="/dashboard" element={<Navigate to="/user/dashboard" />} />
+            <Route path="/vote" element={<Navigate to="/user/vote" />} />
+            <Route path="/candidates" element={<Navigate to="/user/candidates" />} />
+            <Route path="/results" element={<Navigate to="/user/results" />} />
+            <Route path="/positions" element={<Navigate to="/admin/positions" />} />
+            <Route path="/voters" element={<Navigate to="/admin/voters" />} />
+            <Route path="/elections" element={<Navigate to="/admin/elections" />} />
+            <Route path="/vote-traceability" element={<Navigate to="/admin/vote-traceability" />} />
+
+            {/* Catch all - redirect to appropriate login */}
             <Route path="*" element={<Navigate to="/user-login" />} />
-                </Routes>
-              </main>
-            </>
-          } />
-        </Routes>
-      </div>
-        </ElectionProvider>
+          </Routes>
+        </div>
+      </ElectionProvider>
     </Router>
   );
 }

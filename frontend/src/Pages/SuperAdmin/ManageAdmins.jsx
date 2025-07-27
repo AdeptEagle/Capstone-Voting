@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { getAdmins, createAdmin, updateAdmin, deleteAdmin } from '../../services/api';
+import { checkCurrentUser, isSuperAdmin } from '../../services/auth';
 import './ManageAdmins.css';
 
 const ManageAdmins = () => {
@@ -9,16 +11,33 @@ const ManageAdmins = () => {
   const [editingAdmin, setEditingAdmin] = useState(null);
   const [formData, setFormData] = useState({ id: '', username: '', password: '', role: 'admin' });
   const [error, setError] = useState('');
+  const [authError, setAuthError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if user is superadmin
+    const currentUser = checkCurrentUser();
+    if (!currentUser.isAuthenticated) {
+      setAuthError('Please log in to access this page');
+      setLoading(false);
+      return;
+    }
+    
+    if (!isSuperAdmin()) {
+      setAuthError('Access denied. Superadmin privileges required.');
+      setLoading(false);
+      return;
+    }
+    
     fetchAdmins();
   }, []);
 
   const fetchAdmins = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/admins');
-      setAdmins(response.data);
+      const admins = await getAdmins();
+      console.log('Fetched admins:', admins);
+      setAdmins(admins);
       setError('');
     } catch (error) {
       console.error('Error fetching admins:', error);
@@ -32,9 +51,9 @@ const ManageAdmins = () => {
     e.preventDefault();
     try {
       if (editingAdmin) {
-        await api.put(`/api/admins/${editingAdmin.id}`, formData);
+        await updateAdmin(editingAdmin.id, formData);
       } else {
-        await api.post('/api/admins', formData);
+        await createAdmin(formData);
       }
       setShowModal(false);
       setEditingAdmin(null);
@@ -55,7 +74,7 @@ const ManageAdmins = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this admin account?')) {
       try {
-        await api.delete(`/api/admins/${id}`);
+        await deleteAdmin(id);
         fetchAdmins();
       } catch (error) {
         console.error('Error deleting admin:', error);
@@ -80,6 +99,22 @@ const ManageAdmins = () => {
     );
   }
 
+  if (authError) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+        <div className="text-center">
+          <div className="alert alert-danger">
+            <h4>Access Denied</h4>
+            <p>{authError}</p>
+            <button className="btn btn-primary" onClick={() => navigate('/login')}>
+              Go to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="manage-admins-container">
       {/* Unified Professional Header */}
@@ -93,6 +128,14 @@ const ManageAdmins = () => {
             <button className="btn btn-custom-blue" onClick={openModal}>
               Add Admin
             </button>
+            <button 
+              className="btn btn-outline-secondary ms-2" 
+              onClick={fetchAdmins}
+              disabled={loading}
+            >
+              <i className="fas fa-sync-alt me-1"></i>
+              Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -103,6 +146,27 @@ const ManageAdmins = () => {
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* Debug: Show loading state and data */}
+      {loading && (
+        <div className="alert alert-info">
+          <i className="fas fa-spinner fa-spin me-2"></i>
+          Loading admin data...
+        </div>
+      )}
+
+      {!loading && admins.length === 0 && (
+        <div className="alert alert-warning">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          No admin accounts found. You can create the first admin account below.
+        </div>
+      )}
+
+      {/* Show current user info */}
+      <div className="alert alert-info">
+        <strong>Current User:</strong> {checkCurrentUser().user?.username || 'Unknown'} 
+        <span className="badge bg-primary ms-2">{checkCurrentUser().role || 'No role'}</span>
+      </div>
 
       <div className="admin-table-block">
         <table className="table table-hover">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import { getAdmins, getPositions, getCandidates, getVoters, getVotes } from '../../services/api';
 import ElectionStatus from '../../components/ElectionStatus';
 import './SuperAdminDashboard.css';
 
@@ -24,19 +24,19 @@ const SuperAdminDashboard = () => {
     try {
       setLoading(true);
       const [admins, positions, candidates, voters, votes] = await Promise.all([
-        api.get('/api/admins'),
-        api.get('/api/positions'),
-        api.get('/api/candidates'),
-        api.get('/api/voters'),
-        api.get('/api/votes')
+        getAdmins(),
+        getPositions(),
+        getCandidates(),
+        getVoters(),
+        getVotes()
       ]);
 
       setStats({
-        totalAdmins: admins.data.length,
-        totalPositions: positions.data.length,
-        totalCandidates: candidates.data.length,
-        totalVoters: voters.data.length,
-        totalVotes: votes.data.length
+        totalAdmins: admins.length,
+        totalPositions: positions.length,
+        totalCandidates: candidates.length,
+        totalVoters: voters.length,
+        totalVotes: votes.length
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -156,7 +156,7 @@ const SuperAdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-success w-100 action-btn"
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate('/admin/results')}
                   >
                     <i className="fas fa-chart-bar me-2"></i>
                     View Results
@@ -165,7 +165,7 @@ const SuperAdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-info w-100 action-btn"
-                    onClick={() => navigate('/positions')}
+                    onClick={() => navigate('/admin/positions')}
                   >
                     <i className="fas fa-briefcase me-2"></i>
                     Manage Positions
@@ -174,7 +174,7 @@ const SuperAdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-warning w-100 action-btn"
-                    onClick={() => navigate('/candidates')}
+                    onClick={() => navigate('/admin/candidates')}
                   >
                     <i className="fas fa-user-tie me-2"></i>
                     Manage Candidates

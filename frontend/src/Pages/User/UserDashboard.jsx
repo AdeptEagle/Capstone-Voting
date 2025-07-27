@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import { getVoters } from '../../services/api';
 import { useElection } from '../../contexts/ElectionContext';
 import './UserDashboard.css';
 
@@ -17,8 +17,8 @@ const UserDashboard = () => {
     
     // Fetch user info from token/localStorage
     const userId = localStorage.getItem('userId') || JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id;
-    api.get(`/api/voters`).then(res => {
-      const voter = res.data.find(v => v.id === userId);
+    getVoters().then(voters => {
+      const voter = voters.find(v => v.id === userId);
       setUser(voter);
       setHasVoted(voter?.hasVoted);
       setLoading(false);
@@ -84,7 +84,7 @@ const UserDashboard = () => {
               <div className="notification-actions">
                 <button
                   className="btn btn-outline-primary"
-                  onClick={() => navigate('/candidates')}
+                  onClick={() => navigate('/user/candidates')}
                 >
                   <i className="fas fa-users me-2"></i>
                   View Candidates (if available)
@@ -92,7 +92,7 @@ const UserDashboard = () => {
                 {canViewResults && (
                   <button
                     className="btn btn-outline-info"
-                    onClick={() => navigate('/results')}
+                    onClick={() => navigate('/user/results')}
                   >
                     <i className="fas fa-chart-bar me-2"></i>
                     View Previous Results
@@ -131,7 +131,7 @@ const UserDashboard = () => {
         {hasActiveElection && canVote && !hasVoted && (
           <button
             className="btn btn-primary btn-lg mb-3"
-            onClick={() => navigate('/vote')}
+            onClick={() => navigate('/user/vote')}
           >
             <i className="fas fa-vote-yea me-2"></i>
             Cast Your Vote Now
@@ -141,7 +141,7 @@ const UserDashboard = () => {
         {hasActiveElection && (
           <button
             className="btn btn-outline-secondary mb-3 me-2"
-            onClick={() => navigate('/candidates')}
+            onClick={() => navigate('/user/candidates')}
           >
             <i className="fas fa-users me-2"></i>
             View Candidates
@@ -151,7 +151,7 @@ const UserDashboard = () => {
         {canViewResults && (
           <button
             className="btn btn-outline-info mb-3"
-            onClick={() => navigate('/results')}
+            onClick={() => navigate('/user/results')}
           >
             <i className="fas fa-chart-bar me-2"></i>
             View Results

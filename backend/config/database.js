@@ -1,0 +1,194 @@
+import mysql from "mysql2";
+import bcrypt from "bcryptjs";
+
+const DB_NAME = "voting_system";
+const dbConfig = {
+  host: "localhost",
+  user: "root",
+  password: "root"
+};
+
+// Create a connection without specifying database to create DB if needed
+const dbRoot = mysql.createConnection(dbConfig);
+
+// Helper to run a query and return a promise
+function runQuery(connection, sql) {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
+
+async function ensureDatabaseAndTables() {
+  try {
+    // 1. Create database if it doesn't exist
+    await runQuery(dbRoot, `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
+
+    // 2. Connect to the database
+    const db = mysql.createConnection({ ...dbConfig, database: DB_NAME });
+
+    // 3. Create tables if they do not exist
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS positions (
+      id VARCHAR(36) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL UNIQUE,
+      voteLimit INT NOT NULL DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS candidates (
+      id VARCHAR(36) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      positionId VARCHAR(36) NOT NULL,
+      photoUrl TEXT,
+      description TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS voters (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      studentId VARCHAR(50) NOT NULL UNIQUE,
+      password VARCHAR(255),
+      hasVoted BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS votes (
+      id VARCHAR(36) PRIMARY KEY,
+      voterId INT NOT NULL,
+      candidateId VARCHAR(36) NOT NULL,
+      electionId VARCHAR(36) NOT NULL,
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
+      FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
+      UNIQUE KEY unique_vote (voterId, candidateId, electionId)
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS admins (
+      id VARCHAR(36) PRIMARY KEY,
+      username VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      role ENUM('superadmin', 'admin') NOT NULL DEFAULT 'admin',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS elections (
+      id VARCHAR(36) PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT,
+      startTime DATETIME NOT NULL,
+      endTime DATETIME NOT NULL,
+      status ENUM('draft', 'active', 'ended', 'cancelled') DEFAULT 'draft',
+      created_by VARCHAR(36) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS election_positions (
+      id VARCHAR(36) PRIMARY KEY,
+      electionId VARCHAR(36) NOT NULL,
+      positionId VARCHAR(36) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
+      FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
+      UNIQUE KEY unique_election_position (electionId, positionId)
+    )`);
+
+    // Insert default superadmin (password should be hashed in production)
+    const superadminPassword = await bcrypt.hash('superadmin123', 10);
+    await runQuery(db, `INSERT IGNORE INTO admins (id, username, password, role) VALUES (
+      'superadmin-001', 'superadmin', '${superadminPassword}', 'superadmin'
+    )`);
+
+    // Ensure password column exists in voters table (for legacy DBs)
+    const [passwordColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM voters LIKE 'password'`, (err, result) => {
+        if (err) reject(err);
+        else resolve([result]);
+      });
+    });
+    if (passwordColumns.length === 0) {
+      await runQuery(db, `ALTER TABLE voters ADD COLUMN password VARCHAR(255)`);
+    }
+
+    // Ensure electionId column exists in votes table (for legacy DBs)
+    const [electionIdColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM votes LIKE 'electionId'`, (err, result) => {
+        if (err) reject(err);
+        else resolve([result]);
+      });
+    });
+    if (electionIdColumns.length === 0) {
+      // Create a legacy election for existing votes
+      const legacyElectionId = 'legacy-election-001';
+      await runQuery(db, `INSERT IGNORE INTO elections (id, title, description, startTime, endTime, status, created_by) VALUES (
+        '${legacyElectionId}', 
+        'Legacy Election', 
+        'Default election for existing votes before election system was implemented', 
+        '2024-01-01 00:00:00', 
+        '2024-12-31 23:59:59', 
+        'ended', 
+        'superadmin-001'
+      )`);
+      
+      // Add electionId column with the legacy election ID for existing votes
+      await runQuery(db, `ALTER TABLE votes ADD COLUMN electionId VARCHAR(36) DEFAULT '${legacyElectionId}'`);
+      
+      // Update the unique constraint
+      await runQuery(db, `ALTER TABLE votes DROP INDEX unique_vote`);
+      await runQuery(db, `ALTER TABLE votes ADD UNIQUE KEY unique_vote (voterId, candidateId, electionId)`);
+    }
+
+    // 4. Create indexes safely (ignore errors if they already exist)
+    try {
+      await runQuery(db, `CREATE INDEX idx_candidates_position ON candidates(positionId)`);
+    } catch (err) {
+      // Index might already exist, ignore error
+    }
+    
+    try {
+      await runQuery(db, `CREATE INDEX idx_votes_voter ON votes(voterId)`);
+    } catch (err) {
+      // Index might already exist, ignore error
+    }
+    
+    try {
+      await runQuery(db, `CREATE INDEX idx_votes_candidate ON votes(candidateId)`);
+    } catch (err) {
+      // Index might already exist, ignore error
+    }
+    
+    try {
+      await runQuery(db, `CREATE INDEX idx_voters_email ON voters(email)`);
+    } catch (err) {
+      // Index might already exist, ignore error
+    }
+    
+    try {
+      await runQuery(db, `CREATE INDEX idx_voters_student_id ON voters(studentId)`);
+    } catch (err) {
+      // Index might already exist, ignore error
+    }
+
+    db.end();
+    console.log('Database and tables initialized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
+}
+
+// Create database connection for app usage
+function createConnection() {
+  return mysql.createConnection({ ...dbConfig, database: DB_NAME });
+}
+
+export { ensureDatabaseAndTables, createConnection, runQuery }; 

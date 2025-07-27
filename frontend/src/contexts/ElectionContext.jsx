@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
-import { getRole } from '../services/auth';
+import { checkCurrentUser } from '../services/auth';
 
 const ElectionContext = createContext();
 
@@ -63,7 +63,7 @@ export const ElectionProvider = ({ children }) => {
   }, []);
 
   // Get user role for permission checks
-  const userRole = getRole();
+      const userRole = checkCurrentUser().role;
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   // Debug logging for canViewResults logic

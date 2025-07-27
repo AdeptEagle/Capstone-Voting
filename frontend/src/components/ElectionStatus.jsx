@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import { getElections, getActiveElection, getVotes, getVoters, updateElection } from '../services/api';
 import './ElectionStatus.css';
 
 const ElectionStatus = () => {
@@ -17,28 +17,28 @@ const ElectionStatus = () => {
   const fetchElectionData = async () => {
     try {
       setLoading(true);
-      const [electionsRes, activeElectionRes, votesRes, votersRes] = await Promise.all([
-        api.get('/api/elections'),
-        api.get('/api/elections/active'),
-        api.get('/api/votes'),
-        api.get('/api/voters')
+      const [elections, activeElection, votes, voters] = await Promise.all([
+        getElections(),
+        getActiveElection(),
+        getVotes(),
+        getVoters()
       ]);
 
-      console.log('All elections:', electionsRes.data);
-      console.log('Active election:', activeElectionRes.data);
+      console.log('All elections:', elections);
+      console.log('Active election:', activeElection);
 
-      setElections(electionsRes.data || []);
-      setActiveElection(activeElectionRes.data);
+      setElections(elections || []);
+      setActiveElection(activeElection);
       
       // Calculate voting statistics
-      const totalVotes = votesRes.data.length;
-      const totalVoters = votersRes.data.length;
-      const votedVoters = votersRes.data.filter(voter => voter.hasVoted).length;
+      const totalVotes = votes.length;
+      const totalVoters = voters.length;
+      const votedVoters = voters.filter(voter => voter.hasVoted).length;
       
       // Update active election with voting stats
-      if (activeElectionRes.data) {
+      if (activeElection) {
         setActiveElection({
-          ...activeElectionRes.data,
+          ...activeElection,
           totalVotes,
           totalVoters,
           votedVoters,
@@ -74,23 +74,36 @@ const ElectionStatus = () => {
   };
 
   const formatDateTime = (dateTime) => {
-    return new Date(dateTime).toLocaleString();
+    if (!dateTime) return 'Not set';
+    try {
+      return new Date(dateTime).toLocaleString();
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   const getTimeRemaining = (endTime) => {
-    const now = new Date();
-    const end = new Date(endTime);
-    const diff = end - now;
+    if (!endTime) return 'No end time set';
     
-    if (diff <= 0) return 'Ended';
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (days > 0) return `${days}d ${hours}h remaining`;
-    if (hours > 0) return `${hours}h ${minutes}m remaining`;
-    return `${minutes}m remaining`;
+    try {
+      const now = new Date();
+      const end = new Date(endTime);
+      const diff = end - now;
+      
+      if (diff <= 0) return 'Ended';
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (days > 0) return `${days}d ${hours}h remaining`;
+      if (hours > 0) return `${hours}h ${minutes}m remaining`;
+      return `${minutes}m remaining`;
+    } catch (error) {
+      console.error('Error calculating time remaining:', error);
+      return 'Invalid date';
+    }
   };
 
   const handleStatusChange = async (electionId, newStatus) => {
@@ -107,7 +120,7 @@ const ElectionStatus = () => {
       }
 
       // Update the election status
-      await api.put(`/api/elections/${electionId}`, {
+      await updateElection(electionId, {
         title: election.title,
         description: election.description,
         startTime: election.startTime,
@@ -135,6 +148,10 @@ const ElectionStatus = () => {
 
   const getStatusActions = (election) => {
     const actions = [];
+    
+    if (!election.status) {
+      return actions; // Return empty array if status is null/undefined
+    }
     
     switch (election.status) {
       case 'draft':
@@ -354,24 +371,24 @@ const ElectionStatus = () => {
               <div className="col-md-4">
                 <div className="voting-stats">
                   <div className="stat-card">
-                    <div className="stat-number">{activeElection.totalVotes}</div>
+                    <div className="stat-number">{activeElection.totalVotes || 0}</div>
                     <div className="stat-label">Total Votes Cast</div>
                   </div>
                   <div className="stat-card">
-                    <div className="stat-number">{activeElection.totalVoters}</div>
+                    <div className="stat-number">{activeElection.totalVoters || 0}</div>
                     <div className="stat-label">Registered Voters</div>
                   </div>
                   <div className="stat-card">
-                    <div className="stat-number">{activeElection.votedVoters}</div>
+                    <div className="stat-number">{activeElection.votedVoters || 0}</div>
                     <div className="stat-label">Voters Participated</div>
                   </div>
                   <div className="turnout-progress">
                     <div className="progress">
                       <div 
                         className="progress-bar bg-success" 
-                        style={{ width: `${activeElection.turnoutPercentage}%` }}
+                        style={{ width: `${activeElection.turnoutPercentage || 0}%` }}
                       >
-                        {activeElection.turnoutPercentage}%
+                        {activeElection.turnoutPercentage || 0}%
                       </div>
                     </div>
                     <small className="text-muted">Voter Turnout</small>
@@ -412,40 +429,40 @@ const ElectionStatus = () => {
                 <div key={election.id} className="election-item">
                   <div className="election-header">
                     <div className="election-title">
-                      <h6 className="mb-1">{election.title}</h6>
+                      <h6 className="mb-1">{election.title || 'Untitled Election'}</h6>
                       <span className={`status-badge ${getStatusColor(election.status)}`}>
                         <i className={`${getStatusIcon(election.status)} me-1`}></i>
-                        {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
+                        {election.status ? election.status.charAt(0).toUpperCase() + election.status.slice(1) : 'Unknown'}
                       </span>
                     </div>
                     <div className="election-meta">
                       <small className="text-muted">
-                        Created by {election.createdByUsername}
+                        Created by {election.createdByUsername || 'Unknown'}
                       </small>
                     </div>
                   </div>
                   <div className="election-actions">
                     {getStatusActions(election)}
                   </div>
-                  <div className="election-info">
-                    <p className="election-description">{election.description}</p>
-                    <div className="election-dates">
-                      <span className="date-item">
-                        <i className="fas fa-calendar-plus me-1"></i>
-                        Start: {formatDateTime(election.startTime)}
-                      </span>
-                      <span className="date-item">
-                        <i className="fas fa-calendar-minus me-1"></i>
-                        End: {formatDateTime(election.endTime)}
-                      </span>
-                    </div>
-                    {election.positionCount > 0 && (
-                      <div className="election-positions">
-                        <i className="fas fa-briefcase me-1"></i>
-                        {election.positionCount} position{election.positionCount !== 1 ? 's' : ''}
+                                      <div className="election-info">
+                      <p className="election-description">{election.description || 'No description available'}</p>
+                      <div className="election-dates">
+                        <span className="date-item">
+                          <i className="fas fa-calendar-plus me-1"></i>
+                          Start: {election.startTime ? formatDateTime(election.startTime) : 'Not set'}
+                        </span>
+                        <span className="date-item">
+                          <i className="fas fa-calendar-minus me-1"></i>
+                          End: {election.endTime ? formatDateTime(election.endTime) : 'Not set'}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                      {election.positionCount > 0 && (
+                        <div className="election-positions">
+                          <i className="fas fa-briefcase me-1"></i>
+                          {election.positionCount} position{election.positionCount !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
                 </div>
               ))}
             </div>

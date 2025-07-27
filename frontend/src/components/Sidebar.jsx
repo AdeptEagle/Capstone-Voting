@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useElection } from '../contexts/ElectionContext';
+import { checkCurrentUser } from '../services/auth';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
-  const userRole = localStorage.getItem('role');
+  const currentUser = checkCurrentUser();
+  const userRole = currentUser.role;
   const { canVote, canViewCandidates, canViewResults, hasActiveElection, hasAnyElection, hasEndedElection } = useElection();
 
   // Role-specific navigation items
@@ -15,41 +17,41 @@ const Sidebar = ({ isOpen, onToggle }) => {
         return [
           { path: '/superadmin', label: 'Dashboard' },
           { path: '/superadmin/manage-admins', label: 'Manage Admins' },
-          { path: '/elections', label: 'Elections' },
-          { path: '/positions', label: 'Positions' },
-          { path: '/candidates', label: 'Candidates' },
-          { path: '/voters', label: 'Voters' },
-          { path: '/results', label: 'Results' },
-          { path: '/vote-traceability', label: 'Vote Traceability' }
+          { path: '/admin/elections', label: 'Elections' },
+          { path: '/admin/positions', label: 'Positions' },
+          { path: '/admin/candidates', label: 'Candidates' },
+          { path: '/admin/voters', label: 'Voters' },
+          { path: '/admin/results', label: 'Results' },
+          { path: '/admin/vote-traceability', label: 'Vote Traceability' }
         ];
       case 'admin':
         return [
           { path: '/admin', label: 'Dashboard' },
-          { path: '/elections', label: 'Elections' },
-          { path: '/positions', label: 'Positions' },
-          { path: '/candidates', label: 'Candidates' },
-          { path: '/voters', label: 'Voters' },
-          { path: '/results', label: 'Results' },
-          { path: '/vote-traceability', label: 'Vote Traceability' }
+          { path: '/admin/elections', label: 'Elections' },
+          { path: '/admin/positions', label: 'Positions' },
+          { path: '/admin/candidates', label: 'Candidates' },
+          { path: '/admin/voters', label: 'Voters' },
+          { path: '/admin/results', label: 'Results' },
+          { path: '/admin/vote-traceability', label: 'Vote Traceability' }
         ];
       default: // User role
         const userItems = [
-          { path: '/dashboard', label: 'Dashboard' }
+          { path: '/user/dashboard', label: 'Dashboard' }
         ];
         
         // Only show Vote if there's an active election
         if (canVote) {
-          userItems.push({ path: '/vote', label: 'Vote' });
+          userItems.push({ path: '/user/vote', label: 'Vote' });
         }
         
         // Only show Candidates if there are elections
         if (canViewCandidates) {
-          userItems.push({ path: '/candidates', label: 'View Candidates' });
+          userItems.push({ path: '/user/candidates', label: 'View Candidates' });
         }
         
         // Only show Results if there are elections
         if (canViewResults) {
-          userItems.push({ path: '/results', label: 'View Results' });
+          userItems.push({ path: '/user/results', label: 'View Results' });
         }
         
         return userItems;
@@ -70,7 +72,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
   const navItems = getNavItems();
 
   const handleLogout = () => {
-    const role = localStorage.getItem('role');
+    const role = currentUser.role;
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     if (role === 'admin' || role === 'superadmin') {

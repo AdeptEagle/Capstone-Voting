@@ -42,6 +42,8 @@ export const getPositions = async () => {
   }
 };
 
+
+
 export const createPosition = async (position) => {
   try {
     // Do NOT override id, use the one provided by the form
@@ -133,7 +135,7 @@ export const getVoters = async () => {
 
 export const createVoter = async (voter) => {
   try {
-    const response = await api.post('/api/voters', { ...voter, id: crypto.randomUUID() });
+    const response = await api.post('/api/voters', voter);
     return response.data;
   } catch (error) {
     console.error('Error creating voter:', error);
@@ -185,7 +187,7 @@ export const createVote = async (vote) => {
 // Results API Functions
 export const getResults = async () => {
   try {
-    const response = await api.get('/api/results');
+    const response = await api.get('/api/votes/results');
     return response.data;
   } catch (error) {
     console.error('Error fetching results:', error);
@@ -267,10 +269,71 @@ export const getActiveElection = async () => {
 // Admin Authentication
 export const adminLogin = async (username, password) => {
   try {
-    const response = await api.post('/api/admin/login', { username, password });
+    const response = await api.post('/api/auth/admin/login', { username, password });
     return response.data;
   } catch (error) {
     console.error('Error during admin login:', error);
+    throw error;
+  }
+};
+
+export const userRegister = async (userData) => {
+  try {
+    const response = await api.post('/api/auth/user/register', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error during user registration:', error);
+    throw error;
+  }
+};
+
+export const userLogin = async (studentId, password) => {
+  try {
+    const response = await api.post('/api/auth/user/login', { studentId, password });
+    return response.data;
+  } catch (error) {
+    console.error('Error during user login:', error);
+    throw error;
+  }
+};
+
+// Admin Management API Functions
+export const getAdmins = async () => {
+  try {
+    const response = await api.get('/api/admins');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching admins:', error);
+    throw error;
+  }
+};
+
+export const createAdmin = async (admin) => {
+  try {
+    const response = await api.post('/api/admins', admin);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating admin:', error);
+    throw error;
+  }
+};
+
+export const updateAdmin = async (id, admin) => {
+  try {
+    const response = await api.put(`/api/admins/${id}`, admin);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating admin:', error);
+    throw error;
+  }
+};
+
+export const deleteAdmin = async (id) => {
+  try {
+    const response = await api.delete(`/api/admins/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting admin:', error);
     throw error;
   }
 };

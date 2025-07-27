@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getRole } from '../../services/auth';
-import api from '../../services/api';
+import { checkCurrentUser } from '../../services/auth';
+import { getPositions, getCandidates, getVotes } from '../../services/api';
 import './VoteTraceability.css';
 
 // --- Loading Spinner Component ---
@@ -24,23 +24,24 @@ const VoteTraceability = () => {
   const [showStudentIds, setShowStudentIds] = useState(true);
 
   // Check if user is admin or superadmin
-  const userRole = getRole();
+  const currentUser = checkCurrentUser();
+  const userRole = currentUser.role;
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [positionsRes, candidatesRes, votesRes] = await Promise.all([
-          api.get('/api/positions'),
-          api.get('/api/candidates'),
-          api.get('/api/votes')
+        const [positions, candidates, votes] = await Promise.all([
+          getPositions(),
+          getCandidates(),
+          getVotes()
         ]);
 
         setData({
-          positions: positionsRes.data,
-          candidates: candidatesRes.data,
-          votes: votesRes.data
+          positions,
+          candidates,
+          votes
         });
       } catch (err) {
         setError('Failed to load vote data');

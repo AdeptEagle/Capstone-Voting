@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
+import { getElections, getPositions, createElection, updateElection, deleteElection, getElectionPositions } from '../services/api';
 import './Elections.css';
 
 const Elections = () => {
@@ -13,6 +13,7 @@ const Elections = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingElection, setEditingElection] = useState(null);
   const [updatingElection, setUpdatingElection] = useState(null);
+  const [loadingPositions, setLoadingPositions] = useState(false);
   const navigate = useNavigate();
 
   // Form state for creating/editing elections
@@ -31,13 +32,13 @@ const Elections = () => {
   const fetchElectionsData = async () => {
     try {
       setLoading(true);
-      const [electionsRes, positionsRes] = await Promise.all([
-        api.get('/api/elections'),
-        api.get('/api/positions')
+      const [elections, positions] = await Promise.all([
+        getElections(),
+        getPositions()
       ]);
 
-      setElections(electionsRes.data || []);
-      setPositions(positionsRes.data || []);
+      setElections(elections || []);
+      setPositions(positions || []);
     } catch (error) {
       console.error('Error fetching elections data:', error);
       setError('Failed to load elections data');
@@ -60,7 +61,7 @@ const Elections = () => {
         endTime: new Date(formData.endTime).toISOString().slice(0, 19).replace('T', ' ')
       };
 
-      await api.post('/api/elections', electionData);
+      await createElection(electionData);
       
       setSuccess('Election created successfully!');
       setShowCreateModal(false);
@@ -86,10 +87,12 @@ const Elections = () => {
       const electionData = {
         ...formData,
         startTime: new Date(formData.startTime).toISOString().slice(0, 19).replace('T', ' '),
-        endTime: new Date(formData.endTime).toISOString().slice(0, 19).replace('T', ' ')
+        endTime: new Date(formData.endTime).toISOString().slice(0, 19).replace('T', ' '),
+        status: editingElection.status // Preserve the current status
       };
 
-      await api.put(`/api/elections/${editingElection.id}`, electionData);
+      console.log('Updating election with data:', electionData); // Debug log
+      await updateElection(editingElection.id, electionData);
       
       setSuccess('Election updated successfully!');
       setShowEditModal(false);
@@ -107,7 +110,7 @@ const Elections = () => {
   };
 
   const handleDeleteElection = async (electionId) => {
-    if (!window.confirm('Are you sure you want to delete this election? This action cannot be undone.')) {
+    if (!window.confirm('⚠️ WARNING: This will permanently delete the current election and ALL associated data (votes, results, voter status, etc.). This action cannot be undone. After deletion, you will be able to create a new election.\n\nAre you sure you want to proceed?')) {
       return;
     }
 
@@ -116,7 +119,7 @@ const Elections = () => {
       setError('');
       setSuccess('');
 
-      await api.delete(`/api/elections/${electionId}`);
+      await deleteElection(electionId);
       
       setSuccess('Election deleted successfully!');
       await fetchElectionsData();
@@ -142,7 +145,7 @@ const Elections = () => {
         return;
       }
 
-      await api.put(`/api/elections/${electionId}`, {
+      await updateElection(electionId, {
         title: election.title,
         description: election.description,
         startTime: election.startTime,
@@ -151,7 +154,7 @@ const Elections = () => {
       });
 
       const statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-      setSuccess(`Election "${election.title}" has been ${statusText.toLowerCase()}`);
+      setSuccess(`Election "${election.title || 'Untitled Election'}" has been ${statusText.toLowerCase()}`);
       
       await fetchElectionsData();
       setTimeout(() => setSuccess(''), 3000);
@@ -163,16 +166,38 @@ const Elections = () => {
     }
   };
 
-  const openEditModal = (election) => {
-    setEditingElection(election);
-    setFormData({
-      title: election.title,
-      description: election.description,
-      startTime: election.startTime.slice(0, 16), // Format for datetime-local input
-      endTime: election.endTime.slice(0, 16),
-      positionIds: election.positionIds || [] // Use current positions if available
-    });
-    setShowEditModal(true);
+  const openEditModal = async (election) => {
+    try {
+      setEditingElection(election);
+      setError(''); // Clear any previous errors
+      setLoadingPositions(true);
+      
+      // Set initial form data while loading positions
+      setFormData({
+        title: election.title || '',
+        description: election.description || '',
+        startTime: election.startTime ? election.startTime.slice(0, 16) : '', // Format for datetime-local input
+        endTime: election.endTime ? election.endTime.slice(0, 16) : '',
+        positionIds: [] // Start with empty array
+      });
+      setShowEditModal(true);
+      
+      // Fetch the positions for this specific election
+      const electionPositions = await getElectionPositions(election.id);
+      const positionIds = electionPositions.map(pos => pos.id);
+      
+      // Update form data with fetched positions
+      setFormData(prev => ({
+        ...prev,
+        positionIds: positionIds
+      }));
+    } catch (error) {
+      console.error('Error fetching election positions:', error);
+      setError('Failed to load election positions. Please try again.');
+      // Don't close the modal, let user see the error
+    } finally {
+      setLoadingPositions(false);
+    }
   };
 
   const openCreateModal = () => {
@@ -212,11 +237,26 @@ const Elections = () => {
   };
 
   const formatDateTime = (dateTime) => {
-    return new Date(dateTime).toLocaleString();
+    if (!dateTime) return 'Not set';
+    try {
+      return new Date(dateTime).toLocaleString();
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   const getStatusActions = (election) => {
     const actions = [];
+    
+    console.log('getStatusActions called with election:', election); // Debug log
+    
+    if (!election.status) {
+      console.log('No status found, returning empty actions'); // Debug log
+      return actions; // Return empty array if status is null/undefined
+    }
+    
+    console.log('Election status:', election.status); // Debug log
     
     switch (election.status) {
       case 'draft':
@@ -324,21 +364,85 @@ const Elections = () => {
       {/* Header */}
       <div className="elections-header">
         <div className="elections-header-content">
-          <h1>Elections Management</h1>
-          <p>Create, manage, and monitor all voting elections and ballots</p>
+          <h1>Election Management</h1>
+          <p>Manage the single election ballot system (one election at a time)</p>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={openCreateModal}
-        >
-          <i className="fas fa-plus me-2"></i>
-          Create New Election
-        </button>
+        <div>
+          <button
+            className="btn btn-primary"
+            onClick={openCreateModal}
+            disabled={elections.length > 0}
+            title={elections.length > 0 ? "Delete the current election first" : ""}
+          >
+            <i className="fas fa-plus me-2"></i>
+            Create New Election
+          </button>
+          {elections.length > 0 && (
+            <small className="text-muted d-block mt-1">
+              <i className="fas fa-exclamation-triangle me-1"></i>
+              Delete the current election first
+            </small>
+          )}
+        </div>
       </div>
 
       {/* Alerts */}
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
+
+      {/* Admin Guide for Single Election Policy */}
+      {(() => {
+        const currentElection = elections.length > 0 ? elections[0] : null;
+        if (currentElection) {
+          return (
+            <div className="alert alert-warning mb-4">
+              <div className="d-flex align-items-start">
+                <i className="fas fa-exclamation-triangle me-3 mt-1"></i>
+                <div>
+                  <h5 className="alert-heading">🚫 Single Election Policy</h5>
+                  <p className="mb-2">
+                    <strong>Current Election:</strong> "{currentElection.title || 'Untitled Election'}" 
+                    <span className={`badge bg-${getStatusColor(currentElection.status)} ms-2`}>
+                      {currentElection.status ? currentElection.status.charAt(0).toUpperCase() + currentElection.status.slice(1) : 'Unknown'}
+                    </span>
+                  </p>
+                  <p className="mb-2">
+                    The system enforces a <strong>single election policy</strong>. Only one election can exist at a time to ensure data integrity and prevent confusion.
+                  </p>
+                  <p className="mb-2">
+                    <strong>To create a new election, you must first delete the current one.</strong> This will permanently remove all data including:
+                  </p>
+                  <ul className="mb-0">
+                    <li>Election configuration and settings</li>
+                    <li>All voting records and results</li>
+                    <li>Position and candidate associations</li>
+                    <li>Voter voting status</li>
+                  </ul>
+                  <div className="mt-3">
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleDeleteElection(currentElection.id)}
+                      disabled={updatingElection === currentElection.id}
+                    >
+                      {updatingElection === currentElection.id ? (
+                        <i className="fas fa-spinner fa-spin me-1"></i>
+                      ) : (
+                        <i className="fas fa-trash me-1"></i>
+                      )}
+                      Delete Current Election & Create New
+                    </button>
+                    <small className="text-muted d-block mt-2">
+                      <i className="fas fa-info-circle me-1"></i>
+                      This action cannot be undone. All data will be permanently lost.
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {/* Elections List */}
       <div className="elections-list">
@@ -347,30 +451,30 @@ const Elections = () => {
             <div key={election.id} className="election-card">
               <div className="election-header">
                 <div className="election-title">
-                  <h3>{election.title}</h3>
+                  <h3>{election.title || 'Untitled Election'}</h3>
                   <span className={`status-badge badge bg-${getStatusColor(election.status)}`}>
                     <i className={`${getStatusIcon(election.status)} me-1`}></i>
-                    {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
+                    {election.status ? election.status.charAt(0).toUpperCase() + election.status.slice(1) : 'Unknown'}
                   </span>
                 </div>
                 <div className="election-meta">
                   <small className="text-muted">
-                    Created by {election.createdByUsername}
+                    Created by {election.createdByUsername || 'Unknown'}
                   </small>
                 </div>
               </div>
 
               <div className="election-content">
-                <p className="election-description">{election.description}</p>
+                <p className="election-description">{election.description || 'No description available'}</p>
                 
                 <div className="election-details">
                   <div className="detail-row">
                     <span className="detail-label">Start Time:</span>
-                    <span className="detail-value">{formatDateTime(election.startTime)}</span>
+                    <span className="detail-value">{election.startTime ? formatDateTime(election.startTime) : 'Not set'}</span>
                   </div>
                   <div className="detail-row">
                     <span className="detail-label">End Time:</span>
-                    <span className="detail-value">{formatDateTime(election.endTime)}</span>
+                    <span className="detail-value">{election.endTime ? formatDateTime(election.endTime) : 'Not set'}</span>
                   </div>
                   {election.positionCount > 0 && (
                     <div className="detail-row">
@@ -627,39 +731,48 @@ const Elections = () => {
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Positions to Include</label>
-                    <div className="position-checkboxes">
-                      {positions.length > 0 ? (
-                        positions.map(position => (
-                          <div key={position.id} className="form-check">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`edit-position-${position.id}`}
-                              checked={formData.positionIds.includes(position.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFormData({
-                                    ...formData,
-                                    positionIds: [...formData.positionIds, position.id]
-                                  });
-                                } else {
-                                  setFormData({
-                                    ...formData,
-                                    positionIds: formData.positionIds.filter(id => id !== position.id)
-                                  });
-                                }
-                              }}
-                            />
-                            <label className="form-check-label" htmlFor={`edit-position-${position.id}`}>
-                              {position.name}
-                            </label>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-muted">No positions available. Please create positions first.</p>
-                      )}
-                    </div>
-                    {formData.positionIds.length === 0 && (
+                    {loadingPositions ? (
+                      <div className="text-center py-3">
+                        <div className="spinner-border spinner-border-sm text-primary me-2" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <span className="text-muted">Loading election positions...</span>
+                      </div>
+                    ) : (
+                      <div className="position-checkboxes">
+                        {positions.length > 0 ? (
+                          positions.map(position => (
+                            <div key={position.id} className="form-check">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id={`edit-position-${position.id}`}
+                                checked={formData.positionIds.includes(position.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      positionIds: [...formData.positionIds, position.id]
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      positionIds: formData.positionIds.filter(id => id !== position.id)
+                                    });
+                                  }
+                                }}
+                              />
+                              <label className="form-check-label" htmlFor={`edit-position-${position.id}`}>
+                                {position.name}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted">No positions available. Please create positions first.</p>
+                        )}
+                      </div>
+                    )}
+                    {!loadingPositions && formData.positionIds.length === 0 && (
                       <small className="text-danger">Please select at least one position</small>
                     )}
                   </div>
@@ -679,7 +792,7 @@ const Elections = () => {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={updatingElection === editingElection.id || formData.positionIds.length === 0}
+                    disabled={updatingElection === editingElection.id || formData.positionIds.length === 0 || loadingPositions}
                   >
                     {updatingElection === editingElection.id ? (
                       <i className="fas fa-spinner fa-spin me-1"></i>

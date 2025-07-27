@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../services/api';
+import { getPositions, getCandidates, getVoters, createVote } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
@@ -39,13 +39,13 @@ const Vote = () => {
     
     const userId = localStorage.getItem('userId') || JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id;
     Promise.all([
-      api.get('/api/positions'),
-      api.get('/api/candidates'),
-      api.get('/api/voters')
-    ]).then(([posRes, candRes, votersRes]) => {
-      setPositions(posRes.data);
-      setCandidates(candRes.data);
-      const voter = votersRes.data.find(v => v.id === userId);
+      getPositions(),
+      getCandidates(),
+      getVoters()
+    ]).then(([positions, candidates, voters]) => {
+      setPositions(positions);
+      setCandidates(candidates);
+      const voter = voters.find(v => v.id === userId);
       setUser(voter);
       setHasVoted(voter?.hasVoted);
       setLoading(false);
@@ -140,7 +140,7 @@ const Vote = () => {
           
           console.log(`Submitting vote: voterId=${voterId}, candidateId=${candidateId}, isLastVote=${isLastVote}`);
           
-          await api.post('/api/votes', {
+          await createVote({
             id: voteId,
             voterId: voterId, // Use the correct voter ID
             candidateId,
@@ -222,7 +222,7 @@ const Vote = () => {
               <i className="fas fa-chart-bar me-2"></i>
               View Results
             </button>
-            <button className="btn btn-outline-primary" onClick={() => navigate('/dashboard')}>
+            <button className="btn btn-outline-primary" onClick={() => navigate('/user/dashboard')}>
               <i className="fas fa-home me-2"></i>
               Back to Dashboard
             </button>
@@ -246,7 +246,7 @@ const Vote = () => {
             <p><strong>Voter Name:</strong> {user?.name}</p>
             <p><strong>Submission Time:</strong> {new Date().toLocaleString()}</p>
           </div>
-          <button className="btn btn-primary btn-lg" onClick={() => navigate('/dashboard')}>
+          <button className="btn btn-primary btn-lg" onClick={() => navigate('/user/dashboard')}>
             <i className="fas fa-home me-2"></i>
             Return to Dashboard
           </button>
@@ -262,7 +262,7 @@ const Vote = () => {
           <i className="fas fa-exclamation-triangle"></i>
           <h2>No Positions Available</h2>
           <p>There are no voting positions available at the moment. Please check back later.</p>
-          <button className="btn btn-outline-primary" onClick={() => navigate('/dashboard')}>
+                      <button className="btn btn-outline-primary" onClick={() => navigate('/user/dashboard')}>
             Back to Dashboard
           </button>
         </div>

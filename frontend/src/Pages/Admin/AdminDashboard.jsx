@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import { getPositions, getCandidates, getVoters, getVotes } from '../../services/api';
+import { checkCurrentUser, getToken } from '../../services/auth';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -28,24 +29,24 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const [positions, candidates, voters, votes] = await Promise.all([
-        api.get('/api/positions'),
-        api.get('/api/candidates'),
-        api.get('/api/voters'),
-        api.get('/api/votes')
+        getPositions(),
+        getCandidates(),
+        getVoters(),
+        getVotes()
       ]);
 
       setStats({
-        totalPositions: positions.data.length,
-        totalCandidates: candidates.data.length,
-        totalVoters: voters.data.length,
-        totalVotes: votes.data.length,
-        activeVoters: voters.data.filter(voter => voter.hasVoted).length
+        totalPositions: positions.length,
+        totalCandidates: candidates.length,
+        totalVoters: voters.length,
+        totalVotes: votes.length,
+        activeVoters: voters.filter(voter => voter.hasVoted).length
       });
 
       setRecentData({
-        positions: positions.data.slice(0, 3),
-        candidates: candidates.data.slice(0, 3),
-        voters: voters.data.slice(0, 3)
+        positions: positions.slice(0, 3),
+        candidates: candidates.slice(0, 3),
+        voters: voters.slice(0, 3)
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
-    navigate('/login');
+    navigate('/admin-login');
   };
 
   if (loading) {
@@ -156,7 +157,7 @@ const AdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-primary w-100 action-btn"
-                    onClick={() => navigate('/positions')}
+                    onClick={() => navigate('/admin/positions')}
                   >
                     <i className="fas fa-briefcase me-2"></i>
                     Manage Positions
@@ -165,7 +166,7 @@ const AdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-success w-100 action-btn"
-                    onClick={() => navigate('/candidates')}
+                    onClick={() => navigate('/admin/candidates')}
                   >
                     <i className="fas fa-user-tie me-2"></i>
                     Manage Candidates
@@ -174,7 +175,7 @@ const AdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-info w-100 action-btn"
-                    onClick={() => navigate('/voters')}
+                    onClick={() => navigate('/admin/voters')}
                   >
                     <i className="fas fa-user-friends me-2"></i>
                     Manage Voters
@@ -183,7 +184,7 @@ const AdminDashboard = () => {
                 <div className="col-md-3 mb-3">
                   <button 
                     className="btn btn-warning w-100 action-btn"
-                    onClick={() => navigate('/results')}
+                    onClick={() => navigate('/admin/results')}
                   >
                     <i className="fas fa-chart-bar me-2"></i>
                     View Results
@@ -318,12 +319,20 @@ const AdminDashboard = () => {
                   {stats.activeVoters} of {stats.totalVoters} voters have cast their votes
                 </small>
               </div>
-              <button 
-                className="btn btn-outline-primary btn-sm mt-2"
-                onClick={() => navigate('/results')}
-              >
-                View Detailed Results
-              </button>
+              <div className="d-flex gap-2 mt-2">
+                <button 
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => navigate('/results')}
+                >
+                  View Results
+                </button>
+                <button 
+                  className="btn btn-outline-info btn-sm"
+                  onClick={() => navigate('/vote-traceability')}
+                >
+                  Vote Traceability
+                </button>
+              </div>
             </div>
           </div>
         </div>

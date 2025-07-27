@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Alert, Card } from 'react-bootstrap';
 import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions } from '../services/api';
-import { getRole } from '../services/auth';
+import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
 import './Candidates.css';
@@ -23,7 +23,7 @@ const Candidates = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
 
-  const role = getRole();
+  const role = checkCurrentUser().role;
   const { canViewCandidates, hasActiveElection, triggerImmediateRefresh } = useElection();
 
   useEffect(() => {
