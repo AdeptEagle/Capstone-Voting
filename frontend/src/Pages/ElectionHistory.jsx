@@ -231,7 +231,7 @@ const ElectionHistory = () => {
       {/* Election Details Modal */}
       {selectedElection && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Election Details: {selectedElection.title}</h5>
@@ -326,7 +326,7 @@ const ElectionHistory = () => {
       {/* Delete Confirmation Modal */}
       {deleteModal.show && deleteModal.election && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title text-danger">

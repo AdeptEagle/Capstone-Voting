@@ -229,7 +229,7 @@ const Candidates = () => {
         {/* View Candidate Modal */}
         {viewCandidate && (
           <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-lg">
+            <div className="modal-dialog modal-dialog-centered modal-lg">
               <div className="modal-content">
                 <div className="modal-header">
                   <div className="modal-candidate-info">
@@ -393,7 +393,7 @@ const Candidates = () => {
       {/* Modal */}
       {showModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">

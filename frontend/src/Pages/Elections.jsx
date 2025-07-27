@@ -720,7 +720,7 @@ const Elections = () => {
       {/* Create Election Modal */}
       {showCreateModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Create New Election</h5>
@@ -853,7 +853,7 @@ const Elections = () => {
       {/* Edit Election Modal */}
       {showEditModal && editingElection && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Edit Election</h5>

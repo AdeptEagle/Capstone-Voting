@@ -287,8 +287,48 @@ body {
 /* Modal */
 .modal-content {
   border-radius: 12px;
-  border: none;
+  border: 1px solid #ddd !important;
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
+}
+
+.modal-dialog {
+  border: none !important;
+}
+
+.modal {
+  border: none !important;
+}
+
+/* Override any debugging borders */
+.modal * {
+  border-color: inherit !important;
+}
+
+.modal-content * {
+  border-color: inherit !important;
+}
+
+/* Remove any blue debugging borders */
+.modal,
+.modal-dialog,
+.modal-content,
+.modal-header,
+.modal-body,
+.modal-footer {
+  border-color: #ddd !important;
+  border-width: 1px !important;
+}
+
+.modal-content {
+  border: 1px solid #ddd !important;
+}
+
+.modal-dialog {
+  border: none !important;
+}
+
+.modal {
+  border: none !important;
 }
 
 .modal-header {

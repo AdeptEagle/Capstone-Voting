@@ -69,80 +69,6 @@
   font-style: italic;
 }
 
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.modal {
-  background: white;
-  border: 3px solid #007bff;
-  border-radius: 5px;
-  padding: 20px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.large-modal {
-  max-width: 800px;
-  width: 95%;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.modal-header h3 {
-  margin: 0;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-control {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
 /* Members Modal Styles */
 .members-container {
   display: grid;
@@ -238,12 +164,5 @@
     grid-template-columns: 1fr;
   }
   
-  .modal {
-    width: 95%;
-    margin: 10px;
-  }
-  
-  .large-modal {
-    width: 98%;
-  }
+
 } 

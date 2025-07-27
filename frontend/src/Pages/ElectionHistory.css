@@ -124,7 +124,7 @@
   padding: 10px;
   background: #f8f9fa;
   border-radius: 5px;
-  border-left: 3px solid #007bff;
+  border-left: 2px solid #007bff;
 }
 
 .stat-item i {
@@ -222,7 +222,7 @@
   color: #333;
   margin-bottom: 15px;
   font-weight: 600;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 1px solid #007bff;
   padding-bottom: 5px;
 }
 

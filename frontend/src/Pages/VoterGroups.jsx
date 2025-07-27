@@ -216,113 +216,136 @@ const VoterGroups = () => {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h3>{editingGroup ? 'Edit Voter Group' : 'Create New Voter Group'}</h3>
-              <button className="btn-close" onClick={() => setShowModal(false)}>
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Name *</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  className="form-control"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  rows="3"
-                />
-              </div>
-              <div className="form-group">
-                <label>Type *</label>
-                <select
-                  className="form-control"
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
-                  required
-                >
-                  <option value="department">Department</option>
-                  <option value="class">Class</option>
-                  <option value="year">Year</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </div>
-              <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {editingGroup ? 'Edit Voter Group' : 'Create New Voter Group'}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
                   onClick={() => setShowModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingGroup ? 'Update' : 'Create'}
-                </button>
+                ></button>
               </div>
-            </form>
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Name *</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Description</label>
+                    <textarea
+                      className="form-control"
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      rows="3"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Type *</label>
+                    <select
+                      className="form-control"
+                      value={formData.type}
+                      onChange={(e) => setFormData({...formData, type: e.target.value})}
+                      required
+                    >
+                      <option value="department">Department</option>
+                      <option value="class">Class</option>
+                      <option value="year">Year</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingGroup ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* Members Modal */}
       {showMembersModal && selectedGroup && (
-        <div className="modal-overlay">
-          <div className="modal large-modal">
-            <div className="modal-header">
-              <h3>Manage Members - {selectedGroup.name}</h3>
-              <button className="btn-close" onClick={() => setShowMembersModal(false)}>
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="members-container">
-              <div className="members-section">
-                <h4>Current Members ({groupMembers.length})</h4>
-                <div className="members-list">
-                  {groupMembers.map(member => (
-                    <div key={member.id} className="member-item">
-                      <span>{member.name} ({member.studentId})</span>
-                      <button 
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() => handleRemoveMember(member.id)}
-                      >
-                        <i className="fas fa-times"></i>
-                      </button>
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Manage Members - {selectedGroup.name}</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowMembersModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="members-container">
+                  <div className="members-section">
+                    <h4>Current Members ({groupMembers.length})</h4>
+                    <div className="members-list">
+                      {groupMembers.map(member => (
+                        <div key={member.id} className="member-item">
+                          <span>{member.name} ({member.studentId})</span>
+                          <button 
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleRemoveMember(member.id)}
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                      ))}
+                      {groupMembers.length === 0 && (
+                        <p className="no-members">No members in this group</p>
+                      )}
                     </div>
-                  ))}
-                  {groupMembers.length === 0 && (
-                    <p className="no-members">No members in this group</p>
-                  )}
+                  </div>
+                  <div className="members-section">
+                    <h4>Available Voters ({availableVoters.length})</h4>
+                    <div className="members-list">
+                      {availableVoters.map(voter => (
+                        <div key={voter.id} className="member-item">
+                          <span>{voter.name} ({voter.studentId})</span>
+                          <button 
+                            className="btn btn-sm btn-outline-success"
+                            onClick={() => handleAddMember(voter.id)}
+                          >
+                            <i className="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      ))}
+                      {availableVoters.length === 0 && (
+                        <p className="no-members">All voters are already in this group</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="members-section">
-                <h4>Available Voters ({availableVoters.length})</h4>
-                <div className="members-list">
-                  {availableVoters.map(voter => (
-                    <div key={voter.id} className="member-item">
-                      <span>{voter.name} ({voter.studentId})</span>
-                      <button 
-                        className="btn btn-sm btn-outline-success"
-                        onClick={() => handleAddMember(voter.id)}
-                      >
-                        <i className="fas fa-plus"></i>
-                      </button>
-                    </div>
-                  ))}
-                  {availableVoters.length === 0 && (
-                    <p className="no-members">All voters are already in this group</p>
-                  )}
-                </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowMembersModal(false)}
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
