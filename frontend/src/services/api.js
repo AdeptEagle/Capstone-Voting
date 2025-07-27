@@ -206,6 +206,16 @@ export const getElections = async () => {
   }
 };
 
+export const getElectionHistory = async () => {
+  try {
+    const response = await api.get('/api/elections/history');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching election history:', error);
+    throw error;
+  }
+};
+
 export const getElection = async (id) => {
   try {
     const response = await api.get(`/api/elections/${id}`);
@@ -242,6 +252,56 @@ export const updateElection = async (id, election) => {
     return response.data;
   } catch (error) {
     console.error('Error updating election:', error);
+    throw error;
+  }
+};
+
+export const startElection = async (id) => {
+  try {
+    const response = await api.post(`/api/elections/${id}/start`);
+    return response.data;
+  } catch (error) {
+    console.error('Error starting election:', error);
+    throw error;
+  }
+};
+
+export const pauseElection = async (id) => {
+  try {
+    const response = await api.post(`/api/elections/${id}/pause`);
+    return response.data;
+  } catch (error) {
+    console.error('Error pausing election:', error);
+    throw error;
+  }
+};
+
+export const stopElection = async (id) => {
+  try {
+    const response = await api.post(`/api/elections/${id}/stop`);
+    return response.data;
+  } catch (error) {
+    console.error('Error stopping election:', error);
+    throw error;
+  }
+};
+
+export const resumeElection = async (id) => {
+  try {
+    const response = await api.post(`/api/elections/${id}/resume`);
+    return response.data;
+  } catch (error) {
+    console.error('Error resuming election:', error);
+    throw error;
+  }
+};
+
+export const endElection = async (id) => {
+  try {
+    const response = await api.post(`/api/elections/${id}/end`);
+    return response.data;
+  } catch (error) {
+    console.error('Error ending election:', error);
     throw error;
   }
 };

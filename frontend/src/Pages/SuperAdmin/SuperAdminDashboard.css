@@ -1,28 +1,11 @@
 /* SuperAdminDashboard.css */
 .superadmin-dashboard {
-  padding: 2rem;
+  padding: 0 0 2rem 0;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
 
-/* Super Admin Dashboard Header - Clean White Background */
-.dashboard-header {
-  background: #fff;
-  color: #1f2937;
-  padding: 2rem 0 1rem 0;
-  margin-bottom: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-}
 
-.dashboard-header h3, .dashboard-header h2, .dashboard-header h1 {
-  color: #1f2937;
-  font-weight: 700;
-}
-
-.dashboard-header p {
-  color: #374151;
-}
 
 /* Unified Professional Dashboard Header */
 .dashboard-header-pro {

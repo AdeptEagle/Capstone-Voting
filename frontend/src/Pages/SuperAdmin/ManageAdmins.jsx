@@ -72,7 +72,7 @@ const ManageAdmins = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this admin account?')) {
+    {
       try {
         await deleteAdmin(id);
         fetchAdmins();
@@ -140,10 +140,7 @@ const ManageAdmins = () => {
         </div>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div></div>
-        <div></div>
-      </div>
+
 
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -168,47 +165,51 @@ const ManageAdmins = () => {
         <span className="badge bg-primary ms-2">{checkCurrentUser().role || 'No role'}</span>
       </div>
 
-      <div className="admin-table-block">
-        <table className="table table-hover">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Username</th>
-              <th>Role</th>
-              <th>Created At</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {admins.map((admin) => (
-              <tr key={admin.id}>
-                <td>{admin.id}</td>
-                <td>{admin.username}</td>
-                <td>
-                  <span className={`badge ${admin.role === 'superadmin' ? 'bg-danger' : 'bg-primary'}`}>
-                    {admin.role}
-                  </span>
-                </td>
-                <td>{new Date(admin.created_at).toLocaleDateString()}</td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-outline-primary me-2"
-                    onClick={() => handleEdit(admin)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => handleDelete(admin.id)}
-                    disabled={admin.role === 'superadmin'}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="card">
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-hover">
+              <thead className="table-header-custom">
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {admins.map((admin) => (
+                  <tr key={admin.id}>
+                    <td>{admin.id}</td>
+                    <td>{admin.username}</td>
+                    <td>
+                      <span className={`badge ${admin.role === 'superadmin' ? 'bg-danger' : 'bg-primary'}`}>
+                        {admin.role}
+                      </span>
+                    </td>
+                    <td>{new Date(admin.created_at).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-outline-primary me-2"
+                        onClick={() => handleEdit(admin)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleDelete(admin.id)}
+                        disabled={admin.role === 'superadmin'}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Modal */}

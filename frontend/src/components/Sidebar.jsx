@@ -18,6 +18,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { path: '/superadmin', label: 'Dashboard' },
           { path: '/superadmin/manage-admins', label: 'Manage Admins' },
           { path: '/admin/elections', label: 'Elections' },
+          { path: '/admin/election-history', label: 'Election History' },
           { path: '/admin/positions', label: 'Positions' },
           { path: '/admin/candidates', label: 'Candidates' },
           { path: '/admin/voters', label: 'Voters' },
@@ -28,6 +29,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         return [
           { path: '/admin', label: 'Dashboard' },
           { path: '/admin/elections', label: 'Elections' },
+          { path: '/admin/election-history', label: 'Election History' },
           { path: '/admin/positions', label: 'Positions' },
           { path: '/admin/candidates', label: 'Candidates' },
           { path: '/admin/voters', label: 'Voters' },

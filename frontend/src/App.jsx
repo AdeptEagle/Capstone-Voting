@@ -12,6 +12,7 @@ import Candidates from './Pages/Candidates';
 import Voters from './Pages/Voters';
 import Results from './Pages/Results';
 import Elections from './Pages/Elections';
+import ElectionHistory from './Pages/ElectionHistory';
 import UserRegister from './Pages/User/UserRegister';
 import Vote from './Pages/User/Vote';
 import AdminLogin from './Pages/AdminLogin';
@@ -168,6 +169,13 @@ function App() {
               <AdminRoute>
                 <AdminLayout>
                   <Elections />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/election-history" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <ElectionHistory />
                 </AdminLayout>
               </AdminRoute>
             } />

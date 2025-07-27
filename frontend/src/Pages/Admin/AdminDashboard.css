@@ -1,6 +1,6 @@
 /* AdminDashboard.css */
 .admin-dashboard {
-  padding: 2rem;
+  padding: 0 0 2rem 0;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
@@ -39,24 +39,7 @@
   gap: 0.75rem;
 }
 
-.dashboard-header {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
 
-.dashboard-header h1 {
-  color: #2c3e50;
-  margin: 0;
-  font-weight: 600;
-}
-
-.dashboard-header p {
-  margin: 10px 0 0 0;
-  color: #6c757d;
-}
 
 /* Stats Cards */
 .stat-card {
@@ -257,13 +240,7 @@
     padding: 10px;
   }
   
-  .dashboard-header {
-    padding: 15px;
-  }
   
-  .dashboard-header h1 {
-    font-size: 1.5rem;
-  }
   
   .stat-card {
     padding: 15px;

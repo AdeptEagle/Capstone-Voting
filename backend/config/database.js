@@ -85,7 +85,7 @@ async function ensureDatabaseAndTables() {
       description TEXT,
       startTime DATETIME NOT NULL,
       endTime DATETIME NOT NULL,
-      status ENUM('draft', 'active', 'ended', 'cancelled') DEFAULT 'draft',
+      status ENUM('pending', 'active', 'paused', 'stopped', 'ended') DEFAULT 'pending',
       created_by VARCHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -117,6 +117,30 @@ async function ensureDatabaseAndTables() {
     });
     if (passwordColumns.length === 0) {
       await runQuery(db, `ALTER TABLE voters ADD COLUMN password VARCHAR(255)`);
+    }
+
+    // Migrate existing election statuses to new enum values
+    try {
+      await runQuery(db, `UPDATE elections SET status = 'pending' WHERE status = 'draft'`);
+      await runQuery(db, `UPDATE elections SET status = 'stopped' WHERE status = 'cancelled'`);
+    } catch (error) {
+      console.log('Status migration completed or not needed');
+    }
+
+    // Fix status column if it has wrong definition
+    try {
+      await runQuery(db, `ALTER TABLE elections MODIFY COLUMN status ENUM('pending', 'active', 'paused', 'stopped', 'ended') DEFAULT 'pending'`);
+      console.log('Status column updated successfully');
+    } catch (error) {
+      console.log('Status column update failed or not needed:', error.message);
+    }
+
+    // Update any null status values to 'pending'
+    try {
+      await runQuery(db, `UPDATE elections SET status = 'pending' WHERE status IS NULL`);
+      console.log('Null status values updated to pending');
+    } catch (error) {
+      console.log('Null status update failed or not needed:', error.message);
     }
 
     // Ensure electionId column exists in votes table (for legacy DBs)

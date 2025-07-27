@@ -55,20 +55,22 @@ const ElectionStatus = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
+      case 'pending': return 'text-warning';
       case 'active': return 'text-success';
-      case 'draft': return 'text-warning';
+      case 'paused': return 'text-info';
+      case 'stopped': return 'text-danger';
       case 'ended': return 'text-secondary';
-      case 'cancelled': return 'text-danger';
       default: return 'text-muted';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
+      case 'pending': return 'fas fa-clock';
       case 'active': return 'fas fa-play-circle';
-      case 'draft': return 'fas fa-edit';
-      case 'ended': return 'fas fa-stop-circle';
-      case 'cancelled': return 'fas fa-times-circle';
+      case 'paused': return 'fas fa-pause-circle';
+      case 'stopped': return 'fas fa-stop-circle';
+      case 'ended': return 'fas fa-check-circle';
       default: return 'fas fa-question-circle';
     }
   };
@@ -205,58 +207,21 @@ const ElectionStatus = () => {
         
       case 'ended':
         actions.push(
-          <button
-            key="reactivate"
-            className="btn btn-success btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'active')}
-            disabled={updatingElection === election.id}
-          >
-            {updatingElection === election.id ? (
-              <i className="fas fa-spinner fa-spin me-1"></i>
-            ) : (
-              <i className="fas fa-redo me-1"></i>
-            )}
-            Reactivate
-          </button>
+          <span key="ended" className="text-muted">
+            <i className="fas fa-check-circle me-1"></i>
+            Election completed and saved to history
+          </span>
         );
         break;
         
       case 'cancelled':
         actions.push(
-          <button
-            key="reactivate"
-            className="btn btn-success btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'active')}
-            disabled={updatingElection === election.id}
-          >
-            {updatingElection === election.id ? (
-              <i className="fas fa-spinner fa-spin me-1"></i>
-            ) : (
-              <i className="fas fa-redo me-1"></i>
-            )}
-            Reactivate
-          </button>
+          <span key="cancelled" className="text-muted">
+            <i className="fas fa-times-circle me-1"></i>
+            Election cancelled
+          </span>
         );
         break;
-    }
-    
-    // Add cancel button for all statuses except cancelled
-    if (election.status !== 'cancelled') {
-      actions.push(
-        <button
-          key="cancel"
-          className="btn btn-outline-danger btn-sm"
-          onClick={() => handleStatusChange(election.id, 'cancelled')}
-          disabled={updatingElection === election.id}
-        >
-          {updatingElection === election.id ? (
-            <i className="fas fa-spinner fa-spin me-1"></i>
-          ) : (
-            <i className="fas fa-times me-1"></i>
-          )}
-          Cancel
-        </button>
-      );
     }
     
     return actions;

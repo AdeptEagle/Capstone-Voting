@@ -5,24 +5,7 @@
   height: 100vh;
   background-color: #f8fafc;
 }
-/* Results Dashboard Header - Clean White Background */
-.dashboard-header {
-  background: #fff;
-  color: #1f2937;
-  padding: 2rem 0 1rem 0;
-  margin-bottom: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-}
 
-.dashboard-header h3, .dashboard-header h2 {
-  color: #1f2937;
-  font-weight: 700;
-}
-
-.dashboard-header p {
-  color: #374151;
-}
 .dashboard-content {
   flex-grow: 1;
   overflow-y: hidden;

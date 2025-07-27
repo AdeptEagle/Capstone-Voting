@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Alert, Card } from 'react-bootstrap';
 import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
@@ -139,7 +138,7 @@ const Candidates = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this candidate?')) {
+    {
       try {
         await deleteCandidate(id);
         fetchData();
@@ -208,53 +207,63 @@ const Candidates = () => {
           )}
         </div>
         
-        <Modal show={!!viewCandidate} onHide={() => setViewCandidate(null)} size="lg">
-          <Modal.Header closeButton className="candidate-modal-header">
-            <Modal.Title>
-              <div className="modal-candidate-info">
-                {viewCandidate?.photoUrl && (
-                  <img src={viewCandidate.photoUrl} alt={viewCandidate.name} className="modal-candidate-photo" />
-                )}
-                <div>
-                  <h4>{viewCandidate?.name}</h4>
-                  <p className="modal-position">{viewCandidate?.positionName}</p>
+        {/* View Candidate Modal */}
+        {viewCandidate && (
+          <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <div className="modal-candidate-info">
+                    {viewCandidate?.photoUrl && (
+                      <img src={viewCandidate.photoUrl} alt={viewCandidate.name} className="modal-candidate-photo" />
+                    )}
+                    <div>
+                      <h4>{viewCandidate?.name}</h4>
+                      <p className="modal-position">{viewCandidate?.positionName}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setViewCandidate(null)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="candidate-platform">
+                    <h5><i className="fas fa-bullhorn me-2"></i>Platform & Vision</h5>
+                    <div className="platform-content">
+                      {viewCandidate?.description ? (
+                        <p>{viewCandidate.description}</p>
+                      ) : (
+                        <div className="no-platform">
+                          <i className="fas fa-info-circle"></i>
+                          <p>No platform information available yet.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="candidate-details">
+                    <div className="detail-item">
+                      <i className="fas fa-id-card"></i>
+                      <span><strong>Position:</strong> {viewCandidate?.positionName}</span>
+                    </div>
+                    <div className="detail-item">
+                      <i className="fas fa-user"></i>
+                      <span><strong>Candidate:</strong> {viewCandidate?.name}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={() => setViewCandidate(null)}>
+                    <i className="fas fa-times me-2"></i>
+                    Close
+                  </button>
                 </div>
               </div>
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body className="candidate-modal-body">
-            <div className="candidate-platform">
-              <h5><i className="fas fa-bullhorn me-2"></i>Platform & Vision</h5>
-              <div className="platform-content">
-                {viewCandidate?.description ? (
-                  <p>{viewCandidate.description}</p>
-                ) : (
-                  <div className="no-platform">
-                    <i className="fas fa-info-circle"></i>
-                    <p>No platform information available yet.</p>
-                  </div>
-                )}
-              </div>
             </div>
-            
-            <div className="candidate-details">
-              <div className="detail-item">
-                <i className="fas fa-id-card"></i>
-                <span><strong>Position:</strong> {viewCandidate?.positionName}</span>
-              </div>
-              <div className="detail-item">
-                <i className="fas fa-user"></i>
-                <span><strong>Candidate:</strong> {viewCandidate?.name}</span>
-              </div>
-            </div>
-          </Modal.Body>
-          <Modal.Footer className="candidate-modal-footer">
-            <Button variant="secondary" onClick={() => setViewCandidate(null)}>
-              <i className="fas fa-times me-2"></i>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+          </div>
+        )}
       </div>
     );
   }
@@ -287,154 +296,173 @@ const Candidates = () => {
         </div>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div></div>
-        <div></div>
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <div className="card">
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-hover">
+              <thead className="table-header-custom">
+                <tr>
+                  <th>#</th>
+                  <th>Photo</th>
+                  <th>Name</th>
+                  <th>Position</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {candidates.length > 0 ? (
+                  candidates.map((candidate, index) => (
+                    <tr key={candidate.id}>
+                      <td>{index + 1}</td>
+                      <td>
+                        {candidate.photoUrl ? (
+                          <img 
+                            src={candidate.photoUrl} 
+                            alt={candidate.name}
+                            className="candidate-table-photo"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        {!candidate.photoUrl && (
+                          <div className="candidate-table-photo-placeholder">
+                            <i className="fas fa-user"></i>
+                          </div>
+                        )}
+                      </td>
+                      <td>{candidate.name}</td>
+                      <td>{candidate.positionName}</td>
+                      <td>{candidate.description || '-'}</td>
+                      <td>
+                        <button 
+                          className="btn btn-sm btn-outline-primary me-2"
+                          onClick={() => handleShowModal(candidate)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-outline-danger me-2"
+                          onClick={() => handleDelete(candidate.id)}
+                        >
+                          Delete
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-outline-info"
+                          onClick={() => setViewCandidate(candidate)}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">No candidates found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-
-      <Card>
-        <Card.Body>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Photo</th>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {candidates.length > 0 ? (
-                candidates.map((candidate, index) => (
-                  <tr key={candidate.id}>
-                    <td>{index + 1}</td>
-                    <td>
-                      {candidate.photoUrl ? (
-                        <img 
-                          src={candidate.photoUrl} 
-                          alt={candidate.name}
-                          className="candidate-table-photo"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
+      {/* Modal */}
+      {showModal && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {editingCandidate ? 'Edit Candidate' : 'Add Candidate'}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleCloseModal}
+                ></button>
+              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Position</label>
+                    <select
+                      className="form-select"
+                      name="positionId"
+                      value={formData.positionId}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select a position</option>
+                      {positions.map(position => (
+                        <option key={position.id} value={position.id}>
+                          {position.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Photo (profile picture)</label>
+                    <input
+                      type="file"
+                      className="form-control"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                    />
+                    {photoPreview && (
+                      <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
                         />
-                      ) : null}
-                      {!candidate.photoUrl && (
-                        <div className="candidate-table-photo-placeholder">
-                          <i className="fas fa-user"></i>
-                        </div>
-                      )}
-                    </td>
-                    <td>{candidate.name}</td>
-                    <td>{candidate.positionName}</td>
-                    <td>{candidate.description || '-'}</td>
-                    <td>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="me-2"
-                        onClick={() => handleShowModal(candidate)}
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={() => handleDelete(candidate.id)}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center">No candidates found</td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
-
-      <Modal show={showModal} onHide={handleCloseModal} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingCandidate ? 'Edit Candidate' : 'Add Candidate'}
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmit}>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Position</Form.Label>
-              <Form.Select
-                name="positionId"
-                value={formData.positionId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select a position</option>
-                {positions.map(position => (
-                  <option key={position.id} value={position.id}>
-                    {position.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Photo (profile picture)</Form.Label>
-              <Form.Control
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-              />
-              {photoPreview && (
-                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-                  <img
-                    src={photoPreview}
-                    alt="Preview"
-                    style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
-                  />
+                      </div>
+                    )}
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Description (optional)</label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder="Brief description about the candidate"
+                    ></textarea>
+                  </div>
                 </div>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description (optional)</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Brief description about the candidate"
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit">
-              {editingCandidate ? 'Update' : 'Create'}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleCloseModal}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-custom-blue">
+                    {editingCandidate ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

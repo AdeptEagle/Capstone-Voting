@@ -9,10 +9,11 @@ export const UPLOAD_LIMITS = {
 
 // Election status constants
 export const ELECTION_STATUS = {
-  DRAFT: 'draft',
+  PENDING: 'pending',
   ACTIVE: 'active',
-  ENDED: 'ended',
-  CANCELLED: 'cancelled'
+  PAUSED: 'paused',
+  STOPPED: 'stopped',
+  ENDED: 'ended'
 };
 
 // User roles

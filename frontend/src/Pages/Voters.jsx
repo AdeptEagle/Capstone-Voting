@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Alert, Card, Badge } from 'react-bootstrap';
 import { getVoters, createVoter, updateVoter, deleteVoter } from '../services/api';
 
 const Voters = () => {
@@ -104,7 +103,7 @@ const Voters = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this voter?')) {
+    {
       try {
         await deleteVoter(id);
         fetchVoters();
@@ -142,136 +141,157 @@ const Voters = () => {
         </div>
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div></div>
-        <div></div>
+
+
+      {error && <div className="alert alert-danger">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+
+      <div className="card">
+        <div className="card-body">
+          <div className="table-responsive">
+            <table className="table table-hover">
+              <thead className="table-header-custom">
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Student ID</th>
+                  <th>Voting Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {voters.length > 0 ? (
+                  voters.map((voter, index) => (
+                    <tr key={voter.id}>
+                      <td>{index + 1}</td>
+                      <td>{voter.name}</td>
+                      <td>{voter.email}</td>
+                      <td>{voter.studentId}</td>
+                      <td>
+                        {voter.hasVoted ? (
+                          <span className="badge bg-success">Voted</span>
+                        ) : (
+                          <span className="badge bg-warning text-dark">Not Voted</span>
+                        )}
+                      </td>
+                      <td>
+                        <button 
+                          className="btn btn-sm btn-outline-primary me-2"
+                          onClick={() => handleShowModal(voter)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => handleDelete(voter.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center">No voters found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-
-      <Card>
-        <Card.Body>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Student ID</th>
-                <th>Voting Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {voters.length > 0 ? (
-                voters.map((voter, index) => (
-                  <tr key={voter.id}>
-                    <td>{index + 1}</td>
-                    <td>{voter.name}</td>
-                    <td>{voter.email}</td>
-                    <td>{voter.studentId}</td>
-                    <td>
-                      {voter.hasVoted ? (
-                        <Badge bg="success">Voted</Badge>
-                      ) : (
-                        <Badge bg="warning" text="dark">Not Voted</Badge>
-                      )}
-                    </td>
-                    <td>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="me-2"
-                        onClick={() => handleShowModal(voter)}
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={() => handleDelete(voter.id)}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="text-center">No voters found</td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
-
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingVoter ? 'Edit Voter' : 'Add Voter'}
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleSubmit}>
-          <Modal.Body>
-            {!editingVoter && (
-              <Alert variant="info" className="mb-3">
-                <strong>Note:</strong> Voters created without a password will have their Student ID as the default password.
-              </Alert>
-            )}
-            {success && <Alert variant="success">{success}</Alert>}
-            {error && <Alert variant="danger">{error}</Alert>}
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Student ID</Form.Label>
-              <Form.Control
-                type="text"
-                name="studentId"
-                value={formData.studentId}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                name="hasVoted"
-                checked={formData.hasVoted}
-                onChange={handleChange}
-                label="Has voted"
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit">
-              {editingVoter ? 'Update' : 'Create'}
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      {/* Modal */}
+      {showModal && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {editingVoter ? 'Edit Voter' : 'Add Voter'}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleCloseModal}
+                ></button>
+              </div>
+              <form onSubmit={handleSubmit}>
+                <div className="modal-body">
+                  {!editingVoter && (
+                    <div className="alert alert-info mb-3">
+                      <strong>Note:</strong> Voters created without a password will have their Student ID as the default password.
+                    </div>
+                  )}
+                  {success && <div className="alert alert-success">{success}</div>}
+                  {error && <div className="alert alert-danger">{error}</div>}
+                  <div className="mb-3">
+                    <label className="form-label">Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Student ID</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="studentId"
+                      value={formData.studentId}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        name="hasVoted"
+                        checked={formData.hasVoted}
+                        onChange={handleChange}
+                        id="hasVoted"
+                      />
+                      <label className="form-check-label" htmlFor="hasVoted">
+                        Has voted
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleCloseModal}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-custom-blue">
+                    {editingVoter ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

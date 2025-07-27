@@ -56,10 +56,10 @@ export class ElectionModel {
     });
   }
 
-  static async hasAnyElection() {
+  static async hasActiveElection() {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT COUNT(*) as count FROM elections";
+      const query = "SELECT COUNT(*) as count FROM elections WHERE status != 'ended'";
       db.query(query, (err, data) => {
         db.end();
         if (err) reject(err);
@@ -71,7 +71,7 @@ export class ElectionModel {
   static async getCurrentElection() {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM elections ORDER BY created_at DESC LIMIT 1";
+      const query = "SELECT * FROM elections WHERE status != 'ended' ORDER BY created_at DESC LIMIT 1";
       db.query(query, (err, data) => {
         db.end();
         if (err) reject(err);
@@ -80,16 +80,36 @@ export class ElectionModel {
     });
   }
 
+  static async getElectionHistory() {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT e.*, a.username as createdByUsername,
+        (SELECT COUNT(*) FROM election_positions ep WHERE ep.electionId = e.id) as positionCount,
+        (SELECT COUNT(*) FROM votes v WHERE v.electionId = e.id) as totalVotes
+        FROM elections e
+        LEFT JOIN admins a ON e.created_by = a.id
+        WHERE e.status = 'ended'
+        ORDER BY e.endTime DESC
+      `;
+      db.query(query, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
   static async create(electionData) {
     const db = createConnection();
     return new Promise(async (resolve, reject) => {
       try {
-        // Check if there's already ANY election in the system
-        const hasAny = await this.hasAnyElection();
-        if (hasAny) {
+        // Check if there's already an active election in the system
+        const hasActive = await this.hasActiveElection();
+        if (hasActive) {
           const currentElection = await this.getCurrentElection();
           db.end();
-          return reject(new Error(`Cannot create a new election. There is already an election "${currentElection.title}" in the system. You must delete the existing election first to create a new one.`));
+          return reject(new Error(`Cannot create a new election. There is already an election "${currentElection.title}" in the system. You must end or delete the existing election first to create a new one.`));
         }
 
         const { title, description, startTime, endTime, positionIds, id, createdBy } = electionData;
@@ -98,7 +118,7 @@ export class ElectionModel {
         const mysqlStartTime = new Date(startTime).toISOString().slice(0, 19).replace('T', ' ');
         const mysqlEndTime = new Date(endTime).toISOString().slice(0, 19).replace('T', ' ');
 
-        db.query("INSERT INTO elections (id, title, description, startTime, endTime, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+        db.query("INSERT INTO elections (id, title, description, startTime, endTime, status, created_by) VALUES (?, ?, ?, ?, ?, 'pending', ?)",
           [id, title, description, mysqlStartTime, mysqlEndTime, createdBy], (err, result) => {
           if (err) {
             db.end();
@@ -169,6 +189,62 @@ export class ElectionModel {
           db.end();
           resolve({ message: "Election updated successfully!" });
         }
+      });
+    });
+  }
+
+  static async startElection(id) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      db.query("UPDATE elections SET status = 'active' WHERE id = ?", [id], (err) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Election started successfully!" });
+      });
+    });
+  }
+
+  static async pauseElection(id) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      db.query("UPDATE elections SET status = 'paused' WHERE id = ?", [id], (err) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Election paused successfully!" });
+      });
+    });
+  }
+
+  static async stopElection(id) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      db.query("UPDATE elections SET status = 'stopped' WHERE id = ?", [id], (err) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Election stopped successfully!" });
+      });
+    });
+  }
+
+  static async resumeElection(id) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      db.query("UPDATE elections SET status = 'active' WHERE id = ?", [id], (err) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Election resumed successfully!" });
+      });
+    });
+  }
+
+  static async endElection(id) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const endTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      db.query("UPDATE elections SET status = 'ended', endTime = ? WHERE id = ?", [endTime, id], (err) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Election ended successfully and saved to history!" });
       });
     });
   }

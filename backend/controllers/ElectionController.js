@@ -10,6 +10,15 @@ export class ElectionController {
     }
   }
 
+  static async getElectionHistory(req, res) {
+    try {
+      const history = await ElectionModel.getElectionHistory();
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   static async getActiveElection(req, res) {
     try {
       const election = await ElectionModel.getActive();
@@ -84,6 +93,56 @@ export class ElectionController {
       };
 
       const result = await ElectionModel.update(electionId, electionData);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async startElection(req, res) {
+    try {
+      const electionId = req.params.id;
+      const result = await ElectionModel.startElection(electionId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async pauseElection(req, res) {
+    try {
+      const electionId = req.params.id;
+      const result = await ElectionModel.pauseElection(electionId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async stopElection(req, res) {
+    try {
+      const electionId = req.params.id;
+      const result = await ElectionModel.stopElection(electionId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async resumeElection(req, res) {
+    try {
+      const electionId = req.params.id;
+      const result = await ElectionModel.resumeElection(electionId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async endElection(req, res) {
+    try {
+      const electionId = req.params.id;
+      const result = await ElectionModel.endElection(electionId);
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });

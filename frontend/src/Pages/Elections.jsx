@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, createElection, updateElection, deleteElection, getElectionPositions } from '../services/api';
+import { getElections, getPositions, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions } from '../services/api';
 import './Elections.css';
 
 const Elections = () => {
@@ -37,6 +37,7 @@ const Elections = () => {
         getPositions()
       ]);
 
+      console.log('Fetched elections:', elections); // Debug log
       setElections(elections || []);
       setPositions(positions || []);
     } catch (error) {
@@ -109,11 +110,107 @@ const Elections = () => {
     }
   };
 
-  const handleDeleteElection = async (electionId) => {
-    if (!window.confirm('⚠️ WARNING: This will permanently delete the current election and ALL associated data (votes, results, voter status, etc.). This action cannot be undone. After deletion, you will be able to create a new election.\n\nAre you sure you want to proceed?')) {
-      return;
-    }
+  const handleStartElection = async (electionId) => {
+    try {
+      setUpdatingElection(electionId);
+      setError('');
+      setSuccess('');
 
+      await startElection(electionId);
+      
+      setSuccess('Election started successfully!');
+      await fetchElectionsData();
+      
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error starting election:', error);
+      setError(error.response?.data?.error || 'Failed to start election');
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const handlePauseElection = async (electionId) => {
+    try {
+      setUpdatingElection(electionId);
+      setError('');
+      setSuccess('');
+
+      await pauseElection(electionId);
+      
+      setSuccess('Election paused successfully!');
+      await fetchElectionsData();
+      
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error pausing election:', error);
+      setError(error.response?.data?.error || 'Failed to pause election');
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const handleStopElection = async (electionId) => {
+    try {
+      setUpdatingElection(electionId);
+      setError('');
+      setSuccess('');
+
+      await stopElection(electionId);
+      
+      setSuccess('Election stopped successfully!');
+      await fetchElectionsData();
+      
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error stopping election:', error);
+      setError(error.response?.data?.error || 'Failed to stop election');
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const handleResumeElection = async (electionId) => {
+    try {
+      setUpdatingElection(electionId);
+      setError('');
+      setSuccess('');
+
+      await resumeElection(electionId);
+      
+      setSuccess('Election resumed successfully!');
+      await fetchElectionsData();
+      
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error resuming election:', error);
+      setError(error.response?.data?.error || 'Failed to resume election');
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const handleEndElection = async (electionId) => {
+    try {
+      setUpdatingElection(electionId);
+      setError('');
+      setSuccess('');
+
+      await endElection(electionId);
+      
+      setSuccess('Election ended successfully and saved to history!');
+      await fetchElectionsData();
+      
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error ending election:', error);
+      setError(error.response?.data?.error || 'Failed to end election');
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const handleDeleteElection = async (electionId) => {
     try {
       setUpdatingElection(electionId);
       setError('');
@@ -161,6 +258,37 @@ const Elections = () => {
     } catch (error) {
       console.error('Error updating election status:', error);
       setError(error.response?.data?.error || 'Failed to update election status');
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const handleFixStatus = async (electionId) => {
+    try {
+      setUpdatingElection(electionId);
+      setError('');
+      setSuccess('');
+
+      const election = elections.find(e => e.id === electionId);
+      if (!election) {
+        setError('Election not found');
+        return;
+      }
+
+      await updateElection(electionId, {
+        title: election.title,
+        description: election.description,
+        startTime: election.startTime,
+        endTime: election.endTime,
+        status: 'pending'
+      });
+
+      setSuccess('Election status fixed! Set to Pending.');
+      await fetchElectionsData();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Error fixing election status:', error);
+      setError(error.response?.data?.error || 'Failed to fix election status');
     } finally {
       setUpdatingElection(null);
     }
@@ -217,22 +345,28 @@ const Elections = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    // If status is null/undefined, treat as 'pending'
+    const electionStatus = status || 'pending';
+    switch (electionStatus) {
+      case 'pending': return 'warning';
       case 'active': return 'success';
-      case 'draft': return 'warning';
+      case 'paused': return 'info';
+      case 'stopped': return 'danger';
       case 'ended': return 'secondary';
-      case 'cancelled': return 'danger';
-      default: return 'muted';
+      default: return 'warning'; // Default to warning for pending
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    // If status is null/undefined, treat as 'pending'
+    const electionStatus = status || 'pending';
+    switch (electionStatus) {
+      case 'pending': return 'fas fa-clock';
       case 'active': return 'fas fa-play-circle';
-      case 'draft': return 'fas fa-edit';
-      case 'ended': return 'fas fa-stop-circle';
-      case 'cancelled': return 'fas fa-times-circle';
-      default: return 'fas fa-question-circle';
+      case 'paused': return 'fas fa-pause-circle';
+      case 'stopped': return 'fas fa-stop-circle';
+      case 'ended': return 'fas fa-check-circle';
+      default: return 'fas fa-clock'; // Default to clock for pending
     }
   };
 
@@ -249,22 +383,40 @@ const Elections = () => {
   const getStatusActions = (election) => {
     const actions = [];
     
-    console.log('getStatusActions called with election:', election); // Debug log
+    // Debug: Log the election status
+    console.log('Election status:', election.status, 'Election ID:', election.id);
     
+    // If status is null/undefined, treat as 'pending' (default status)
+    const status = election.status || 'pending';
+    
+    console.log('Processed status:', status);
+    
+    // If status is null/undefined, show a fix button
     if (!election.status) {
-      console.log('No status found, returning empty actions'); // Debug log
-      return actions; // Return empty array if status is null/undefined
+      actions.push(
+        <button
+          key="fix-status"
+          className="btn btn-warning btn-sm me-2"
+          onClick={() => handleFixStatus(election.id)}
+          disabled={updatingElection === election.id}
+        >
+          {updatingElection === election.id ? (
+            <i className="fas fa-spinner fa-spin me-1"></i>
+          ) : (
+            <i className="fas fa-wrench me-1"></i>
+          )}
+          Fix Status (Set to Pending)
+        </button>
+      );
     }
     
-    console.log('Election status:', election.status); // Debug log
-    
-    switch (election.status) {
-      case 'draft':
+    switch (status) {
+      case 'pending':
         actions.push(
           <button
-            key="activate"
+            key="start"
             className="btn btn-success btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'active')}
+            onClick={() => handleStartElection(election.id)}
             disabled={updatingElection === election.id}
           >
             {updatingElection === election.id ? (
@@ -282,7 +434,7 @@ const Elections = () => {
           <button
             key="pause"
             className="btn btn-warning btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'draft')}
+            onClick={() => handlePauseElection(election.id)}
             disabled={updatingElection === election.id}
           >
             {updatingElection === election.id ? (
@@ -293,9 +445,9 @@ const Elections = () => {
             Pause Ballot
           </button>,
           <button
-            key="end"
+            key="stop"
             className="btn btn-danger btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'ended')}
+            onClick={() => handleStopElection(election.id)}
             disabled={updatingElection === election.id}
           >
             {updatingElection === election.id ? (
@@ -308,39 +460,83 @@ const Elections = () => {
         );
         break;
         
-      case 'ended':
+      case 'paused':
         actions.push(
           <button
-            key="reactivate"
+            key="resume"
             className="btn btn-success btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'active')}
+            onClick={() => handleResumeElection(election.id)}
             disabled={updatingElection === election.id}
           >
             {updatingElection === election.id ? (
               <i className="fas fa-spinner fa-spin me-1"></i>
             ) : (
-              <i className="fas fa-redo me-1"></i>
+              <i className="fas fa-play me-1"></i>
             )}
-            Restart Ballot
+            Resume Ballot
+          </button>,
+          <button
+            key="stop"
+            className="btn btn-danger btn-sm me-2"
+            onClick={() => handleStopElection(election.id)}
+            disabled={updatingElection === election.id}
+          >
+            {updatingElection === election.id ? (
+              <i className="fas fa-spinner fa-spin me-1"></i>
+            ) : (
+              <i className="fas fa-stop me-1"></i>
+            )}
+            Stop Ballot
           </button>
         );
         break;
         
-      case 'cancelled':
+      case 'stopped':
         actions.push(
           <button
-            key="reactivate"
+            key="resume"
             className="btn btn-success btn-sm me-2"
-            onClick={() => handleStatusChange(election.id, 'active')}
+            onClick={() => handleResumeElection(election.id)}
             disabled={updatingElection === election.id}
           >
             {updatingElection === election.id ? (
               <i className="fas fa-spinner fa-spin me-1"></i>
             ) : (
-              <i className="fas fa-redo me-1"></i>
+              <i className="fas fa-play me-1"></i>
             )}
-            Restart Ballot
+            Resume Ballot
+          </button>,
+          <button
+            key="end"
+            className="btn btn-secondary btn-sm me-2"
+            onClick={() => handleEndElection(election.id)}
+            disabled={updatingElection === election.id}
+          >
+            {updatingElection === election.id ? (
+              <i className="fas fa-spinner fa-spin me-1"></i>
+            ) : (
+              <i className="fas fa-check me-1"></i>
+            )}
+            End Ballot (Save to History)
           </button>
+        );
+        break;
+        
+      case 'ended':
+        actions.push(
+          <span key="ended" className="text-muted">
+            <i className="fas fa-check-circle me-1"></i>
+            Election completed and saved to history
+          </span>
+        );
+        break;
+        
+      default:
+        actions.push(
+          <span key="unknown" className="text-muted">
+            <i className="fas fa-question-circle me-1"></i>
+            Unknown status
+          </span>
         );
         break;
     }
@@ -361,28 +557,31 @@ const Elections = () => {
 
   return (
     <div className="elections-container">
-      {/* Header */}
-      <div className="elections-header">
-        <div className="elections-header-content">
-          <h1>Election Management</h1>
-          <p>Manage the single election ballot system (one election at a time)</p>
-        </div>
-        <div>
-          <button
-            className="btn btn-primary"
-            onClick={openCreateModal}
-            disabled={elections.length > 0}
-            title={elections.length > 0 ? "Delete the current election first" : ""}
-          >
-            <i className="fas fa-plus me-2"></i>
-            Create New Election
-          </button>
-          {elections.length > 0 && (
-            <small className="text-muted d-block mt-1">
-              <i className="fas fa-exclamation-triangle me-1"></i>
-              Delete the current election first
-            </small>
-          )}
+      {/* Unified Professional Header */}
+      <div className="dashboard-header-pro">
+        <div className="dashboard-header-row">
+          <div>
+            <h1 className="dashboard-title-pro">Election Management</h1>
+            <p className="dashboard-subtitle-pro">Manage the single election ballot system (one election at a time)</p>
+          </div>
+          <div className="dashboard-header-actions">
+            <button
+              className="btn btn-custom-blue"
+              onClick={openCreateModal}
+              disabled={elections.some(e => e.status !== 'ended')}
+              title={elections.some(e => e.status !== 'ended') ? "End the current election first" : ""}
+            >
+              <i className="fas fa-plus me-2"></i>
+              Create New Election
+            </button>
+            <button
+              className="btn btn-outline-secondary ms-2"
+              onClick={() => navigate('/admin/election-history')}
+            >
+              <i className="fas fa-history me-2"></i>
+              View History
+            </button>
+          </div>
         </div>
       </div>
 
@@ -395,49 +594,9 @@ const Elections = () => {
         const currentElection = elections.length > 0 ? elections[0] : null;
         if (currentElection) {
           return (
-            <div className="alert alert-warning mb-4">
-              <div className="d-flex align-items-start">
-                <i className="fas fa-exclamation-triangle me-3 mt-1"></i>
-                <div>
-                  <h5 className="alert-heading">🚫 Single Election Policy</h5>
-                  <p className="mb-2">
-                    <strong>Current Election:</strong> "{currentElection.title || 'Untitled Election'}" 
-                    <span className={`badge bg-${getStatusColor(currentElection.status)} ms-2`}>
-                      {currentElection.status ? currentElection.status.charAt(0).toUpperCase() + currentElection.status.slice(1) : 'Unknown'}
-                    </span>
-                  </p>
-                  <p className="mb-2">
-                    The system enforces a <strong>single election policy</strong>. Only one election can exist at a time to ensure data integrity and prevent confusion.
-                  </p>
-                  <p className="mb-2">
-                    <strong>To create a new election, you must first delete the current one.</strong> This will permanently remove all data including:
-                  </p>
-                  <ul className="mb-0">
-                    <li>Election configuration and settings</li>
-                    <li>All voting records and results</li>
-                    <li>Position and candidate associations</li>
-                    <li>Voter voting status</li>
-                  </ul>
-                  <div className="mt-3">
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDeleteElection(currentElection.id)}
-                      disabled={updatingElection === currentElection.id}
-                    >
-                      {updatingElection === currentElection.id ? (
-                        <i className="fas fa-spinner fa-spin me-1"></i>
-                      ) : (
-                        <i className="fas fa-trash me-1"></i>
-                      )}
-                      Delete Current Election & Create New
-                    </button>
-                    <small className="text-muted d-block mt-2">
-                      <i className="fas fa-info-circle me-1"></i>
-                      This action cannot be undone. All data will be permanently lost.
-                    </small>
-                  </div>
-                </div>
-              </div>
+            <div className="alert alert-warning mb-3">
+              <i className="fas fa-exclamation-triangle me-2"></i>
+              <strong>Reminder:</strong> Only one active election allowed. End current election to create a new one.
             </div>
           );
         }
@@ -454,7 +613,9 @@ const Elections = () => {
                   <h3>{election.title || 'Untitled Election'}</h3>
                   <span className={`status-badge badge bg-${getStatusColor(election.status)}`}>
                     <i className={`${getStatusIcon(election.status)} me-1`}></i>
-                    {election.status ? election.status.charAt(0).toUpperCase() + election.status.slice(1) : 'Unknown'}
+                    {(election.status || 'pending').charAt(0).toUpperCase() + (election.status || 'pending').slice(1)}
+                    {/* Debug: Show raw status */}
+                    <small className="ms-1">({election.status || 'null'})</small>
                   </span>
                 </div>
                 <div className="election-meta">
@@ -487,29 +648,54 @@ const Elections = () => {
                 <div className="election-actions">
                   <div className="status-actions">
                     {getStatusActions(election)}
+                    {getStatusActions(election).length === 0 && (
+                      <span className="text-muted">
+                        <i className="fas fa-info-circle me-1"></i>
+                        No actions available for status: {election.status || 'pending'}
+                      </span>
+                    )}
                   </div>
                   
                   <div className="management-actions">
-                    <button
-                      className="btn btn-outline-primary btn-sm me-2"
-                      onClick={() => openEditModal(election)}
-                      disabled={updatingElection === election.id}
-                    >
-                      <i className="fas fa-edit me-1"></i>
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      onClick={() => handleDeleteElection(election.id)}
-                      disabled={updatingElection === election.id}
-                    >
-                      {updatingElection === election.id ? (
-                        <i className="fas fa-spinner fa-spin me-1"></i>
-                      ) : (
-                        <i className="fas fa-trash me-1"></i>
-                      )}
-                      Delete
-                    </button>
+                    {election.status !== 'ended' && (
+                      <>
+                        <button
+                          className="btn btn-outline-primary btn-sm me-2"
+                          onClick={() => openEditModal(election)}
+                          disabled={updatingElection === election.id}
+                        >
+                          <i className="fas fa-edit me-1"></i>
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleDeleteElection(election.id)}
+                          disabled={updatingElection === election.id}
+                        >
+                          {updatingElection === election.id ? (
+                            <i className="fas fa-spinner fa-spin me-1"></i>
+                          ) : (
+                            <i className="fas fa-trash me-1"></i>
+                          )}
+                          Delete
+                        </button>
+                      </>
+                    )}
+                    {election.status === 'ended' && (
+                      <div className="d-flex align-items-center">
+                        <span className="text-success me-3">
+                          <i className="fas fa-check-circle me-1"></i>
+                          Completed
+                        </span>
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => navigate('/admin/election-history')}
+                        >
+                          <i className="fas fa-history me-1"></i>
+                          View History
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -78,6 +78,19 @@ backend/
 - **AdminDashboard.jsx**: Improved quick actions navigation
 - **SuperAdminDashboard.jsx**: Fixed "View Results" button routing
 
+#### **2. Election History System**
+**New Components:**
+- **ElectionHistory.jsx**: Dedicated page for viewing completed elections
+- **ElectionHistory.css**: Styled components for history display
+- **Enhanced Elections.jsx**: Added "End Election" and "View History" functionality
+- **Updated Sidebar.jsx**: Added "Election History" navigation link
+
+**Key Features:**
+- **Preserved Elections**: Ended elections saved to history instead of deletion
+- **Historical Data**: Complete election data including votes, results, statistics
+- **Single Active Policy**: Only one active election allowed at a time
+- **End vs Delete**: Clear distinction between preserving and permanent removal
+
 #### **2. API Service Layer**
 **Enhanced `frontend/src/services/api.js`:**
 - **Admin Management Functions**: `getAdmins`, `createAdmin`, `updateAdmin`, `deleteAdmin`

@@ -1,39 +1,47 @@
 /* Elections Management Page Styles */
 
 .elections-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 0 2rem 0;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-/* Header */
-.elections-header {
+/* Unified Professional Header Styles */
+.dashboard-header-pro {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
+  padding: 2rem 2rem 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e9ecef;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-.elections-header-content h1 {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
+.dashboard-title-pro {
+  color: #1e293b;
+  font-size: 2.1rem;
   font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  letter-spacing: -1px;
 }
 
-.elections-header-content p {
-  color: #6c757d;
-  margin-bottom: 0;
-  font-size: 1.1rem;
+.dashboard-subtitle-pro {
+  color: #64748b;
+  font-size: 1.05rem;
+  margin: 0;
 }
 
-.elections-header .btn {
-  padding: 1rem 2rem;
-  font-weight: 600;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-size: 1.1rem;
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* Loading State */
@@ -371,10 +379,18 @@
     padding: 1rem;
   }
 
-  .elections-header {
+  .dashboard-header-pro {
+    padding: 1.5rem;
+  }
+
+  .dashboard-header-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+
+  .dashboard-title-pro {
+    font-size: 1.8rem;
   }
 
   .election-header {
