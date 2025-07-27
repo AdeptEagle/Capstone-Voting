@@ -1,30 +1,85 @@
 .voter-groups-container {
-  padding: 20px;
+  padding: 0 0 2rem 0;
+  background-color: var(--background-off-white);
+  min-height: 100vh;
 }
 
-.voter-groups-header {
+/* Unified Professional Dashboard Header */
+.dashboard-header-pro {
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(69, 123, 157, 0.1);
+}
+
+.dashboard-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-.voter-groups-header h2 {
+.dashboard-title-pro {
+  color: var(--primary-navy);
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-subtitle-pro {
+  color: var(--text-muted);
+  font-size: 1.1rem;
   margin: 0;
+  font-weight: 500;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .voter-groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
 }
 
 .voter-group-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 15px;
-  margin-bottom: 10px;
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border: 1px solid rgba(69, 123, 157, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.voter-group-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-navy), var(--accent-steel));
+}
+
+.voter-group-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(29, 53, 87, 0.15);
 }
 
 .voter-group-header {
@@ -40,24 +95,30 @@
 }
 
 .voter-group-name {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--primary-navy);
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .voter-group-description {
-  color: #666;
-  margin: 0 0 15px 0;
-  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .voter-group-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.9rem;
-  color: #888;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .member-count {

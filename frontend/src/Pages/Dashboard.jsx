@@ -50,9 +50,9 @@ const Dashboard = () => {
     <div>
       {/* Hero Section */}
       <div className="hero-section">
-        <h1>Voting System Dashboard</h1>
+        <h1>Dashboard</h1>
         <p className="lead">
-          Welcome to the administrative panel. Monitor and manage your voting system from here.
+          Welcome to the administrative panel. Monitor and manage your system from here.
         </p>
       </div>
 

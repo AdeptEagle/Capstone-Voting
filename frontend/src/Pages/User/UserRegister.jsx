@@ -106,7 +106,7 @@ const UserRegister = () => {
           <div className="user-register-logo">
             <i className="fas fa-user-plus"></i>
           </div>
-          <h1 className="user-register-title">Join the Voting System</h1>
+          <h1 className="user-register-title">Join the System</h1>
           <p className="user-register-subtitle">Your Voice Matters • Secure • Transparent</p>
         </div>
         

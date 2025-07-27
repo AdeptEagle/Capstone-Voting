@@ -2,10 +2,11 @@
 .user-dashboard-container {
   max-width: 600px;
   margin: 40px auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(30, 64, 175, 0.08);
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border-radius: 20px;
+  box-shadow: 0 16px 48px rgba(29, 53, 87, 0.12);
   padding: 2.5rem 2rem;
+  border: 1px solid rgba(69, 123, 157, 0.1);
 }
 
 .user-dashboard-header {
@@ -14,14 +15,19 @@
 }
 
 .user-dashboard-header h2 {
-  color: #1e40af;
-  font-weight: 700;
+  color: var(--primary-navy);
+  font-weight: 800;
   margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .user-dashboard-header p {
-  color: #64748b;
-  font-size: 1rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
 /* Election Status Notification */
@@ -30,11 +36,12 @@
 }
 
 .election-info-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-steel) 100%);
+  color: var(--text-white);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .election-info-header {
@@ -88,13 +95,15 @@
 }
 
 .status-badge.active {
-  background-color: #10b981;
-  color: white;
+  background: linear-gradient(135deg, var(--success-green), #34D399);
+  color: var(--text-white);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .status-badge.draft {
-  background-color: #f59e0b;
-  color: white;
+  background: linear-gradient(135deg, var(--warning-orange), #FBBF24);
+  color: var(--text-white);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .status-badge.ended {
@@ -192,8 +201,9 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  color: var(--text-white);
+  box-shadow: 0 4px 12px rgba(29, 53, 87, 0.25);
 }
 
 .btn-primary:disabled {
@@ -215,8 +225,8 @@
 }
 
 .btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(29, 53, 87, 0.2);
 }
 
 .user-dashboard-loading {

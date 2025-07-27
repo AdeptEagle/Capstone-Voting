@@ -34,7 +34,7 @@ const UserLogin = () => {
           <div className="user-login-logo">
             <i className="fas fa-vote-yea"></i>
           </div>
-          <h1 className="user-login-title">Digital Voting System</h1>
+          <h1 className="user-login-title">Digital System</h1>
           <p className="user-login-subtitle">Secure &bull; Transparent &bull; Reliable</p>
         </div>
         <div className="user-login-features">
@@ -63,7 +63,7 @@ const UserLogin = () => {
             <i className="fas fa-clock"></i>
             <div>
               <h4>24/7 Availability</h4>
-              <p>Round-the-clock voting system access</p>
+              <p>Round-the-clock system access</p>
             </div>
           </div>
         </div>

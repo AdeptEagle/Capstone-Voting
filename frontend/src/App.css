@@ -1,25 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 
 :root {
-  /* Professional Color Palette - Easy on the eyes */
-  --primary-blue: #1e40af;      /* Deep professional blue */
-  --light-blue: #3b82f6;        /* Lighter blue for accents */
-  --soft-blue: #dbeafe;         /* Very soft blue for backgrounds */
+  /* Navy Blue + Cool Gray Color Scheme - Professional & Trustworthy */
+  --primary-navy: #1D3557;      /* Deep Navy Blue */
+  --accent-steel: #457B9D;      /* Steel Blue Accent */
+  --background-off-white: #F1FAEE; /* Off-white background */
+  --sidebar-dark: #2B2D42;      /* Dark sidebar */
+  --card-dark: #343A40;         /* Dark card background */
+  --text-light: #EAEAEA;        /* Light text for dark backgrounds */
+  --text-white: #F8F9FA;        /* Pure white text */
+  --text-dark: #1f2937;         /* Dark text for readability */
+  --text-muted: #6b7280;        /* Muted text */
   --white: #ffffff;
-  --off-white: #f8fafc;         /* Soft white for backgrounds */
-  --light-gray: #f1f5f9;        /* Very light gray */
-  --medium-gray: #cbd5e1;       /* Medium gray for borders */
-  --dark-gray: #475569;         /* Dark gray for text */
-  --text-dark: #1e293b;         /* Dark text for readability */
-  --accent-orange: #f97316;     /* Professional orange accent */
-  --soft-orange: #fed7aa;       /* Soft orange for highlights */
+  --light-gray: #f3f4f6;
+  --medium-gray: #d1d5db;
+  --dark-gray: #374151;
+  --success-green: #10B981;     /* Success green */
+  --danger-red: #EF4444;        /* Danger red */
+  --warning-orange: #F59E0B;    /* Warning orange */
+  --info-blue: #3B82F6;         /* Info blue */
   --sidebar-width: 280px;
   --transition-time: 0.3s;
 }
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: var(--off-white);
+  background-color: var(--background-off-white);
   color: var(--text-dark);
   margin: 0;
   overflow-x: hidden;
@@ -32,8 +38,8 @@ body {
   top: 0;
   left: 0;
   bottom: 0;
-  background: var(--primary-blue);
-  color: var(--white);
+  background: var(--sidebar-dark);
+  color: var(--text-light);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
@@ -46,7 +52,7 @@ body {
   transform: translateX(0);
 }
 #sidebar .nav-link {
-  color: var(--white);
+  color: var(--text-light);
   font-weight: 600;
   margin: 0.5rem 0;
   border-radius: 8px;
@@ -54,12 +60,14 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
   text-decoration: none;
 }
 #sidebar .nav-link:hover,
 #sidebar .nav-link.active {
-  background-color: var(--light-blue);
+  background-color: var(--accent-steel);
+  color: var(--text-white);
+  transform: translateX(4px);
 }
 #sidebar .material-icons {
   font-size: 24px;
@@ -93,10 +101,10 @@ body {
   z-index: 1100;
   width: 44px;
   height: 44px;
-  background: var(--primary-blue);
+  background: var(--sidebar-dark);
   border: none;
   border-radius: 8px;
-  color: var(--white);
+  color: var(--text-light);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -118,47 +126,51 @@ body {
   border: 1px solid var(--medium-gray);
 }
 .announcement-card h3 {
-  color: var(--primary-blue);
+  color: var(--primary-navy);
   margin-bottom: 0.5rem;
 }
 
 /* Buttons */
 .btn-custom-blue {
-  background-color: var(--primary-blue);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-steel) 100%);
+  color: var(--text-white);
   border: none;
   border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(29, 53, 87, 0.25);
 }
 .btn-custom-blue:hover {
-  background-color: var(--light-blue);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(30, 64, 175, 0.2);
+  background: linear-gradient(135deg, var(--accent-steel) 0%, var(--primary-navy) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(29, 53, 87, 0.35);
+  color: var(--text-white);
 }
 
 .btn-custom-orange {
-  background-color: var(--accent-orange);
-  color: white;
+  background: linear-gradient(135deg, var(--warning-orange) 0%, #F59E0B 100%);
+  color: var(--text-white);
   border: none;
   border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
 }
 .btn-custom-orange:hover {
-  background-color: #ea580c;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(249, 115, 22, 0.2);
+  background: linear-gradient(135deg, #F59E0B 0%, var(--warning-orange) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+  color: var(--text-white);
 }
 
 /* Table */
 .table-header-custom {
-  background-color: var(--soft-blue);
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-steel) 100%);
   font-weight: 600;
-  color: var(--primary-blue);
-  border-bottom: 2px solid var(--medium-gray);
+  color: var(--text-white);
+  border-bottom: 2px solid var(--accent-steel);
 }
 
 .table {
@@ -182,14 +194,14 @@ body {
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
-  color: white;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  color: var(--text-white);
   padding: 4rem 1.5rem;
   border-radius: 12px;
   margin-top: 2rem;
   margin-bottom: 3rem;
   text-align: center;
-  box-shadow: 0 8px 24px rgba(30, 64, 175, 0.15);
+  box-shadow: 0 8px 24px rgba(29, 53, 87, 0.15);
 }
 .hero-section h1 {
   font-weight: 800;
@@ -208,7 +220,7 @@ body {
 /* Section Title */
 .section-title {
   font-weight: 700;
-  color: var(--primary-blue);
+  color: var(--primary-navy);
   margin-bottom: 2rem;
   font-size: 1.75rem;
 }
@@ -345,7 +357,7 @@ body {
 
 /* Text color utilities */
 .text-primary {
-  color: var(--primary-blue) !important;
+  color: var(--primary-navy) !important;
 }
 
 .text-muted {

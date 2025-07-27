@@ -69,7 +69,7 @@ const SuperAdminDashboard = () => {
         <div className="dashboard-header-row">
           <div>
             <h1 className="dashboard-title-pro">Super Admin Panel</h1>
-            <p className="dashboard-subtitle-pro">Full control over all admin accounts and system settings.</p>
+            <p className="dashboard-subtitle-pro">Full control over all admin accounts and settings.</p>
           </div>
         </div>
       </div>

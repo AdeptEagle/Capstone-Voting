@@ -7,7 +7,7 @@ const LandingPage = () => {
   return (
     <div className="landing-container">
       <div className="landing-box">
-        <h1>Welcome to the Voting System</h1>
+        <h1>Welcome</h1>
         <p>Please select your login type:</p>
         <div className="landing-btn-group">
           <button className="landing-btn" onClick={() => navigate('/admin-login')}>Admin / Super Admin Login</button>

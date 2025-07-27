@@ -1,19 +1,20 @@
 /* AdminDashboard.css */
 .admin-dashboard {
   padding: 0 0 2rem 0;
-  background-color: #f8f9fa;
+  background-color: var(--background-off-white);
   min-height: 100vh;
 }
 
 /* Unified Professional Dashboard Header */
 .dashboard-header-pro {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
-  padding: 2rem 2rem 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(69, 123, 157, 0.1);
 }
 .dashboard-header-row {
   display: flex;
@@ -22,16 +23,21 @@
   flex-wrap: wrap;
 }
 .dashboard-title-pro {
-  color: #1e293b;
-  font-size: 2.1rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem 0;
+  color: var(--primary-navy);
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
   letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .dashboard-subtitle-pro {
-  color: #64748b;
-  font-size: 1.05rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
   margin: 0;
+  font-weight: 500;
 }
 .dashboard-header-actions {
   display: flex;
@@ -43,61 +49,86 @@
 
 /* Stats Cards */
 .stat-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border: 1px solid #e9ecef;
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  border: 1px solid rgba(69, 123, 157, 0.1);
   height: 100%;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-navy), var(--accent-steel));
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(29, 53, 87, 0.15);
 }
 
 .stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
-  font-size: 1.5rem;
-  color: white;
+  margin-bottom: 1rem;
+  font-size: 28px;
+  color: var(--text-white);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
 }
 
-/* Stat Icon Colors - Professional, No Gradients */
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
+}
+
+/* Stat Icon Colors - Professional Gradients */
 .position-icon {
-  background: #2563eb; /* solid blue */
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
 }
 .candidate-icon {
-  background: #0ea5e9; /* solid sky blue */
+  background: linear-gradient(135deg, var(--success-green), #34D399);
 }
 .voter-icon {
-  background: #64748b; /* solid slate gray */
+  background: linear-gradient(135deg, var(--info-blue), #60A5FA);
 }
 .vote-icon {
-  background: #22c55e; /* solid green */
+  background: linear-gradient(135deg, var(--warning-orange), #FBBF24);
 }
 .active-icon {
-  background: #facc15; /* solid yellow */
-  color: #374151;
+  background: linear-gradient(135deg, var(--danger-red), #F87171);
+  color: var(--text-white);
 }
 
 .stat-content h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-navy);
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .stat-content p {
-  margin: 5px 0 0 0;
-  color: #6c757d;
-  font-weight: 500;
+  margin: 0;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Quick Actions */

@@ -1,19 +1,19 @@
 /* Sidebar.css */
 :root {
   --sidebar-width: 260px;
-  --sidebar-bg: #1e40af;        /* Professional blue */
-  --sidebar-header-bg: #1e40af;
-  --text-color: #ffffff;
-  --text-color-hover: #f1f5f9;  /* Lighter white for hover */
-  --link-active-bg: #3b82f6;    /* Lighter blue for active state */
-  --border-color: #1e3a8a;      /* Darker blue for borders */
+  --sidebar-bg: #2B2D42;        /* Dark Navy */
+  --sidebar-header-bg: #2B2D42;
+  --text-color: #EAEAEA;
+  --text-color-hover: #F8F9FA;  /* Lighter white for hover */
+  --link-active-bg: #457B9D;    /* Steel Blue for active state */
+  --border-color: #1D3557;      /* Darker Navy for borders */
 }
 
 .sidebar {
   width: 280px;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--border-color) 100%);
+  color: var(--text-color);
   position: fixed;
   left: 0;
   top: 0;
@@ -71,7 +71,7 @@
   margin: 10px 0 5px 0;
   font-size: 18px;
   font-weight: 600;
-  color: white;
+  color: var(--text-color);
 }
 
 .role-badge {
@@ -152,15 +152,16 @@
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-left-color: rgba(255, 255, 255, 0.3);
+  background: var(--link-active-bg);
+  color: var(--text-color-hover);
+  border-left-color: var(--accent-steel);
+  transform: translateX(4px);
 }
 
 .nav-link.active {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border-left-color: #4ade80;
+  background: var(--link-active-bg);
+  color: var(--text-color-hover);
+  border-left-color: var(--success-green);
   font-weight: 500;
 }
 

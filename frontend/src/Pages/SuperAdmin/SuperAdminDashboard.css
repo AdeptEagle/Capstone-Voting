@@ -1,7 +1,7 @@
 /* SuperAdminDashboard.css */
 .superadmin-dashboard {
   padding: 0 0 2rem 0;
-  background-color: #f8f9fa;
+  background-color: var(--background-off-white);
   min-height: 100vh;
 }
 
@@ -9,13 +9,14 @@
 
 /* Unified Professional Dashboard Header */
 .dashboard-header-pro {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
-  padding: 2rem 2rem 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
   margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(69, 123, 157, 0.1);
 }
 .dashboard-header-row {
   display: flex;
@@ -24,16 +25,21 @@
   flex-wrap: wrap;
 }
 .dashboard-title-pro {
-  color: #1e293b;
-  font-size: 2.1rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem 0;
+  color: var(--primary-navy);
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
   letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .dashboard-subtitle-pro {
-  color: #64748b;
-  font-size: 1.05rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
   margin: 0;
+  font-weight: 500;
 }
 .dashboard-header-actions {
   display: flex;
@@ -43,77 +49,111 @@
 
 /* Stat Cards */
 .stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  border: 1px solid rgba(69, 123, 157, 0.1);
+  transition: all 0.3s ease;
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-navy), var(--accent-steel));
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(29, 53, 87, 0.15);
 }
 
 .stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
-  font-size: 24px;
-  color: white;
+  margin-bottom: 1rem;
+  font-size: 28px;
+  color: var(--text-white);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
 }
 
 .admin-icon {
-  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
 }
 
 .position-icon {
-  background: linear-gradient(135deg, #059669, #10b981);
+  background: linear-gradient(135deg, var(--success-green), #34D399);
 }
 
 .candidate-icon {
-  background: linear-gradient(135deg, #dc2626, #ef4444);
+  background: linear-gradient(135deg, var(--danger-red), #F87171);
 }
 
 .voter-icon {
-  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  background: linear-gradient(135deg, var(--info-blue), #60A5FA);
 }
 
 .vote-icon {
-  background: linear-gradient(135deg, #ea580c, #f97316);
+  background: linear-gradient(135deg, var(--warning-orange), #FBBF24);
 }
 
 .stat-content h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 5px;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-navy);
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .stat-content p {
-  color: #64748b;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-weight: 500;
   margin: 0;
 }
 
 /* Quick Actions */
 .action-btn {
-  padding: 15px;
+  padding: 1rem 1.5rem;
   font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  transition: all 0.3s ease;
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
 /* System Status */
@@ -166,10 +206,12 @@
 
 /* Cards */
 .card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border: 1px solid #e2e8f0;
-  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(29, 53, 87, 0.08);
+  border: 1px solid rgba(69, 123, 157, 0.1);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+  overflow: hidden;
 }
 
 .card-header {

@@ -11,7 +11,7 @@ const Header = ({ onToggleSidebar }) => {
       >
         ☰
       </button>
-      <h1 className="app-header-title">Voting System Admin Panel</h1>
+
     </header>
   );
 };

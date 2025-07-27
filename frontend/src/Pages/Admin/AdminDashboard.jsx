@@ -79,7 +79,7 @@ const AdminDashboard = () => {
         <div className="dashboard-header-row">
           <div>
             <h1 className="dashboard-title-pro">Admin Panel</h1>
-            <p className="dashboard-subtitle-pro">Welcome back, Admin! Manage your voting system from here.</p>
+            <p className="dashboard-subtitle-pro">Welcome back, Admin! Manage your system from here.</p>
           </div>
         </div>
       </div>

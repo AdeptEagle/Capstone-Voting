@@ -157,12 +157,20 @@ const VoterGroups = () => {
           {message}
         </div>
       )}
-      <div className="voter-groups-header">
-        <h2>Voter Groups Management</h2>
-        <button className="btn btn-primary" onClick={openModal}>
-          <i className="fas fa-plus me-2"></i>
-          Create New Group
-        </button>
+      {/* Unified Professional Header */}
+      <div className="dashboard-header-pro">
+        <div className="dashboard-header-row">
+          <div>
+            <h1 className="dashboard-title-pro">Voter Groups Management</h1>
+            <p className="dashboard-subtitle-pro">Create and manage voter groups to organize voters by departments, classes, or custom categories.</p>
+          </div>
+          <div className="dashboard-header-actions">
+            <button className="btn-custom-blue" onClick={openModal}>
+              <i className="fas fa-plus me-2"></i>
+              Create New Group
+            </button>
+          </div>
+        </div>
       </div>
 
 
