@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/constants.js";
+import { AdminModel } from "../models/AdminModel.js";
+import { VoterModel } from "../models/VoterModel.js";
 
 // Middleware to authenticate and attach user to req
 export function authenticate(req, res, next) {
@@ -9,10 +11,51 @@ export function authenticate(req, res, next) {
   }
   
   const token = authHeader.split(" ")[1];
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  jwt.verify(token, JWT_SECRET, async (err, user) => {
     if (err) {
       return res.status(403).json({ error: "Invalid token" });
     }
+    
+    // Check for username changes (for admins)
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      try {
+        const admin = await AdminModel.getById(user.id);
+        if (!admin) {
+          return res.status(403).json({ error: "Admin not found" });
+        }
+        
+        // If username has changed, invalidate the token
+        if (admin.username !== user.username) {
+          return res.status(403).json({ 
+            error: "Token invalidated due to username change",
+            code: "USERNAME_CHANGED"
+          });
+        }
+      } catch (error) {
+        return res.status(403).json({ error: "Authentication error" });
+      }
+    }
+    
+    // Check for name changes (for users)
+    if (user.role === 'user') {
+      try {
+        const voter = await VoterModel.getById(user.id);
+        if (!voter) {
+          return res.status(403).json({ error: "User not found" });
+        }
+        
+        // If name has changed, invalidate the token
+        if (voter.name !== user.name) {
+          return res.status(403).json({ 
+            error: "Token invalidated due to name change",
+            code: "NAME_CHANGED"
+          });
+        }
+      } catch (error) {
+        return res.status(403).json({ error: "Authentication error" });
+      }
+    }
+    
     req.user = user;
     next();
   });

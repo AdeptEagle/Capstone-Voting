@@ -16,12 +16,15 @@ class VoterGroupModel {
     return new Promise((resolve, reject) => {
       const query = `
         SELECT vg.*, a.username as createdByUsername,
+               d.name as departmentName, c.name as courseName,
                COUNT(v.id) as memberCount
         FROM voter_groups vg
         LEFT JOIN admins a ON vg.created_by = a.id
+        LEFT JOIN departments d ON vg.departmentId = d.id
+        LEFT JOIN courses c ON vg.courseId = c.id
         LEFT JOIN voters v ON vg.id = v.voterGroupId
         GROUP BY vg.id
-        ORDER BY vg.name
+        ORDER BY d.displayOrder, d.name, c.displayOrder, c.name, vg.name
       `;
       db.query(query, (err, results) => {
         db.end();
@@ -36,9 +39,12 @@ class VoterGroupModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT vg.*, a.username as createdByUsername
+        SELECT vg.*, a.username as createdByUsername,
+               d.name as departmentName, c.name as courseName
         FROM voter_groups vg
         LEFT JOIN admins a ON vg.created_by = a.id
+        LEFT JOIN departments d ON vg.departmentId = d.id
+        LEFT JOIN courses c ON vg.courseId = c.id
         WHERE vg.id = ?
       `;
       db.query(query, [id], (err, results) => {
@@ -55,14 +61,16 @@ class VoterGroupModel {
     return new Promise((resolve, reject) => {
       const id = voterGroupData.id || generateUUID();
       const query = `
-        INSERT INTO voter_groups (id, name, description, type, created_by)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO voter_groups (id, name, description, type, departmentId, courseId, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
       db.query(query, [
         id,
         voterGroupData.name,
         voterGroupData.description,
         voterGroupData.type,
+        voterGroupData.departmentId || null,
+        voterGroupData.courseId || null,
         voterGroupData.created_by
       ], (err, result) => {
         db.end();
@@ -78,13 +86,15 @@ class VoterGroupModel {
     return new Promise((resolve, reject) => {
       const query = `
         UPDATE voter_groups 
-        SET name = ?, description = ?, type = ?, updated_at = CURRENT_TIMESTAMP
+        SET name = ?, description = ?, type = ?, departmentId = ?, courseId = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
       `;
       db.query(query, [
         voterGroupData.name,
         voterGroupData.description,
         voterGroupData.type,
+        voterGroupData.departmentId || null,
+        voterGroupData.courseId || null,
         id
       ], (err, result) => {
         db.end();
@@ -112,8 +122,10 @@ class VoterGroupModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT v.*
+        SELECT v.*, d.name as departmentName, c.name as courseName
         FROM voters v
+        LEFT JOIN departments d ON v.departmentId = d.id
+        LEFT JOIN courses c ON v.courseId = c.id
         WHERE v.voterGroupId = ?
         ORDER BY v.name
       `;
@@ -165,15 +177,64 @@ class VoterGroupModel {
     return new Promise((resolve, reject) => {
       const query = `
         SELECT vg.*, a.username as createdByUsername,
+               d.name as departmentName, c.name as courseName,
+               COUNT(v.id) as memberCount
+        FROM voter_groups vg
+        LEFT JOIN admins a ON vg.created_by = a.id
+        LEFT JOIN departments d ON vg.departmentId = d.id
+        LEFT JOIN courses c ON vg.courseId = c.id
+        LEFT JOIN voters v ON vg.id = v.voterGroupId
+        WHERE vg.type = ?
+        GROUP BY vg.id
+        ORDER BY d.displayOrder, d.name, c.displayOrder, c.name, vg.name
+      `;
+      db.query(query, [type], (err, results) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  // Get voter groups by department
+  static async getByDepartment(departmentId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT vg.*, a.username as createdByUsername,
+               c.name as courseName,
+               COUNT(v.id) as memberCount
+        FROM voter_groups vg
+        LEFT JOIN admins a ON vg.created_by = a.id
+        LEFT JOIN courses c ON vg.courseId = c.id
+        LEFT JOIN voters v ON vg.id = v.voterGroupId
+        WHERE vg.departmentId = ?
+        GROUP BY vg.id
+        ORDER BY c.displayOrder, c.name, vg.name
+      `;
+      db.query(query, [departmentId], (err, results) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  // Get voter groups by course
+  static async getByCourse(courseId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT vg.*, a.username as createdByUsername,
                COUNT(v.id) as memberCount
         FROM voter_groups vg
         LEFT JOIN admins a ON vg.created_by = a.id
         LEFT JOIN voters v ON vg.id = v.voterGroupId
-        WHERE vg.type = ?
+        WHERE vg.courseId = ?
         GROUP BY vg.id
         ORDER BY vg.name
       `;
-      db.query(query, [type], (err, results) => {
+      db.query(query, [courseId], (err, results) => {
         db.end();
         if (err) reject(err);
         else resolve(results);
@@ -186,9 +247,11 @@ class VoterGroupModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT vg.*
+        SELECT vg.*, d.name as departmentName, c.name as courseName
         FROM voter_groups vg
         INNER JOIN voters v ON vg.id = v.voterGroupId
+        LEFT JOIN departments d ON vg.departmentId = d.id
+        LEFT JOIN courses c ON vg.courseId = c.id
         WHERE v.id = ?
         ORDER BY vg.name
       `;
@@ -205,8 +268,10 @@ class VoterGroupModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT v.*
+        SELECT v.*, d.name as departmentName, c.name as courseName
         FROM voters v
+        LEFT JOIN departments d ON v.departmentId = d.id
+        LEFT JOIN courses c ON v.courseId = c.id
         WHERE v.voterGroupId IS NULL
         ORDER BY v.name
       `;

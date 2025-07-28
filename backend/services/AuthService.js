@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { JWT_SECRET, DEFAULTS } from "../config/constants.js";
 import { AdminModel } from "../models/AdminModel.js";
 import { VoterModel } from "../models/VoterModel.js";
+import DepartmentModel from "../models/DepartmentModel.js";
+import CourseModel from "../models/CourseModel.js";
 
 export class AuthService {
   static async adminLogin(username, password) {
@@ -31,13 +33,36 @@ export class AuthService {
     }
   }
 
+  // New method to validate admin token and check for username changes
+  static async validateAdminToken(token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const admin = await AdminModel.getById(decoded.id);
+      
+      if (!admin) {
+        return { valid: false, reason: 'Admin not found' };
+      }
+      
+      // Check if username has changed since token was issued
+      if (admin.username !== decoded.username) {
+        return { valid: false, reason: 'Username changed' };
+      }
+      
+      return { valid: true, admin };
+    } catch (error) {
+      return { valid: false, reason: 'Invalid token' };
+    }
+  }
+
   static async userRegister(userData) {
     try {
-      const { name, email, studentId, password, voterGroupId } = userData;
+      const { name, email, studentId, password, departmentId, courseId } = userData;
+      
+      console.log('User registration data:', { name, email, studentId, departmentId, courseId });
       
       // Validate required fields
-      if (!name || !email || !studentId || !password || !voterGroupId) {
-        throw new Error("All fields are required including department/group selection");
+      if (!name || !email || !studentId || !password || !departmentId || !courseId) {
+        throw new Error("All fields are required including department and course selection");
       }
       
       // Check if user already exists
@@ -46,27 +71,44 @@ export class AuthService {
         throw new Error("User with this email or student ID already exists");
       }
       
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // Validate department and course exist
+      const department = await DepartmentModel.getById(departmentId);
+      if (!department) {
+        throw new Error("Department not found");
+      }
+
+      const course = await CourseModel.getById(courseId);
+      if (!course) {
+        throw new Error("Course not found");
+      }
       
-      // Create voter account
+      // Validate that the course belongs to the selected department
+      if (course.departmentId !== departmentId) {
+        throw new Error("Selected course does not belong to the selected department");
+      }
+      
+      // Create voter account (password is already hashed in VoterModel.create)
       const result = await VoterModel.create({
         name,
         email,
         studentId,
-        password: hashedPassword,
-        voterGroupId: voterGroupId
+        password, // VoterModel.create will hash this
+        departmentId,
+        courseId
       });
+      
+      console.log('Voter created successfully:', result);
       
       // Create JWT token for immediate login
       const token = jwt.sign(
-        { id: result.id, email, role: 'user' }, 
+        { id: result.id, email, name, role: 'user' }, 
         JWT_SECRET, 
         { expiresIn: DEFAULTS.JWT_EXPIRY }
       );
       
       return { token, role: 'user', id: result.id, message: "Registration successful" };
     } catch (error) {
+      console.error('User registration error:', error);
       throw error;
     }
   }
@@ -91,7 +133,7 @@ export class AuthService {
       
       // Create JWT token
       const token = jwt.sign(
-        { id: voter.id, email: voter.email, role: 'user' }, 
+        { id: voter.id, email: voter.email, name: voter.name, role: 'user' }, 
         JWT_SECRET, 
         { expiresIn: DEFAULTS.JWT_EXPIRY }
       );

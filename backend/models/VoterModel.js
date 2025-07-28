@@ -6,10 +6,13 @@ export class VoterModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT v.*, vg.name as groupName, vg.type as groupType 
+        SELECT v.*, vg.name as groupName, vg.type as groupType,
+               d.name as departmentName, c.name as courseName
         FROM voters v 
         LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id 
-        ORDER BY v.name
+        LEFT JOIN departments d ON v.departmentId = d.id
+        LEFT JOIN courses c ON v.courseId = c.id
+        ORDER BY d.displayOrder, d.name, c.displayOrder, c.name, v.name
       `;
       db.query(query, (err, data) => {
         db.end();
@@ -23,7 +26,7 @@ export class VoterModel {
     const db = createConnection();
     return new Promise(async (resolve, reject) => {
       try {
-        const { name, email, studentId, password, voterGroupId } = voterData;
+        const { name, email, studentId, password, voterGroupId, departmentId, courseId } = voterData;
         
         // If no password provided (admin-created voter), set a default password
         let hashedPassword = null;
@@ -34,8 +37,8 @@ export class VoterModel {
           hashedPassword = await bcrypt.hash(studentId, 10);
         }
         
-        const query = "INSERT INTO voters (name, email, studentId, password, voterGroupId) VALUES (?, ?, ?, ?, ?)";
-        const values = [name, email, studentId, hashedPassword, voterGroupId || null];
+        const query = "INSERT INTO voters (name, email, studentId, password, voterGroupId, departmentId, courseId) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        const values = [name, email, studentId, hashedPassword, voterGroupId || null, departmentId || null, courseId || null];
         
         db.query(query, values, (err, data) => {
           db.end();
@@ -56,13 +59,15 @@ export class VoterModel {
   static async update(id, voterData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "UPDATE voters SET name = ?, email = ?, studentId = ?, hasVoted = ?, voterGroupId = ? WHERE id = ?";
+      const query = "UPDATE voters SET name = ?, email = ?, studentId = ?, hasVoted = ?, voterGroupId = ?, departmentId = ?, courseId = ? WHERE id = ?";
       const values = [
         voterData.name,
         voterData.email,
         voterData.studentId,
         voterData.hasVoted,
         voterData.voterGroupId || null,
+        voterData.departmentId || null,
+        voterData.courseId || null,
         id
       ];
       db.query(query, values, (err, data) => {
@@ -88,7 +93,15 @@ export class VoterModel {
   static async getById(id) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM voters WHERE id = ?";
+      const query = `
+        SELECT v.*, vg.name as groupName, vg.type as groupType,
+               d.name as departmentName, c.name as courseName
+        FROM voters v
+        LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id
+        LEFT JOIN departments d ON v.departmentId = d.id
+        LEFT JOIN courses c ON v.courseId = c.id
+        WHERE v.id = ?
+      `;
       db.query(query, [id], (err, data) => {
         db.end();
         if (err) reject(err);
@@ -100,7 +113,15 @@ export class VoterModel {
   static async getByStudentId(studentId) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM voters WHERE studentId = ?";
+      const query = `
+        SELECT v.*, vg.name as groupName, vg.type as groupType,
+               d.name as departmentName, c.name as courseName
+        FROM voters v
+        LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id
+        LEFT JOIN departments d ON v.departmentId = d.id
+        LEFT JOIN courses c ON v.courseId = c.id
+        WHERE v.studentId = ?
+      `;
       db.query(query, [studentId], (err, data) => {
         db.end();
         if (err) reject(err);
@@ -112,7 +133,15 @@ export class VoterModel {
   static async getByEmail(email) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "SELECT * FROM voters WHERE email = ?";
+      const query = `
+        SELECT v.*, vg.name as groupName, vg.type as groupType,
+               d.name as departmentName, c.name as courseName
+        FROM voters v
+        LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id
+        LEFT JOIN departments d ON v.departmentId = d.id
+        LEFT JOIN courses c ON v.courseId = c.id
+        WHERE v.email = ?
+      `;
       db.query(query, [email], (err, data) => {
         db.end();
         if (err) reject(err);
@@ -135,5 +164,47 @@ export class VoterModel {
 
   static async resetVotingStatus(id) {
     return this.setVotedStatus(id, false);
+  }
+
+  // Get voters by department
+  static async getByDepartment(departmentId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT v.*, vg.name as groupName, vg.type as groupType,
+               c.name as courseName
+        FROM voters v
+        LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id
+        LEFT JOIN courses c ON v.courseId = c.id
+        WHERE v.departmentId = ?
+        ORDER BY c.displayOrder, c.name, v.name
+      `;
+      db.query(query, [departmentId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
+  // Get voters by course
+  static async getByCourse(courseId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT v.*, vg.name as groupName, vg.type as groupType,
+               d.name as departmentName
+        FROM voters v
+        LEFT JOIN voter_groups vg ON v.voterGroupId = vg.id
+        LEFT JOIN departments d ON v.departmentId = d.id
+        WHERE v.courseId = ?
+        ORDER BY v.name
+      `;
+      db.query(query, [courseId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
   }
 } 

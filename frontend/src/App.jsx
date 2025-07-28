@@ -19,7 +19,7 @@ import UserRegister from './Pages/User/UserRegister';
 import Vote from './Pages/User/Vote';
 import AdminLogin from './Pages/AdminLogin';
 import UserLogin from './Pages/User/UserLogin';
-import VoterGroups from './Pages/VoterGroups';
+import DepartmentManagement from './Pages/VoterGroups';
 import { getToken, checkCurrentUser } from './services/auth';
 import { ElectionProvider } from './contexts/ElectionContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -113,8 +113,8 @@ function UserLayout({ children }) {
 
 function App() {
   return (
+    <ElectionProvider>
     <Router>
-      <ElectionProvider>
         <div className="App">
           <Routes>
             {/* Public Routes */}
@@ -168,13 +168,6 @@ function App() {
                 </AdminLayout>
               </AdminRoute>
             } />
-            <Route path="/admin/voter-groups" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <VoterGroups />
-                </AdminLayout>
-              </AdminRoute>
-            } />
             <Route path="/admin/elections" element={
               <AdminRoute>
                 <AdminLayout>
@@ -186,13 +179,6 @@ function App() {
               <AdminRoute>
                 <AdminLayout>
                   <ElectionHistory />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/results" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <Results />
                 </AdminLayout>
               </AdminRoute>
             } />
@@ -214,6 +200,20 @@ function App() {
               <AdminRoute>
                 <AdminLayout>
                   <BallotCandidates />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/results" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <Results />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/department-management" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <DepartmentManagement />
                 </AdminLayout>
               </AdminRoute>
             } />
@@ -262,8 +262,8 @@ function App() {
             <Route path="*" element={<Navigate to="/user-login" />} />
           </Routes>
         </div>
+      </Router>
       </ElectionProvider>
-    </Router>
   );
 }
 

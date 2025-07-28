@@ -322,13 +322,13 @@ const AdminDashboard = () => {
               <div className="d-flex gap-2 mt-2">
                 <button 
                   className="btn btn-outline-primary btn-sm"
-                  onClick={() => navigate('/results')}
+                  onClick={() => navigate('/admin/results')}
                 >
                   View Results
                 </button>
                 <button 
                   className="btn btn-outline-info btn-sm"
-                  onClick={() => navigate('/vote-traceability')}
+                  onClick={() => navigate('/admin/vote-traceability')}
                 >
                   Vote Traceability
                 </button>

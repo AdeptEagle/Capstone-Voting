@@ -30,4 +30,34 @@
 .positions-container .table th,
 .positions-container .table td {
   padding: 0.75rem 1rem;
+}
+
+/* Search and Sort Styles */
+.sortable-header {
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortable-header:hover {
+  background-color: #e9ecef;
+}
+
+.sortable-header i {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border-color: #ced4da;
+}
+
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Search results counter */
+.text-muted {
+  font-size: 0.875rem;
 } 

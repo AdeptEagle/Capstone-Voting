@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert } from 'react-bootstrap';
-import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions, getPublicVoterGroups } from '../services/api';
+import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions, getDepartments, getCoursesByDepartment } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
@@ -10,7 +10,9 @@ import { getCandidatePhotoUrl, CandidatePhotoPlaceholder } from '../utils/image.
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
   const [positions, setPositions] = useState([]);
-  const [voterGroups, setVoterGroups] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,13 +20,17 @@ const Candidates = () => {
   const [formData, setFormData] = useState({
     name: '',
     positionId: '',
-    voterGroupId: '',
+    departmentId: '',
+    courseId: '',
     photoUrl: '',
     description: ''
   });
   const [viewCandidate, setViewCandidate] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   const role = checkCurrentUser().role;
   const { canViewCandidates, hasActiveElection, triggerImmediateRefresh } = useElection();
@@ -39,23 +45,52 @@ const Candidates = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [candidatesData, positionsData, voterGroupsData] = await Promise.all([
+      const [candidatesData, positionsData, departmentsData] = await Promise.all([
         getCandidates(),
         getPositions(),
-        getPublicVoterGroups()
+        getDepartments()
       ]);
       console.log('Fetched candidates data:', candidatesData);
       console.log('Fetched positions data:', positionsData);
-      console.log('Fetched voter groups data:', voterGroupsData);
+      console.log('Fetched departments data:', departmentsData);
+      
+      // Debug individual candidates
+      candidatesData.forEach(candidate => {
+        console.log(`Candidate ${candidate.name}:`, {
+          departmentId: candidate.departmentId,
+          departmentName: candidate.departmentName,
+          courseId: candidate.courseId,
+          courseName: candidate.courseName
+        });
+      });
+      
       setCandidates(candidatesData);
       setPositions(positionsData);
-      setVoterGroups(voterGroupsData);
+      setDepartments(departmentsData);
       setError('');
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Failed to load data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCourses = async (departmentId) => {
+    if (!departmentId) {
+      setCourses([]);
+      return;
+    }
+    
+    try {
+      setLoadingCourses(true);
+      const coursesData = await getCoursesByDepartment(departmentId);
+      setCourses(coursesData);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setCourses([]);
+    } finally {
+      setLoadingCourses(false);
     }
   };
 
@@ -68,23 +103,31 @@ const Candidates = () => {
       setFormData({
         name: candidate.name,
         positionId: candidate.positionId,
-        voterGroupId: candidate.voterGroupId || '',
+        departmentId: candidate.departmentId || '',
+        courseId: candidate.courseId || '',
         photoUrl: candidate.photoUrl || '',
         description: candidate.description || ''
       });
       setPhotoPreview(candidate.photoUrl || '');
       setPhotoFile(null);
+      
+      // Fetch courses if department is selected
+      if (candidate.departmentId) {
+        fetchCourses(candidate.departmentId);
+      }
     } else {
       setEditingCandidate(null);
       setFormData({
         name: '',
         positionId: '',
-        voterGroupId: '',
+        departmentId: '',
+        courseId: '',
         photoUrl: '',
         description: ''
       });
       setPhotoPreview('');
       setPhotoFile(null);
+      setCourses([]);
     }
     setShowModal(true);
   };
@@ -95,6 +138,8 @@ const Candidates = () => {
     setFormData({
       name: '',
       positionId: '',
+      departmentId: '',
+      courseId: '',
       photoUrl: '',
       description: ''
     });
@@ -103,10 +148,21 @@ const Candidates = () => {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value } = e.target;
+    
+    if (name === 'departmentId') {
+      // Reset courseId when department changes
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        courseId: ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handlePhotoChange = (e) => {
@@ -123,13 +179,26 @@ const Candidates = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.departmentId) {
+      setError('Please select a department');
+      return;
+    }
+    
+    if (!formData.courseId) {
+      setError('Please select a course');
+      return;
+    }
+    
     try {
       let dataToSend;
       if (photoFile) {
         dataToSend = new FormData();
         dataToSend.append('name', formData.name);
         dataToSend.append('positionId', formData.positionId);
-        dataToSend.append('voterGroupId', formData.voterGroupId);
+        dataToSend.append('departmentId', formData.departmentId);
+        dataToSend.append('courseId', formData.courseId);
         dataToSend.append('description', formData.description);
         dataToSend.append('photo', photoFile);
       } else {
@@ -139,13 +208,20 @@ const Candidates = () => {
           dataToSend.photoUrl = editingCandidate.photoUrl;
         }
       }
+      
+      console.log('Submitting candidate data:', dataToSend);
+      
       if (editingCandidate) {
+        console.log('Updating candidate:', editingCandidate.id);
         await updateCandidate(editingCandidate.id, dataToSend, photoFile ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
       } else {
+        console.log('Creating new candidate');
         await createCandidate(dataToSend, photoFile ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
       }
+      
+      console.log('Candidate saved successfully, refreshing data...');
       handleCloseModal();
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error('Error saving candidate:', error);
       setError('Failed to save candidate');
@@ -174,6 +250,46 @@ const Candidates = () => {
       return `http://localhost:3000${photoUrl}`;
     }
     return `http://localhost:3000/uploads/${photoUrl}`;
+  };
+
+  // Filter and sort candidates
+  const filteredCandidates = candidates
+    .filter(candidate => {
+      const term = searchTerm.toLowerCase();
+      return (
+        candidate.name?.toLowerCase().includes(term) ||
+        candidate.positionName?.toLowerCase().includes(term) ||
+        candidate.departmentName?.toLowerCase().includes(term) ||
+        candidate.courseName?.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      if (sortField === 'positionName') {
+        // Sort by position displayOrder (or ID if no displayOrder)
+        const aPos = positions.find(p => p.id === a.positionId);
+        const bPos = positions.find(p => p.id === b.positionId);
+        const aOrder = aPos?.displayOrder ?? aPos?.id ?? '';
+        const bOrder = bPos?.displayOrder ?? bPos?.id ?? '';
+        if (aOrder < bOrder) return sortOrder === 'asc' ? -1 : 1;
+        if (aOrder > bOrder) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      } else {
+        let aValue = a[sortField] || '';
+        let bValue = b[sortField] || '';
+        aValue = typeof aValue === 'string' ? aValue.toLowerCase() : aValue;
+        bValue = typeof bValue === 'string' ? bValue.toLowerCase() : bValue;
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      }
+    });
+
+  // Helper to render sort icon
+  const renderSortIcon = (field) => {
+    if (sortField !== field) return null;
+    return (
+      <i className={`fas fa-sort-${sortOrder === 'asc' ? 'up' : 'down'} ms-1`}></i>
+    );
   };
 
   // User view: modern candidate cards grouped by position
@@ -238,10 +354,16 @@ const Candidates = () => {
                           <span className="verified"><i className="fas fa-check-circle"></i></span>
                         </h3>
                         <p className="candidate-position">{candidate.positionName}</p>
-                        {candidate.voterGroupName && (
+                        {(candidate.departmentName || candidate.courseName) && (
                           <p className="candidate-department">
-                            <i className="fas fa-building me-1"></i>
-                            {candidate.voterGroupName}
+                            <i className="fas fa-university me-1"></i>
+                            {candidate.departmentName}
+                            {candidate.courseName && (
+                              <span className="candidate-course">
+                                <i className="fas fa-graduation-cap me-1"></i>
+                                {candidate.courseName}
+                              </span>
+                            )}
                           </p>
                         )}
                       </div>
@@ -376,6 +498,18 @@ const Candidates = () => {
                               <i className="fas fa-user"></i>
                               <span><strong>Name:</strong> {viewCandidate?.name}</span>
                             </div>
+                            {(viewCandidate?.departmentName || viewCandidate?.courseName) && (
+                              <div className="detail-item">
+                                <i className="fas fa-university"></i>
+                                <span><strong>Department:</strong> {viewCandidate?.departmentName || 'Not specified'}</span>
+                              </div>
+                            )}
+                            {viewCandidate?.courseName && (
+                              <div className="detail-item">
+                                <i className="fas fa-graduation-cap"></i>
+                                <span><strong>Course:</strong> {viewCandidate?.courseName}</span>
+                              </div>
+                            )}
                             <div className="detail-item">
                               <i className="fas fa-calendar-alt"></i>
                               <span><strong>Registration Date:</strong> {new Date().toLocaleDateString()}</span>
@@ -485,7 +619,7 @@ const Candidates = () => {
   }
 
   return (
-    <div className="candidates-container">
+    <div className="candidates-management-container">
       {/* Unified Professional Header */}
       <div className="dashboard-header-pro">
         <div className="dashboard-header-row">
@@ -503,79 +637,110 @@ const Candidates = () => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="card">
-        <div className="card-body">
-          <div className="table-responsive">
-            <table className="table table-hover">
-              <thead className="table-header-custom">
-                <tr>
-                  <th>#</th>
-                  <th>Photo</th>
-                  <th>Name</th>
-                  <th>Position</th>
-                  <th>Department</th>
-                  <th>Description</th>
-                  <th>Actions</th>
+      <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
+        <input
+          type="text"
+          className="form-control"
+          style={{ maxWidth: 300 }}
+          placeholder="Search by name, department, course, or position..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+      </div>
+      <div className="table-responsive">
+        <table className="table table-hover">
+          <thead className="table-header-custom">
+            <tr>
+              <th>#</th>
+              <th>Photo</th>
+              <th
+                className={sortField === 'name' ? 'sortable active-sort' : 'sortable'}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSortField('name') || setSortOrder(sortField === 'name' && sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                Name {renderSortIcon('name')}
+              </th>
+              <th
+                className={sortField === 'positionName' ? 'sortable active-sort' : 'sortable'}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSortField('positionName') || setSortOrder(sortField === 'positionName' && sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                Position {renderSortIcon('positionName')}
+              </th>
+              <th
+                className={sortField === 'departmentName' ? 'sortable active-sort' : 'sortable'}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSortField('departmentName') || setSortOrder(sortField === 'departmentName' && sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                Department {renderSortIcon('departmentName')}
+              </th>
+              <th
+                className={sortField === 'courseName' ? 'sortable active-sort' : 'sortable'}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setSortField('courseName') || setSortOrder(sortField === 'courseName' && sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                Course {renderSortIcon('courseName')}
+              </th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredCandidates.length > 0 ? (
+              filteredCandidates.map((candidate, index) => (
+                <tr key={candidate.id}>
+                  <td>{index + 1}</td>
+                  <td>
+                    {candidate.photoUrl ? (
+                      <img 
+                        src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                        alt={candidate.name}
+                        className="candidate-table-photo"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : (
+                      <div className="candidate-table-photo-placeholder">
+                        <i className="fas fa-user"></i>
+                      </div>
+                    )}
+                  </td>
+                  <td>{candidate.name}</td>
+                  <td>{candidate.positionName}</td>
+                  <td>{candidate.departmentName || '-'}</td>
+                  <td>{candidate.courseName || '-'}</td>
+                  <td>{candidate.description || '-'}</td>
+                  <td>
+                    <button 
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() => handleShowModal(candidate)}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline-danger me-2"
+                      onClick={() => handleDelete(candidate.id)}
+                    >
+                      Delete
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline-info"
+                      onClick={() => setViewCandidate(candidate)}
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {candidates.length > 0 ? (
-                  candidates.map((candidate, index) => (
-                    <tr key={candidate.id}>
-                      <td>{index + 1}</td>
-                      <td>
-                        {candidate.photoUrl ? (
-                          <img 
-                            src={getCandidatePhotoUrl(candidate.photoUrl)} 
-                            alt={candidate.name}
-                            className="candidate-table-photo"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        {!candidate.photoUrl && (
-                          <div className="candidate-table-photo-placeholder">
-                            <i className="fas fa-user"></i>
-                          </div>
-                        )}
-                      </td>
-                      <td>{candidate.name}</td>
-                      <td>{candidate.positionName}</td>
-                      <td>{candidate.voterGroupName || '-'}</td>
-                      <td>{candidate.description || '-'}</td>
-                      <td>
-                        <button 
-                          className="btn btn-sm btn-outline-primary me-2"
-                          onClick={() => handleShowModal(candidate)}
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          className="btn btn-sm btn-outline-danger me-2"
-                          onClick={() => handleDelete(candidate.id)}
-                        >
-                          Delete
-                        </button>
-                        <button 
-                          className="btn btn-sm btn-outline-info"
-                          onClick={() => setViewCandidate(candidate)}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="text-center">No candidates found</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="8" className="text-center">No candidates found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Enhanced View Candidate Modal */}
@@ -677,10 +842,16 @@ const Candidates = () => {
                             <i className="fas fa-user"></i>
                             <span><strong>Name:</strong> {viewCandidate?.name}</span>
                           </div>
-                          {viewCandidate?.voterGroupName && (
+                          {(viewCandidate?.departmentName || viewCandidate?.courseName) && (
                             <div className="detail-item">
-                              <i className="fas fa-building"></i>
-                              <span><strong>Department/Group:</strong> {viewCandidate?.voterGroupName}</span>
+                              <i className="fas fa-university"></i>
+                              <span><strong>Department:</strong> {viewCandidate?.departmentName || 'Not specified'}</span>
+                            </div>
+                          )}
+                          {viewCandidate?.courseName && (
+                            <div className="detail-item">
+                              <i className="fas fa-graduation-cap"></i>
+                              <span><strong>Course:</strong> {viewCandidate?.courseName}</span>
                             </div>
                           )}
                           <div className="detail-item">
@@ -806,21 +977,48 @@ const Candidates = () => {
                     </select>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Department/Group</label>
+                    <label className="form-label">Department *</label>
                     <select
                       className="form-select"
-                      name="voterGroupId"
-                      value={formData.voterGroupId}
-                      onChange={handleChange}
+                      name="departmentId"
+                      value={formData.departmentId}
+                      onChange={(e) => {
+                        handleChange(e);
+                        fetchCourses(e.target.value);
+                      }}
+                      required
                     >
-                      <option value="">Select a department or group</option>
-                      {voterGroups.map(group => (
-                        <option key={group.id} value={group.id}>
-                          {group.name} ({group.type})
+                      <option value="">Select a department</option>
+                      {departments.map(department => (
+                        <option key={department.id} value={department.id}>
+                          {department.name}
                         </option>
                       ))}
                     </select>
-                    <small className="text-muted">Choose the department or group this candidate represents</small>
+                    <small className="text-muted">Choose the department this candidate represents (required)</small>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Course *</label>
+                    <select
+                      className="form-select"
+                      name="courseId"
+                      value={formData.courseId}
+                      onChange={handleChange}
+                      disabled={!formData.departmentId || loadingCourses}
+                      required
+                    >
+                      <option value="">Select a course</option>
+                      {courses.map(course => (
+                        <option key={course.id} value={course.id}>
+                          {course.id} - {course.name}
+                        </option>
+                      ))}
+                    </select>
+                    <small className="text-muted">
+                      {loadingCourses ? 'Loading courses...' : 
+                       formData.departmentId ? 'Choose the course this candidate represents (required)' : 
+                       'Select a department first to choose a course'}
+                    </small>
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Photo (profile picture)</label>

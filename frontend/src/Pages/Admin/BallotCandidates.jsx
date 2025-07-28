@@ -183,8 +183,9 @@ const BallotCandidates = () => {
                               e.target.parentNode.querySelector('.candidate-photo-placeholder').style.display = 'flex';
                             }}
                           />
-                        ) : null}
-                        <CandidatePhotoPlaceholder className="candidate-photo-placeholder" style={{ display: candidate.photoUrl && candidate.photoUrl.trim() !== '' ? 'none' : 'flex' }} />
+                        ) : (
+                          <CandidatePhotoPlaceholder className="candidate-photo-placeholder" />
+                        )}
                       </div>
                     </div>
                     

@@ -157,14 +157,103 @@
   gap: 0.5rem;
 }
 
-.user-register-field label {
-  font-weight: 600;
-  color: #4a5568;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+/* Beautiful Select Dropdown Styles */
+.select-wrapper {
+  position: relative;
+  width: 100%;
 }
 
+.beautiful-select {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+  appearance: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.beautiful-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  background: #ffffff;
+}
+
+.beautiful-select:hover {
+  border-color: #bdc3c7;
+  background: #f8f9fa;
+}
+
+.beautiful-select:disabled {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 12px;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.beautiful-select:focus + .select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+  color: #3498db;
+}
+
+.loading-spinner {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e1e5e9;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: translateY(-50%) rotate(0deg); }
+  100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Enhanced field styles for better visual hierarchy */
+.user-register-field label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.user-register-field label i {
+  color: #3498db;
+  margin-right: 8px;
+}
+
+.field-help {
+  color: #6c757d;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Input field styles */
 .user-register-field input {
   padding: 1rem 1.2rem;
   border: 2px solid #e2e8f0;
@@ -173,6 +262,7 @@
   background: #f7fafc;
   transition: all 0.3s ease;
   font-weight: 500;
+  width: 100%;
 }
 
 .user-register-field input:focus {
@@ -187,12 +277,24 @@
   color: #a0aec0;
 }
 
-.user-register-field .field-help {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
-  color: #666;
-  font-style: italic;
+/* Responsive adjustments for dropdowns */
+@media (max-width: 768px) {
+  .beautiful-select {
+    padding: 14px 16px;
+    padding-right: 40px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .select-arrow {
+    right: 14px;
+    font-size: 14px;
+  }
+  
+  .loading-spinner {
+    right: 14px;
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .user-register-btn {

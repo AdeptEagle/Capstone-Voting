@@ -30,7 +30,7 @@ export const checkCurrentUser = () => {
       role: payload.role,
       user: {
         id: payload.id,
-        username: payload.username,
+        username: payload.username || payload.name, // Use name for users, username for admins
         email: payload.email
       }
     };

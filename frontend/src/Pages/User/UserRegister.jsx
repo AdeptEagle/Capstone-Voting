@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { getPublicVoterGroups } from '../../services/api';
+import api, { getDepartments, getCoursesByDepartment } from '../../services/api';
 import './UserRegister.css';
 
 const UserRegister = () => {
@@ -10,37 +10,69 @@ const UserRegister = () => {
     studentId: '',
     password: '',
     confirmPassword: '',
-    voterGroupId: ''
+    departmentId: '',
+    courseId: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [voterGroups, setVoterGroups] = useState([]);
-  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch voter groups on component mount
+  // Fetch departments on component mount
   useEffect(() => {
-    const fetchVoterGroups = async () => {
+    const fetchData = async () => {
       try {
-        const groups = await getPublicVoterGroups();
-        setVoterGroups(groups);
+        const depts = await getDepartments();
+        setDepartments(depts);
       } catch (error) {
-        console.error('Error fetching voter groups:', error);
-        setError('Failed to load voter groups. Please try again.');
+        console.error('Error fetching data:', error);
+        setError('Failed to load registration data. Please try again.');
       } finally {
-        setLoadingGroups(false);
+        setLoadingDepartments(false);
       }
     };
 
-    fetchVoterGroups();
+    fetchData();
   }, []);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // If department changes, reset course and fetch new courses
+    if (name === 'departmentId') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        courseId: '' // Reset course when department changes
+      }));
+      
+      if (value) {
+        fetchCourses(value);
+      } else {
+        setCourses([]);
+      }
+    }
+  };
+
+  const fetchCourses = async (departmentId) => {
+    setLoadingCourses(true);
+    try {
+      const departmentCourses = await getCoursesByDepartment(departmentId);
+      setCourses(departmentCourses);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setError('Failed to load courses for selected department.');
+    } finally {
+      setLoadingCourses(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -70,8 +102,14 @@ const UserRegister = () => {
       return;
     }
 
-    if (!formData.voterGroupId) {
-      setError('Please select your department or group');
+    if (!formData.departmentId) {
+      setError('Please select your department');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.courseId) {
+      setError('Please select your course');
       setLoading(false);
       return;
     }
@@ -82,9 +120,11 @@ const UserRegister = () => {
         email: formData.email,
         studentId: formData.studentId,
         password: formData.password,
-        voterGroupId: formData.voterGroupId
+        departmentId: formData.departmentId,
+        courseId: formData.courseId
       });
 
+      console.log('Registration response:', response.data);
       setSuccess('Registration successful! Redirecting to dashboard...');
       
       // Store token and redirect
@@ -98,7 +138,17 @@ const UserRegister = () => {
 
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.error || 'Registration failed');
+      console.error('Error response:', err.response?.data);
+      
+      // Check if the error is actually a success (user created but response had issues)
+      if (err.response?.status === 400 && err.response?.data?.error?.includes('successfully')) {
+        setSuccess('Registration successful! Redirecting to dashboard...');
+        setTimeout(() => {
+          navigate('/user/dashboard');
+        }, 2000);
+      } else {
+        setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -170,6 +220,7 @@ const UserRegister = () => {
               onChange={handleChange}
               placeholder="Enter your full name"
               required
+              autoComplete="name"
             />
           </div>
 
@@ -183,6 +234,7 @@ const UserRegister = () => {
               onChange={handleChange}
               placeholder="Enter your email address"
               required
+              autoComplete="email"
             />
           </div>
 
@@ -196,28 +248,71 @@ const UserRegister = () => {
               onChange={handleChange}
               placeholder="YYYY-NNNNN (e.g., 2022-00222)"
               required
+              autoComplete="username"
             />
           </div>
 
           <div className="user-register-field">
-            <label htmlFor="voterGroupId">Department/Group *</label>
+            <label htmlFor="departmentId">
+              <i className="fas fa-university me-2"></i>
+              Department *
+            </label>
+            <div className="select-wrapper">
+              <select
+                id="departmentId"
+                name="departmentId"
+                value={formData.departmentId}
+                onChange={handleChange}
+                disabled={loadingDepartments}
+                required
+                className="beautiful-select"
+              >
+                <option value="">Select your department</option>
+                {departments.map(department => (
+                  <option key={department.id} value={department.id}>
+                    {department.name} ({department.id})
+                  </option>
+                ))}
+              </select>
+              <i className="fas fa-chevron-down select-arrow"></i>
+              {loadingDepartments && <div className="loading-spinner"></div>}
+            </div>
+            <small className="field-help">Choose your academic department</small>
+          </div>
+
+          <div className="user-register-field">
+            <label htmlFor="courseId">
+              <i className="fas fa-graduation-cap me-2"></i>
+              Course *
+            </label>
+            <div className="select-wrapper">
             <select
-              id="voterGroupId"
-              name="voterGroupId"
-              value={formData.voterGroupId}
+                id="courseId"
+                name="courseId"
+                value={formData.courseId}
               onChange={handleChange}
-              disabled={loadingGroups}
+                disabled={!formData.departmentId || loadingCourses}
               required
+                className="beautiful-select"
             >
-              <option value="">Select your department or group</option>
-              {voterGroups.map(group => (
-                <option key={group.id} value={group.id}>
-                  {group.name} ({group.type})
+                <option value="">
+                  {!formData.departmentId 
+                    ? 'Select department first' 
+                    : loadingCourses 
+                      ? 'Loading courses...' 
+                      : 'Select your course'
+                  }
+                </option>
+                {courses.map(course => (
+                  <option key={course.id} value={course.id}>
+                    {course.id} - {course.name}
                 </option>
               ))}
             </select>
-            {loadingGroups && <small>Loading groups...</small>}
-            <small className="field-help">Please select your department or group to complete registration</small>
+              <i className="fas fa-chevron-down select-arrow"></i>
+              {loadingCourses && <div className="loading-spinner"></div>}
+            </div>
+            <small className="field-help">Choose your specific course/program</small>
           </div>
 
           <div className="user-register-field">
@@ -230,6 +325,7 @@ const UserRegister = () => {
               onChange={handleChange}
               placeholder="Minimum 6 characters"
               required
+              autoComplete="new-password"
             />
           </div>
 
@@ -243,6 +339,7 @@ const UserRegister = () => {
               onChange={handleChange}
               placeholder="Confirm your password"
               required
+              autoComplete="new-password"
             />
           </div>
 

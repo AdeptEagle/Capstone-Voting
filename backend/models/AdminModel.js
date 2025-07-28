@@ -39,14 +39,25 @@ export class AdminModel {
     return new Promise(async (resolve, reject) => {
       try {
         const { username, password, role } = adminData;
-        const hashed = await bcrypt.hash(password, 10);
         
-        db.query("UPDATE admins SET username=?, password=?, role=? WHERE id=?", 
-          [username, hashed, role, id], (err) => {
-          db.end();
-          if (err) reject(err);
-          else resolve({ message: "Admin updated successfully!" });
-        });
+        // Only update password if a new password is provided
+        if (password && password.trim() !== '') {
+          const hashed = await bcrypt.hash(password, 10);
+          db.query("UPDATE admins SET username=?, password=?, role=? WHERE id=?", 
+            [username, hashed, role, id], (err) => {
+            db.end();
+            if (err) reject(err);
+            else resolve({ message: "Admin updated successfully!" });
+          });
+        } else {
+          // Update without changing password
+          db.query("UPDATE admins SET username=?, role=? WHERE id=?", 
+            [username, role, id], (err) => {
+            db.end();
+            if (err) reject(err);
+            else resolve({ message: "Admin updated successfully!" });
+          });
+        }
       } catch (error) {
         db.end();
         reject(error);

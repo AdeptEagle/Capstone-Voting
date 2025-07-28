@@ -3,14 +3,68 @@ import { getPositions, createPosition, updatePosition, deletePosition } from '..
 
 const Positions = () => {
   const [positions, setPositions] = useState([]);
+  const [filteredPositions, setFilteredPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [formData, setFormData] = useState({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
 
   useEffect(() => {
     fetchPositions();
   }, []);
+
+  useEffect(() => {
+    filterAndSortPositions();
+  }, [positions, searchTerm, sortConfig]);
+
+  const filterAndSortPositions = () => {
+    let filtered = positions;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = positions.filter(position =>
+        position.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        position.id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    setFilteredPositions(filtered);
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <i className="fas fa-sort text-muted"></i>;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <i className="fas fa-sort-up text-primary"></i>
+      : <i className="fas fa-sort-down text-primary"></i>;
+  };
 
   const fetchPositions = async () => {
     try {
@@ -104,21 +158,81 @@ const Positions = () => {
         </div>
       </div>
 
+      {/* Search and Filter Section */}
+      <div className="card mb-3">
+        <div className="card-body">
+          <div className="row align-items-center">
+            <div className="col-md-6">
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="fas fa-search"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search positions by name or ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="col-md-6 text-end">
+              <small className="text-muted">
+                Showing {filteredPositions.length} of {positions.length} positions
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="card">
         <div className="card-body">
           <div className="table-responsive">
             <table className="table table-hover">
               <thead className="table-header-custom">
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Vote Limit</th>
-                  <th>Display Order</th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('id')}
+                    className="sortable-header"
+                  >
+                    ID {getSortIcon('id')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('name')}
+                    className="sortable-header"
+                  >
+                    Name {getSortIcon('name')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('voteLimit')}
+                    className="sortable-header"
+                  >
+                    Vote Limit {getSortIcon('voteLimit')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('displayOrder')}
+                    className="sortable-header"
+                  >
+                    Display Order {getSortIcon('displayOrder')}
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {positions.map((position) => (
+                {filteredPositions.map((position) => (
                   <tr key={position.id}>
                     <td>{position.id}</td>
                     <td>{position.name}</td>

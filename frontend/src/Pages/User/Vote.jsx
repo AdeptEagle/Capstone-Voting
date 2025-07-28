@@ -349,9 +349,9 @@ const Vote = () => {
                 </div>
                 <div className="vote-candidate-photo-container">
                   {candidate.photoUrl && !imgError[candidate.id] ? (
-                    <img
+                    <img 
                       src={getCandidatePhotoUrl(candidate.photoUrl)}
-                      alt={candidate.name}
+                      alt={candidate.name} 
                       className="vote-candidate-photo"
                       onError={e => {
                         setImgError(prev => ({ ...prev, [candidate.id]: true }));
@@ -486,17 +486,17 @@ const Vote = () => {
                         {selectedCandidates.map(candidate => (
                           <div key={candidate.id} className="selected-candidate-item">
                             <div className="candidate-avatar-wrapper">
-                              {candidate.photoUrl && !imgError[candidate.id] ? (
-                                <img 
+                            {candidate.photoUrl && !imgError[candidate.id] ? (
+                              <img 
                                   src={getCandidatePhotoUrl(candidate.photoUrl)} 
-                                  alt={candidate.name} 
-                                  className="selected-candidate-photo"
-                                  onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
-                                />
-                              ) : (
+                                alt={candidate.name} 
+                                className="selected-candidate-photo"
+                                onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
+                              />
+                            ) : (
                                 <CandidatePhotoPlaceholder className="selected-candidate-photo-placeholder" />
                               )}
-                            </div>
+                              </div>
                             <span className="selected-candidate-name">{candidate.name}</span>
                           </div>
                         ))}
@@ -540,17 +540,17 @@ const Vote = () => {
                             {selectedCandidates.map(candidate => (
                               <div key={candidate.id} className="confirmation-candidate-item">
                                 <div className="candidate-avatar-wrapper">
-                                  {candidate.photoUrl && !imgError[candidate.id] ? (
-                                    <img 
+                                {candidate.photoUrl && !imgError[candidate.id] ? (
+                                  <img 
                                       src={getCandidatePhotoUrl(candidate.photoUrl)} 
-                                      alt={candidate.name} 
-                                      className="confirmation-candidate-photo"
-                                      onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
-                                    />
-                                  ) : (
+                                    alt={candidate.name} 
+                                    className="confirmation-candidate-photo"
+                                    onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
+                                  />
+                                ) : (
                                     <CandidatePhotoPlaceholder className="confirmation-candidate-photo-placeholder" />
                                   )}
-                                </div>
+                                  </div>
                                 <span className="confirmation-candidate-name">{candidate.name}</span>
                               </div>
                             ))}
@@ -619,17 +619,17 @@ const Vote = () => {
                             {selectedCandidates.map(candidate => (
                               <div key={candidate.id} className="confirmation-candidate-item">
                                 <div className="candidate-avatar-wrapper">
-                                  {candidate.photoUrl && !imgError[candidate.id] ? (
-                                    <img 
+                                {candidate.photoUrl && !imgError[candidate.id] ? (
+                                  <img 
                                       src={getCandidatePhotoUrl(candidate.photoUrl)} 
-                                      alt={candidate.name} 
-                                      className="confirmation-candidate-photo"
-                                      onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
-                                    />
-                                  ) : (
+                                    alt={candidate.name} 
+                                    className="confirmation-candidate-photo"
+                                    onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
+                                  />
+                                ) : (
                                     <CandidatePhotoPlaceholder className="confirmation-candidate-photo-placeholder" />
                                   )}
-                                </div>
+                                  </div>
                                 <span className="confirmation-candidate-name">{candidate.name}</span>
                               </div>
                             ))}

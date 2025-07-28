@@ -15,6 +15,25 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error);
+    
+    // Handle username/name change errors
+    if (error.response?.data?.code === 'USERNAME_CHANGED' || 
+        error.response?.data?.code === 'NAME_CHANGED') {
+      // Clear localStorage and redirect to appropriate login
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      
+      const role = localStorage.getItem('role') || 'user';
+      if (role === 'admin' || role === 'superadmin') {
+        window.location.href = '/admin-login';
+      } else {
+        window.location.href = '/user-login';
+      }
+      
+      // Show a user-friendly message
+      alert('Your account information has been updated. Please log in again.');
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -30,6 +49,26 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// Add this at the top of the file, after the imports
+const handleAuthError = (error) => {
+  if (error.response?.data?.code === 'USERNAME_CHANGED' || 
+      error.response?.data?.code === 'NAME_CHANGED') {
+    // Clear localStorage and redirect to appropriate login
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    
+    const role = localStorage.getItem('role') || 'user';
+    if (role === 'admin' || role === 'superadmin') {
+      window.location.href = '/admin-login';
+    } else {
+      window.location.href = '/user-login';
+    }
+    
+    // Show a user-friendly message
+    alert('Your account information has been updated. Please log in again.');
+  }
+};
 
 // Positions API Functions
 export const getPositions = async () => {
@@ -600,10 +639,7 @@ export const getVoterGroupMembers = async (id) => {
 
 export const addMemberToGroup = async (voterGroupId, voterId) => {
   try {
-    const response = await api.post('/api/voter-groups/members', {
-      voterGroupId,
-      voterId
-    });
+    const response = await api.post(`/api/voter-groups/${voterGroupId}/members`, { voterId });
     return response.data;
   } catch (error) {
     console.error('Error adding member to group:', error);
@@ -613,9 +649,7 @@ export const addMemberToGroup = async (voterGroupId, voterId) => {
 
 export const removeMemberFromGroup = async (voterGroupId, voterId) => {
   try {
-    const response = await api.delete('/api/voter-groups/members', {
-      data: { voterGroupId, voterId }
-    });
+    const response = await api.delete(`/api/voter-groups/${voterGroupId}/members/${voterId}`);
     return response.data;
   } catch (error) {
     console.error('Error removing member from group:', error);
@@ -649,6 +683,211 @@ export const getAvailableVoters = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching available voters:', error);
+    throw error;
+  }
+};
+
+// Departments API Functions
+export const getDepartments = async () => {
+  try {
+    const response = await api.get('/api/departments');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching departments:', error);
+    throw error;
+  }
+};
+
+// Public departments API (for registration)
+export const getPublicDepartments = async () => {
+  try {
+    const response = await api.get('/api/departments/public');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public departments:', error);
+    throw error;
+  }
+};
+
+export const getDepartmentById = async (id) => {
+  try {
+    const response = await api.get(`/api/departments/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching department:', error);
+    throw error;
+  }
+};
+
+export const createDepartment = async (department) => {
+  try {
+    const response = await api.post('/api/departments', department);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating department:', error);
+    throw error;
+  }
+};
+
+export const updateDepartment = async (id, department) => {
+  try {
+    const response = await api.put(`/api/departments/${id}`, department);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating department:', error);
+    throw error;
+  }
+};
+
+export const deleteDepartment = async (id) => {
+  try {
+    const response = await api.delete(`/api/departments/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting department:', error);
+    throw error;
+  }
+};
+
+export const getDepartmentCourses = async (id) => {
+  try {
+    const response = await api.get(`/api/departments/${id}/courses`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching department courses:', error);
+    throw error;
+  }
+};
+
+export const getDepartmentVoters = async (id) => {
+  try {
+    const response = await api.get(`/api/departments/${id}/voters`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching department voters:', error);
+    throw error;
+  }
+};
+
+export const getDepartmentCandidates = async (id) => {
+  try {
+    const response = await api.get(`/api/departments/${id}/candidates`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching department candidates:', error);
+    throw error;
+  }
+};
+
+// Courses API Functions
+export const getCourses = async () => {
+  try {
+    const response = await api.get('/api/courses');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    throw error;
+  }
+};
+
+// Public courses API (for registration)
+export const getPublicCourses = async () => {
+  try {
+    const response = await api.get('/api/courses/public');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public courses:', error);
+    throw error;
+  }
+};
+
+export const getCourseById = async (id) => {
+  try {
+    const response = await api.get(`/api/courses/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching course:', error);
+    throw error;
+  }
+};
+
+export const createCourse = async (course) => {
+  try {
+    const response = await api.post('/api/courses', course);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating course:', error);
+    throw error;
+  }
+};
+
+export const updateCourse = async (id, course) => {
+  try {
+    const response = await api.put(`/api/courses/${id}`, course);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating course:', error);
+    throw error;
+  }
+};
+
+export const deleteCourse = async (id) => {
+  try {
+    const response = await api.delete(`/api/courses/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    throw error;
+  }
+};
+
+export const getCoursesByDepartment = async (departmentId) => {
+  try {
+    const response = await api.get(`/api/courses/department/${departmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching courses by department:', error);
+    throw error;
+  }
+};
+
+// Public courses by department API (for registration)
+export const getPublicCoursesByDepartment = async (departmentId) => {
+  try {
+    const response = await api.get(`/api/courses/public/department/${departmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching public courses by department:', error);
+    throw error;
+  }
+};
+
+export const getCourseVoters = async (id) => {
+  try {
+    const response = await api.get(`/api/courses/${id}/voters`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching course voters:', error);
+    throw error;
+  }
+};
+
+export const getCourseCandidates = async (id) => {
+  try {
+    const response = await api.get(`/api/courses/${id}/candidates`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching course candidates:', error);
+    throw error;
+  }
+};
+
+export const getCourseVoterGroups = async (id) => {
+  try {
+    const response = await api.get(`/api/courses/${id}/voter-groups`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching course voter groups:', error);
     throw error;
   }
 };

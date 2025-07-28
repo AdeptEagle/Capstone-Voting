@@ -14,14 +14,22 @@ export class CandidateController {
 
   static async createCandidate(req, res) {
     try {
-      const { name, positionId, voterGroupId, description } = req.body;
+      const { name, positionId, departmentId, courseId, description } = req.body;
       const photoUrl = req.file ? req.file.filename : null;
+
+      // Validate required fields
+      if (!name || !positionId || !departmentId || !courseId) {
+        return res.status(400).json({ 
+          error: 'Name, position, department, and course are required' 
+        });
+      }
 
       const candidateData = {
         id: req.body.id,
         name,
         positionId,
-        voterGroupId,
+        departmentId,
+        courseId,
         photoUrl,
         description
       };
@@ -36,7 +44,14 @@ export class CandidateController {
   static async updateCandidate(req, res) {
     try {
       const candidateId = req.params.id;
-      const { name, positionId, voterGroupId, description } = req.body;
+      const { name, positionId, departmentId, courseId, description } = req.body;
+      
+      // Validate required fields
+      if (!name || !positionId || !departmentId || !courseId) {
+        return res.status(400).json({ 
+          error: 'Name, position, department, and course are required' 
+        });
+      }
       
       // If a new photo was uploaded, use it; otherwise keep the existing one
       let photoUrl = req.body.photoUrl; // Keep existing if no new file
@@ -47,7 +62,8 @@ export class CandidateController {
       const candidateData = {
         name,
         positionId,
-        voterGroupId,
+        departmentId,
+        courseId,
         photoUrl,
         description
       };

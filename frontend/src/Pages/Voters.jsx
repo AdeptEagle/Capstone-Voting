@@ -1,33 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { getVoters, createVoter, updateVoter, deleteVoter, getVoterGroups } from '../services/api';
+import { getVoters, createVoter, updateVoter, deleteVoter, getDepartments, getCoursesByDepartment } from '../services/api';
 
 const Voters = () => {
   const [voters, setVoters] = useState([]);
+  const [filteredVoters, setFilteredVoters] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingVoter, setEditingVoter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     studentId: '',
     hasVoted: false,
-    voterGroupId: ''
+    departmentId: '',
+    courseId: ''
   });
-  const [voterGroups, setVoterGroups] = useState([]);
 
   useEffect(() => {
     fetchVoters();
-    fetchVoterGroups();
+    fetchDepartments();
   }, []);
 
-  const fetchVoterGroups = async () => {
+  useEffect(() => {
+    filterAndSortVoters();
+  }, [voters, searchTerm, sortConfig]);
+
+  const filterAndSortVoters = () => {
+    let filtered = voters;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = voters.filter(voter =>
+        voter.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        voter.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        voter.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (voter.departmentName && voter.departmentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (voter.courseName && voter.courseName.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle nested properties
+        if (sortConfig.key === 'departmentName') {
+          aValue = a.departmentName || '';
+          bValue = b.departmentName || '';
+        } else if (sortConfig.key === 'courseName') {
+          aValue = a.courseName || '';
+          bValue = b.courseName || '';
+        }
+
+        // Handle boolean values
+        if (sortConfig.key === 'hasVoted') {
+          aValue = a.hasVoted ? 1 : 0;
+          bValue = b.hasVoted ? 1 : 0;
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    setFilteredVoters(filtered);
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <i className="fas fa-sort text-muted"></i>;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <i className="fas fa-sort-up text-primary"></i>
+      : <i className="fas fa-sort-down text-primary"></i>;
+  };
+
+  const fetchDepartments = async () => {
     try {
-      const groups = await getVoterGroups();
-      setVoterGroups(groups);
+      const depts = await getDepartments();
+      setDepartments(depts);
     } catch (error) {
-      console.error('Error fetching voter groups:', error);
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  const fetchCourses = async (departmentId) => {
+    setLoadingCourses(true);
+    try {
+      const departmentCourses = await getCoursesByDepartment(departmentId);
+      setCourses(departmentCourses);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+    } finally {
+      setLoadingCourses(false);
     }
   };
 
@@ -53,8 +140,13 @@ const Voters = () => {
         email: voter.email,
         studentId: voter.studentId,
         hasVoted: voter.hasVoted,
-        voterGroupId: voter.voterGroupId || ''
+        departmentId: voter.departmentId || '',
+        courseId: voter.courseId || ''
       });
+      // Load courses for the voter's department
+      if (voter.departmentId) {
+        fetchCourses(voter.departmentId);
+      }
     } else {
       setEditingVoter(null);
       setFormData({
@@ -62,8 +154,10 @@ const Voters = () => {
         email: '',
         studentId: '',
         hasVoted: false,
-        voterGroupId: ''
+        departmentId: '',
+        courseId: ''
       });
+      setCourses([]);
     }
     setShowModal(true);
     setSuccess('');
@@ -78,8 +172,10 @@ const Voters = () => {
       email: '',
       studentId: '',
       hasVoted: false,
-      voterGroupId: ''
+      departmentId: '',
+      courseId: ''
     });
+    setCourses([]);
     setSuccess('');
     setError('');
   };
@@ -90,6 +186,21 @@ const Voters = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+
+    // If department changes, reset course and fetch new courses
+    if (name === 'departmentId') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        courseId: '' // Reset course when department changes
+      }));
+      
+      if (value) {
+        fetchCourses(value);
+      } else {
+        setCourses([]);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -118,10 +229,11 @@ const Voters = () => {
   };
 
   const handleDelete = async (id) => {
-    {
+    if (window.confirm('Are you sure you want to delete this voter?')) {
       try {
         await deleteVoter(id);
         fetchVoters();
+        setSuccess('Voter deleted successfully!');
       } catch (error) {
         console.error('Error deleting voter:', error);
         setError('Failed to delete voter');
@@ -146,7 +258,7 @@ const Voters = () => {
         <div className="dashboard-header-row">
           <div>
             <h1 className="dashboard-title-pro">Manage Voters</h1>
-            <p className="dashboard-subtitle-pro">Register and manage voter accounts.</p>
+            <p className="dashboard-subtitle-pro">Register and manage voter accounts with academic departments and courses.</p>
           </div>
           <div className="dashboard-header-actions">
             <button className="btn btn-custom-blue" onClick={() => handleShowModal()}>
@@ -156,10 +268,44 @@ const Voters = () => {
         </div>
       </div>
 
-
-
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
+
+      {/* Search and Filter Section */}
+      <div className="card mb-3">
+        <div className="card-body">
+          <div className="row align-items-center">
+            <div className="col-md-6">
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="fas fa-search"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search voters by name, email, student ID, department, or course..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="col-md-6 text-end">
+              <small className="text-muted">
+                Showing {filteredVoters.length} of {voters.length} voters
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="card">
         <div className="card-body">
@@ -168,29 +314,75 @@ const Voters = () => {
               <thead className="table-header-custom">
                 <tr>
                   <th>#</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Student ID</th>
-                  <th>Group</th>
-                  <th>Voting Status</th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('name')}
+                    className="sortable-header"
+                  >
+                    Name {getSortIcon('name')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('email')}
+                    className="sortable-header"
+                  >
+                    Email {getSortIcon('email')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('studentId')}
+                    className="sortable-header"
+                  >
+                    Student ID {getSortIcon('studentId')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('departmentName')}
+                    className="sortable-header"
+                  >
+                    Department {getSortIcon('departmentName')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('courseName')}
+                    className="sortable-header"
+                  >
+                    Course {getSortIcon('courseName')}
+                  </th>
+                  <th 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleSort('hasVoted')}
+                    className="sortable-header"
+                  >
+                    Voting Status {getSortIcon('hasVoted')}
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {voters.length > 0 ? (
-                  voters.map((voter, index) => (
+                {filteredVoters.length > 0 ? (
+                  filteredVoters.map((voter, index) => (
                     <tr key={voter.id}>
                       <td>{index + 1}</td>
                       <td>{voter.name}</td>
                       <td>{voter.email}</td>
                       <td>{voter.studentId}</td>
                       <td>
-                        {voter.groupName ? (
-                          <span className="badge bg-info">
-                            {voter.groupName} ({voter.groupType})
+                        {voter.departmentName ? (
+                          <span className="badge bg-primary">
+                            {voter.departmentName}
                           </span>
                         ) : (
-                          <span className="text-muted">No group</span>
+                          <span className="text-muted">No department</span>
+                        )}
+                      </td>
+                      <td>
+                        {voter.courseName ? (
+                          <span className="badge bg-info">
+                            <strong>{voter.courseId}</strong> - {voter.courseName}
+                          </span>
+                        ) : (
+                          <span className="text-muted">No course</span>
                         )}
                       </td>
                       <td>
@@ -218,7 +410,7 @@ const Voters = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center">No voters found</td>
+                    <td colSpan="8" className="text-center">No voters found</td>
                   </tr>
                 )}
               </tbody>
@@ -251,6 +443,7 @@ const Voters = () => {
                   )}
                   {success && <div className="alert alert-success">{success}</div>}
                   {error && <div className="alert alert-danger">{error}</div>}
+                  
                   <div className="mb-3">
                     <label className="form-label">Name</label>
                     <input
@@ -262,6 +455,7 @@ const Voters = () => {
                       required
                     />
                   </div>
+                  
                   <div className="mb-3">
                     <label className="form-label">Email</label>
                     <input
@@ -273,6 +467,7 @@ const Voters = () => {
                       required
                     />
                   </div>
+                  
                   <div className="mb-3">
                     <label className="form-label">Student ID</label>
                     <input
@@ -284,22 +479,55 @@ const Voters = () => {
                       required
                     />
                   </div>
+                  
                   <div className="mb-3">
-                    <label className="form-label">Group (Optional)</label>
+                    <label className="form-label">
+                      <i className="fas fa-university me-2"></i>
+                      Department (Optional)
+                    </label>
                     <select
                       className="form-control"
-                      name="voterGroupId"
-                      value={formData.voterGroupId}
+                      name="departmentId"
+                      value={formData.departmentId}
                       onChange={handleChange}
                     >
-                      <option value="">Select a group</option>
-                      {voterGroups.map(group => (
-                        <option key={group.id} value={group.id}>
-                          {group.name} ({group.type})
+                      <option value="">Select a department</option>
+                      {departments.map(department => (
+                        <option key={department.id} value={department.id}>
+                          {department.name} ({department.id})
                         </option>
                       ))}
                     </select>
                   </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">
+                      <i className="fas fa-graduation-cap me-2"></i>
+                      Course (Optional)
+                    </label>
+                    <select
+                      className="form-control"
+                      name="courseId"
+                      value={formData.courseId}
+                      onChange={handleChange}
+                      disabled={!formData.departmentId || loadingCourses}
+                    >
+                      <option value="">
+                        {!formData.departmentId 
+                          ? 'Select department first' 
+                          : loadingCourses 
+                            ? 'Loading courses...' 
+                            : 'Select a course'
+                        }
+                      </option>
+                      {courses.map(course => (
+                        <option key={course.id} value={course.id}>
+                          {course.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
                   <div className="mb-3">
                     <div className="form-check">
                       <input

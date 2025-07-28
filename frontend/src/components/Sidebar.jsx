@@ -8,6 +8,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
   const currentUser = checkCurrentUser();
   const userRole = currentUser.role;
+  const userName = currentUser.user?.username || 'User';
   const { canVote, canViewCandidates, canViewResults, hasActiveElection, hasAnyElection, hasEndedElection } = useElection();
   
   // State for collapsible sections - use localStorage to persist state
@@ -64,7 +65,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             { path: '/admin/positions', label: 'Positions', icon: 'fas fa-user-tie' },
             { path: '/admin/candidates', label: 'Candidates', icon: 'fas fa-users' },
             { path: '/admin/voters', label: 'Voters', icon: 'fas fa-user-friends' },
-            { path: '/admin/voter-groups', label: 'Voter Groups', icon: 'fas fa-layer-group' }
+            { path: '/admin/department-management', label: 'Department Management', icon: 'fas fa-university' }
           ],
           ballot: [
             { path: '/admin/ballot-positions', label: 'Ballot Positions', icon: 'fas fa-list-ol' },
@@ -89,7 +90,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             { path: '/admin/positions', label: 'Positions', icon: 'fas fa-user-tie' },
             { path: '/admin/candidates', label: 'Candidates', icon: 'fas fa-users' },
             { path: '/admin/voters', label: 'Voters', icon: 'fas fa-user-friends' },
-            { path: '/admin/voter-groups', label: 'Voter Groups', icon: 'fas fa-layer-group' }
+            { path: '/admin/department-management', label: 'Department Management', icon: 'fas fa-university' }
           ],
           ballot: [
             { path: '/admin/ballot-positions', label: 'Ballot Positions', icon: 'fas fa-list-ol' },
@@ -217,7 +218,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
               <i className={getRoleIcon()}></i>
             </div>
           </div>
-          <h3 className="admin-name">{getRoleTitle()}</h3>
+          <h3 className="admin-name">{userName}</h3>
           <div className="role-badge">
             <i className="fas fa-circle"></i>
             <span>{userRole?.toUpperCase() || 'USER'}</span>
