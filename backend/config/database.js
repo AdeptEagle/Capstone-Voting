@@ -42,6 +42,21 @@ function runQuery(connection, sql, params = []) {
   });
 }
 
+// Test MySQL server connection (without specific database)
+async function testMySQLConnection() {
+  try {
+    const connection = mysql.createConnection({
+      ...dbConfig,
+      multipleStatements: true
+    });
+    await runQuery(connection, 'SELECT 1 as test');
+    connection.end();
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 // Test database connection
 async function testConnection() {
   try {
@@ -271,9 +286,9 @@ async function insertDefaultData() {
   const db = createConnection();
   
   try {
-    // Import and run current data as default seed data
-    const { seedWithCurrentData } = await import('../scripts/current-seed-data.js');
-    await seedWithCurrentData(db);
+    // Import and run clean default seed data
+    const { seedWithCleanData } = await import('../scripts/clean-seed-data.js');
+    await seedWithCleanData(db);
     
     db.end();
   } catch (error) {
@@ -287,18 +302,26 @@ async function ensureDatabaseAndTables() {
   try {
     console.log('🚀 Initializing database and tables...');
     
-    // Test connection first
-    console.log('🔍 Testing database connection...');
-    const connectionOk = await testConnection();
-    if (!connectionOk) {
-      throw new Error('Database connection failed');
+    // Test MySQL server connection first (without specific database)
+    console.log('🔍 Testing MySQL server connection...');
+    const mysqlConnectionOk = await testMySQLConnection();
+    if (!mysqlConnectionOk) {
+      throw new Error('MySQL server connection failed. Make sure MySQL is running.');
     }
-    console.log('✅ Database connection successful');
+    console.log('✅ MySQL server connection successful');
 
     // Create database
     console.log('🗄️ Creating database...');
     await createDatabase();
     console.log('✅ Database created/verified');
+
+    // Test database connection after creation
+    console.log('🔍 Testing database connection...');
+    const dbConnectionOk = await testConnection();
+    if (!dbConnectionOk) {
+      throw new Error('Database connection failed after creation');
+    }
+    console.log('✅ Database connection successful');
 
     // Create tables
     await createTables();
@@ -341,6 +364,7 @@ export {
   closePool,
   runQuery,
   testConnection,
+  testMySQLConnection,
   DB_NAME,
   IS_TEST 
 }; 

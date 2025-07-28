@@ -4182,6 +4182,11 @@ export const currentSeedData = {
 ]
 };
 
+// Helper function to handle undefined values
+function sanitizeValue(value) {
+  return value === undefined ? null : value;
+}
+
 export async function seedWithCurrentData(connection) {
   console.log('🌱 Seeding database with current data...');
   
@@ -4192,7 +4197,13 @@ export async function seedWithCurrentData(connection) {
       for (const superadmin of currentSeedData.superadmins) {
         await connection.execute(
           'INSERT IGNORE INTO superadmins (id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)',
-          [superadmin.id, superadmin.username, superadmin.email, superadmin.password, superadmin.created_at]
+          [
+            sanitizeValue(superadmin.id), 
+            sanitizeValue(superadmin.username), 
+            sanitizeValue(superadmin.email), 
+            sanitizeValue(superadmin.password), 
+            sanitizeValue(superadmin.created_at)
+          ]
         );
       }
     }
@@ -4203,7 +4214,13 @@ export async function seedWithCurrentData(connection) {
       for (const admin of currentSeedData.admins) {
         await connection.execute(
           'INSERT IGNORE INTO admins (id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)',
-          [admin.id, admin.username, admin.email, admin.password, admin.created_at]
+          [
+            sanitizeValue(admin.id), 
+            sanitizeValue(admin.username), 
+            sanitizeValue(admin.email), 
+            sanitizeValue(admin.password), 
+            sanitizeValue(admin.created_at)
+          ]
         );
       }
     }
@@ -4213,8 +4230,13 @@ export async function seedWithCurrentData(connection) {
       console.log('🏢 Inserting departments...');
       for (const dept of currentSeedData.departments) {
         await connection.execute(
-          'INSERT IGNORE INTO departments (id, name, created_at) VALUES (?, ?, ?)',
-          [dept.id, dept.name, dept.created_at]
+          'INSERT IGNORE INTO departments (id, name, created_by, created_at) VALUES (?, ?, ?, ?)',
+          [
+            sanitizeValue(dept.id), 
+            sanitizeValue(dept.name), 
+            sanitizeValue(dept.created_by), 
+            sanitizeValue(dept.created_at)
+          ]
         );
       }
     }
@@ -4224,8 +4246,14 @@ export async function seedWithCurrentData(connection) {
       console.log('📚 Inserting courses...');
       for (const course of currentSeedData.courses) {
         await connection.execute(
-          'INSERT IGNORE INTO courses (id, name, departmentId, created_at) VALUES (?, ?, ?, ?)',
-          [course.id, course.name, course.departmentId, course.created_at]
+          'INSERT IGNORE INTO courses (id, name, departmentId, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+          [
+            sanitizeValue(course.id), 
+            sanitizeValue(course.name), 
+            sanitizeValue(course.departmentId), 
+            sanitizeValue(course.created_by), 
+            sanitizeValue(course.created_at)
+          ]
         );
       }
     }
@@ -4235,8 +4263,14 @@ export async function seedWithCurrentData(connection) {
       console.log('🏛️ Inserting positions...');
       for (const position of currentSeedData.positions) {
         await connection.execute(
-          'INSERT IGNORE INTO positions (id, title, description, created_at) VALUES (?, ?, ?, ?)',
-          [position.id, position.title, position.description, position.created_at]
+          'INSERT IGNORE INTO positions (id, name, voteLimit, displayOrder, created_at) VALUES (?, ?, ?, ?, ?)',
+          [
+            sanitizeValue(position.id), 
+            sanitizeValue(position.name), 
+            sanitizeValue(position.voteLimit || 1), 
+            sanitizeValue(position.displayOrder || 0), 
+            sanitizeValue(position.created_at)
+          ]
         );
       }
     }
@@ -4247,7 +4281,12 @@ export async function seedWithCurrentData(connection) {
       for (const candidate of currentSeedData.candidates) {
         await connection.execute(
           'INSERT IGNORE INTO candidates (id, name, positionId, created_at) VALUES (?, ?, ?, ?)',
-          [candidate.id, candidate.name, candidate.positionId, candidate.created_at]
+          [
+            sanitizeValue(candidate.id), 
+            sanitizeValue(candidate.name), 
+            sanitizeValue(candidate.positionId), 
+            sanitizeValue(candidate.created_at)
+          ]
         );
       }
     }
@@ -4257,8 +4296,16 @@ export async function seedWithCurrentData(connection) {
       console.log('🗳️ Inserting voters...');
       for (const voter of currentSeedData.voters) {
         await connection.execute(
-          'INSERT IGNORE INTO voters (id, name, email, studentId, hasVoted, departmentId, courseId, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          [voter.id, voter.name, voter.email, voter.studentId, voter.hasVoted, voter.departmentId, voter.courseId, voter.created_at]
+          'INSERT IGNORE INTO voters (name, email, studentId, hasVoted, departmentId, courseId, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [
+            sanitizeValue(voter.name), 
+            sanitizeValue(voter.email), 
+            sanitizeValue(voter.studentId), 
+            sanitizeValue(voter.hasVoted), 
+            sanitizeValue(voter.departmentId), 
+            sanitizeValue(voter.courseId), 
+            sanitizeValue(voter.created_at)
+          ]
         );
       }
     }
@@ -4268,8 +4315,17 @@ export async function seedWithCurrentData(connection) {
       console.log('🗳️ Inserting elections...');
       for (const election of currentSeedData.elections) {
         await connection.execute(
-          'INSERT IGNORE INTO elections (id, title, description, startDate, endDate, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [election.id, election.title, election.description, election.startDate, election.endDate, election.status, election.created_at]
+          'INSERT IGNORE INTO elections (id, title, description, startTime, endTime, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [
+            sanitizeValue(election.id), 
+            sanitizeValue(election.title), 
+            sanitizeValue(election.description), 
+            sanitizeValue(election.startTime || election.startDate), 
+            sanitizeValue(election.endTime || election.endDate), 
+            sanitizeValue(election.status), 
+            sanitizeValue(election.created_by), 
+            sanitizeValue(election.created_at)
+          ]
         );
       }
     }
@@ -4280,7 +4336,12 @@ export async function seedWithCurrentData(connection) {
       for (const ep of currentSeedData.election_positions) {
         await connection.execute(
           'INSERT IGNORE INTO election_positions (id, electionId, positionId, created_at) VALUES (?, ?, ?, ?)',
-          [ep.id, ep.electionId, ep.positionId, ep.created_at]
+          [
+            sanitizeValue(ep.id), 
+            sanitizeValue(ep.electionId), 
+            sanitizeValue(ep.positionId), 
+            sanitizeValue(ep.created_at)
+          ]
         );
       }
     }
@@ -4291,7 +4352,12 @@ export async function seedWithCurrentData(connection) {
       for (const ec of currentSeedData.election_candidates) {
         await connection.execute(
           'INSERT IGNORE INTO election_candidates (id, electionId, candidateId, created_at) VALUES (?, ?, ?, ?)',
-          [ec.id, ec.electionId, ec.candidateId, ec.created_at]
+          [
+            sanitizeValue(ec.id), 
+            sanitizeValue(ec.electionId), 
+            sanitizeValue(ec.candidateId), 
+            sanitizeValue(ec.created_at)
+          ]
         );
       }
     }
