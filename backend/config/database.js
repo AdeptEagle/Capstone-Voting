@@ -57,11 +57,13 @@ async function ensureDatabaseAndTables() {
       email VARCHAR(255) NOT NULL UNIQUE,
       studentId VARCHAR(50) NOT NULL UNIQUE,
       password VARCHAR(255),
-      voterGroupId VARCHAR(36),
+      departmentId VARCHAR(36),
+      courseId VARCHAR(36),
       hasVoted BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL
+      FOREIGN KEY (departmentId) REFERENCES departments(id) ON DELETE SET NULL,
+      FOREIGN KEY (courseId) REFERENCES courses(id) ON DELETE SET NULL
     )`);
 
     await runQuery(db, `CREATE TABLE IF NOT EXISTS votes (
@@ -83,25 +85,37 @@ async function ensureDatabaseAndTables() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    await runQuery(db, `CREATE TABLE IF NOT EXISTS voter_groups (
-      id VARCHAR(20) PRIMARY KEY,
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS departments (
+      id VARCHAR(36) PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
-      description TEXT,
-      type ENUM('department', 'class', 'year', 'custom') NOT NULL DEFAULT 'custom',
       created_by VARCHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
     )`);
 
-    await runQuery(db, `CREATE TABLE IF NOT EXISTS voter_group_members (
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS courses (
       id VARCHAR(36) PRIMARY KEY,
-      voterGroupId VARCHAR(36) NOT NULL,
-      voterId INT NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      departmentId VARCHAR(36) NOT NULL,
+      created_by VARCHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE CASCADE,
-      FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
-      UNIQUE KEY unique_voter_group_member (voterGroupId, voterId)
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY (departmentId) REFERENCES departments(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
+    )`);
+
+    await runQuery(db, `CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id VARCHAR(36) PRIMARY KEY,
+      user_id VARCHAR(36) NOT NULL,
+      user_type ENUM('voter', 'admin') NOT NULL,
+      token VARCHAR(255) NOT NULL UNIQUE,
+      expires_at TIMESTAMP NOT NULL,
+      used BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_token (token),
+      INDEX idx_user_type (user_type),
+      INDEX idx_expires_at (expires_at)
     )`);
 
     await runQuery(db, `CREATE TABLE IF NOT EXISTS elections (
@@ -144,20 +158,37 @@ async function ensureDatabaseAndTables() {
       await runQuery(db, `ALTER TABLE voters ADD COLUMN password VARCHAR(255)`);
     }
 
-    // Add voterGroupId column to voters table if it doesn't exist
-    const [voterGroupIdColumns] = await new Promise((resolve, reject) => {
-      db.query(`SHOW COLUMNS FROM voters LIKE 'voterGroupId'`, (err, result) => {
+    // Add departmentId column to voters table if it doesn't exist
+    const [departmentIdColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM voters LIKE 'departmentId'`, (err, result) => {
         if (err) reject(err);
         else resolve([result]);
       });
     });
-    if (voterGroupIdColumns.length === 0) {
-      await runQuery(db, `ALTER TABLE voters ADD COLUMN voterGroupId VARCHAR(20)`);
-      // Add foreign key constraint if voter_groups table exists
+    if (departmentIdColumns.length === 0) {
+      await runQuery(db, `ALTER TABLE voters ADD COLUMN departmentId VARCHAR(36)`);
+      // Add foreign key constraint if departments table exists
       try {
-        await runQuery(db, `ALTER TABLE voters ADD CONSTRAINT fk_voters_group FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL`);
+        await runQuery(db, `ALTER TABLE voters ADD CONSTRAINT fk_voters_department FOREIGN KEY (departmentId) REFERENCES departments(id) ON DELETE SET NULL`);
       } catch (error) {
-        console.log('Foreign key constraint will be added when voter_groups table is created');
+        console.log('Foreign key constraint will be added when departments table is created');
+      }
+    }
+
+    // Add courseId column to voters table if it doesn't exist
+    const [courseIdColumns] = await new Promise((resolve, reject) => {
+      db.query(`SHOW COLUMNS FROM voters LIKE 'courseId'`, (err, result) => {
+        if (err) reject(err);
+        else resolve([result]);
+      });
+    });
+    if (courseIdColumns.length === 0) {
+      await runQuery(db, `ALTER TABLE voters ADD COLUMN courseId VARCHAR(36)`);
+      // Add foreign key constraint if courses table exists
+      try {
+        await runQuery(db, `ALTER TABLE voters ADD CONSTRAINT fk_voters_course FOREIGN KEY (courseId) REFERENCES courses(id) ON DELETE SET NULL`);
+      } catch (error) {
+        console.log('Foreign key constraint will be added when courses table is created');
       }
     }
 

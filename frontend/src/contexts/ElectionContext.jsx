@@ -24,12 +24,12 @@ export const ElectionProvider = ({ children }) => {
       setError('');
       
       // Fetch all elections to check for ended ones
-      const allElectionsResponse = await api.get('/api/elections');
+      const allElectionsResponse = await api.get('/elections');
       setAllElections(allElectionsResponse.data || []);
       
       // Fetch current election (for admin monitoring, includes paused/stopped elections)
       try {
-        const currentResponse = await api.get('/api/elections/current');
+        const currentResponse = await api.get('/elections/current');
         console.log('Current election response:', currentResponse.data);
         setActiveElection(currentResponse.data);
       } catch (currentError) {

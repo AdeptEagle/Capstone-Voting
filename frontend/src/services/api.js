@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -73,7 +73,7 @@ const handleAuthError = (error) => {
 // Positions API Functions
 export const getPositions = async () => {
   try {
-    const response = await api.get('/api/positions');
+    const response = await api.get('/positions');
     return response.data;
   } catch (error) {
     console.error('Error fetching positions:', error);
@@ -86,7 +86,7 @@ export const getPositions = async () => {
 export const createPosition = async (position) => {
   try {
     // Do NOT override id, use the one provided by the form
-    const response = await api.post('/api/positions', position);
+    const response = await api.post('/positions', position);
     return response.data;
   } catch (error) {
     console.error('Error creating position:', error);
@@ -96,7 +96,7 @@ export const createPosition = async (position) => {
 
 export const updatePosition = async (id, position) => {
   try {
-    const response = await api.put(`/api/positions/${id}`, position);
+    const response = await api.put(`/positions/${id}`, position);
     return response.data;
   } catch (error) {
     console.error('Error updating position:', error);
@@ -106,7 +106,7 @@ export const updatePosition = async (id, position) => {
 
 export const deletePosition = async (id) => {
   try {
-    const response = await api.delete(`/api/positions/${id}`);
+    const response = await api.delete(`/positions/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting position:', error);
@@ -117,7 +117,7 @@ export const deletePosition = async (id) => {
 // Candidates API Functions
 export const getCandidates = async () => {
   try {
-    const response = await api.get('/api/candidates');
+    const response = await api.get('/candidates');
     return response.data;
   } catch (error) {
     console.error('Error fetching candidates:', error);
@@ -133,7 +133,7 @@ export const createCandidate = async (candidate, config = {}) => {
     } else {
       dataToSend = { ...candidate, id: crypto.randomUUID() };
     }
-    const response = await api.post('/api/candidates', dataToSend, config);
+    const response = await api.post('/candidates', dataToSend, config);
     return response.data;
   } catch (error) {
     console.error('Error creating candidate:', error);
@@ -143,7 +143,7 @@ export const createCandidate = async (candidate, config = {}) => {
 
 export const updateCandidate = async (id, candidate, config = {}) => {
   try {
-    const response = await api.put(`/api/candidates/${id}`, candidate, config);
+    const response = await api.put(`/candidates/${id}`, candidate, config);
     return response.data;
   } catch (error) {
     console.error('Error updating candidate:', error);
@@ -153,7 +153,7 @@ export const updateCandidate = async (id, candidate, config = {}) => {
 
 export const deleteCandidate = async (id) => {
   try {
-    const response = await api.delete(`/api/candidates/${id}`);
+    const response = await api.delete(`/candidates/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting candidate:', error);
@@ -164,7 +164,7 @@ export const deleteCandidate = async (id) => {
 // Voters API Functions
 export const getVoters = async () => {
   try {
-    const response = await api.get('/api/voters');
+    const response = await api.get('/voters');
     return response.data;
   } catch (error) {
     console.error('Error fetching voters:', error);
@@ -174,7 +174,7 @@ export const getVoters = async () => {
 
 export const createVoter = async (voter) => {
   try {
-    const response = await api.post('/api/voters', voter);
+    const response = await api.post('/voters', voter);
     return response.data;
   } catch (error) {
     console.error('Error creating voter:', error);
@@ -184,7 +184,7 @@ export const createVoter = async (voter) => {
 
 export const updateVoter = async (id, voter) => {
   try {
-    const response = await api.put(`/api/voters/${id}`, voter);
+    const response = await api.put(`/voters/${id}`, voter);
     return response.data;
   } catch (error) {
     console.error('Error updating voter:', error);
@@ -194,7 +194,7 @@ export const updateVoter = async (id, voter) => {
 
 export const deleteVoter = async (id) => {
   try {
-    const response = await api.delete(`/api/voters/${id}`);
+    const response = await api.delete(`/voters/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting voter:', error);
@@ -202,10 +202,20 @@ export const deleteVoter = async (id) => {
   }
 };
 
+export const getAvailableVoters = async () => {
+  try {
+    const response = await api.get('/voters/available');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available voters:', error);
+    throw error;
+  }
+};
+
 // Votes API Functions
 export const getVotes = async () => {
   try {
-    const response = await api.get('/api/votes');
+    const response = await api.get('/votes');
     return response.data;
   } catch (error) {
     console.error('Error fetching votes:', error);
@@ -215,7 +225,7 @@ export const getVotes = async () => {
 
 export const createVote = async (vote) => {
   try {
-    const response = await api.post('/api/votes', { ...vote, id: crypto.randomUUID() });
+    const response = await api.post('/votes', { ...vote, id: crypto.randomUUID() });
     return response.data;
   } catch (error) {
     console.error('Error creating vote:', error);
@@ -226,7 +236,7 @@ export const createVote = async (vote) => {
 // Results API Functions
 export const getResults = async () => {
   try {
-    const response = await api.get('/api/votes/results');
+    const response = await api.get('/votes/results');
     return response.data;
   } catch (error) {
     console.error('Error fetching results:', error);
@@ -237,7 +247,7 @@ export const getResults = async () => {
 // Debug: Get raw vote data for troubleshooting
 export const getDebugResults = async () => {
   try {
-    const response = await api.get('/api/votes/debug/results');
+    const response = await api.get('/votes/debug/results');
     return response.data;
   } catch (error) {
     console.error('Error fetching debug results:', error);
@@ -248,7 +258,7 @@ export const getDebugResults = async () => {
 // Elections API Functions
 export const getElections = async () => {
   try {
-    const response = await api.get('/api/elections');
+    const response = await api.get('/elections');
     return response.data;
   } catch (error) {
     console.error('Error fetching elections:', error);
@@ -258,7 +268,7 @@ export const getElections = async () => {
 
 export const getElectionHistory = async () => {
   try {
-    const response = await api.get('/api/elections/history');
+    const response = await api.get('/elections/history');
     return response.data;
   } catch (error) {
     console.error('Error fetching election history:', error);
@@ -268,7 +278,7 @@ export const getElectionHistory = async () => {
 
 export const getElection = async (id) => {
   try {
-    const response = await api.get(`/api/elections/${id}`);
+    const response = await api.get(`/elections/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election:', error);
@@ -278,7 +288,7 @@ export const getElection = async (id) => {
 
 export const getElectionPositions = async (id) => {
   try {
-    const response = await api.get(`/api/votes/ballot/positions/${id}`);
+    const response = await api.get(`/votes/ballot/positions/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election positions:', error);
@@ -288,7 +298,7 @@ export const getElectionPositions = async (id) => {
 
 export const createElection = async (election) => {
   try {
-    const response = await api.post('/api/elections', { ...election, id: crypto.randomUUID() });
+    const response = await api.post('/elections', { ...election, id: crypto.randomUUID() });
     return response.data;
   } catch (error) {
     console.error('Error creating election:', error);
@@ -298,7 +308,7 @@ export const createElection = async (election) => {
 
 export const updateElection = async (id, election) => {
   try {
-    const response = await api.put(`/api/elections/${id}`, election);
+    const response = await api.put(`/elections/${id}`, election);
     return response.data;
   } catch (error) {
     console.error('Error updating election:', error);
@@ -308,7 +318,7 @@ export const updateElection = async (id, election) => {
 
 export const startElection = async (id) => {
   try {
-    const response = await api.post(`/api/elections/${id}/start`);
+    const response = await api.post(`/elections/${id}/start`);
     return response.data;
   } catch (error) {
     console.error('Error starting election:', error);
@@ -318,7 +328,7 @@ export const startElection = async (id) => {
 
 export const pauseElection = async (id) => {
   try {
-    const response = await api.post(`/api/elections/${id}/pause`);
+    const response = await api.post(`/elections/${id}/pause`);
     return response.data;
   } catch (error) {
     console.error('Error pausing election:', error);
@@ -328,7 +338,7 @@ export const pauseElection = async (id) => {
 
 export const stopElection = async (id) => {
   try {
-    const response = await api.post(`/api/elections/${id}/stop`);
+    const response = await api.post(`/elections/${id}/stop`);
     return response.data;
   } catch (error) {
     console.error('Error stopping election:', error);
@@ -338,7 +348,7 @@ export const stopElection = async (id) => {
 
 export const resumeElection = async (id) => {
   try {
-    const response = await api.post(`/api/elections/${id}/resume`);
+    const response = await api.post(`/elections/${id}/resume`);
     return response.data;
   } catch (error) {
     console.error('Error resuming election:', error);
@@ -348,7 +358,7 @@ export const resumeElection = async (id) => {
 
 export const endElection = async (id) => {
   try {
-    const response = await api.post(`/api/elections/${id}/end`);
+    const response = await api.post(`/elections/${id}/end`);
     return response.data;
   } catch (error) {
     console.error('Error ending election:', error);
@@ -358,7 +368,7 @@ export const endElection = async (id) => {
 
 export const deleteElection = async (id) => {
   try {
-    const response = await api.delete(`/api/elections/${id}`);
+    const response = await api.delete(`/elections/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting election:', error);
@@ -368,7 +378,7 @@ export const deleteElection = async (id) => {
 
 export const getActiveElection = async () => {
   try {
-    const response = await api.get('/api/elections/active');
+    const response = await api.get('/elections/active');
     return response.data;
   } catch (error) {
     console.error('Error fetching active election:', error);
@@ -379,7 +389,7 @@ export const getActiveElection = async () => {
 // Admin Authentication
 export const adminLogin = async (username, password) => {
   try {
-    const response = await api.post('/api/auth/admin/login', { username, password });
+    const response = await api.post('/auth/admin/login', { username, password });
     return response.data;
   } catch (error) {
     console.error('Error during admin login:', error);
@@ -389,7 +399,7 @@ export const adminLogin = async (username, password) => {
 
 export const userRegister = async (userData) => {
   try {
-    const response = await api.post('/api/auth/user/register', userData);
+    const response = await api.post('/auth/user/register', userData);
     return response.data;
   } catch (error) {
     console.error('Error during user registration:', error);
@@ -399,7 +409,7 @@ export const userRegister = async (userData) => {
 
 export const userLogin = async (studentId, password) => {
   try {
-    const response = await api.post('/api/auth/user/login', { studentId, password });
+    const response = await api.post('/auth/user/login', { studentId, password });
     return response.data;
   } catch (error) {
     console.error('Error during user login:', error);
@@ -410,7 +420,7 @@ export const userLogin = async (studentId, password) => {
 // Admin Management API Functions
 export const getAdmins = async () => {
   try {
-    const response = await api.get('/api/admins');
+    const response = await api.get('/admins');
     return response.data;
   } catch (error) {
     console.error('Error fetching admins:', error);
@@ -420,7 +430,7 @@ export const getAdmins = async () => {
 
 export const createAdmin = async (admin) => {
   try {
-    const response = await api.post('/api/admins', admin);
+    const response = await api.post('/admins', admin);
     return response.data;
   } catch (error) {
     console.error('Error creating admin:', error);
@@ -430,7 +440,7 @@ export const createAdmin = async (admin) => {
 
 export const updateAdmin = async (id, admin) => {
   try {
-    const response = await api.put(`/api/admins/${id}`, admin);
+    const response = await api.put(`/admins/${id}`, admin);
     return response.data;
   } catch (error) {
     console.error('Error updating admin:', error);
@@ -440,7 +450,7 @@ export const updateAdmin = async (id, admin) => {
 
 export const deleteAdmin = async (id) => {
   try {
-    const response = await api.delete(`/api/admins/${id}`);
+    const response = await api.delete(`/admins/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting admin:', error);
@@ -451,7 +461,7 @@ export const deleteAdmin = async (id) => {
 // Election Assignment API Functions
 export const getAssignedElectionPositions = async (electionId) => {
   try {
-    const response = await api.get(`/api/election-assignments/elections/${electionId}/positions`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/positions`);
     return response.data;
   } catch (error) {
     console.error('Error fetching assigned election positions:', error);
@@ -461,7 +471,7 @@ export const getAssignedElectionPositions = async (electionId) => {
 
 export const getElectionCandidates = async (electionId) => {
   try {
-    const response = await api.get(`/api/votes/ballot/candidates/${electionId}`);
+    const response = await api.get(`/votes/ballot/candidates/${electionId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election candidates:', error);
@@ -471,7 +481,7 @@ export const getElectionCandidates = async (electionId) => {
 
 export const getUnassignedPositions = async (electionId) => {
   try {
-    const response = await api.get(`/api/election-assignments/elections/${electionId}/unassigned-positions`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/unassigned-positions`);
     return response.data;
   } catch (error) {
     console.error('Error fetching unassigned positions:', error);
@@ -481,7 +491,7 @@ export const getUnassignedPositions = async (electionId) => {
 
 export const getUnassignedCandidates = async (electionId) => {
   try {
-    const response = await api.get(`/api/election-assignments/elections/${electionId}/unassigned-candidates`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/unassigned-candidates`);
     return response.data;
   } catch (error) {
     console.error('Error fetching unassigned candidates:', error);
@@ -491,7 +501,7 @@ export const getUnassignedCandidates = async (electionId) => {
 
 export const getPositionAssignmentStatus = async (electionId) => {
   try {
-    const response = await api.get(`/api/election-assignments/elections/${electionId}/position-status`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/position-status`);
     return response.data;
   } catch (error) {
     console.error('Error fetching position assignment status:', error);
@@ -501,7 +511,7 @@ export const getPositionAssignmentStatus = async (electionId) => {
 
 export const getCandidateAssignmentStatus = async (electionId) => {
   try {
-    const response = await api.get(`/api/election-assignments/elections/${electionId}/candidate-status`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/candidate-status`);
     return response.data;
   } catch (error) {
     console.error('Error fetching candidate assignment status:', error);
@@ -511,7 +521,7 @@ export const getCandidateAssignmentStatus = async (electionId) => {
 
 export const assignPositionToElection = async (electionId, positionId) => {
   try {
-    const response = await api.post('/api/election-assignments/elections/assign-position', {
+    const response = await api.post('/election-assignments/elections/assign-position', {
       electionId,
       positionId
     });
@@ -524,7 +534,7 @@ export const assignPositionToElection = async (electionId, positionId) => {
 
 export const assignCandidateToElection = async (electionId, candidateId) => {
   try {
-    const response = await api.post('/api/election-assignments/elections/assign-candidate', {
+    const response = await api.post('/election-assignments/elections/assign-candidate', {
       electionId,
       candidateId
     });
@@ -537,7 +547,7 @@ export const assignCandidateToElection = async (electionId, candidateId) => {
 
 export const removePositionFromElection = async (electionId, positionId) => {
   try {
-    const response = await api.delete(`/api/election-assignments/elections/${electionId}/positions/${positionId}`);
+    const response = await api.delete(`/election-assignments/elections/${electionId}/positions/${positionId}`);
     return response.data;
   } catch (error) {
     console.error('Error removing position from election:', error);
@@ -547,7 +557,7 @@ export const removePositionFromElection = async (electionId, positionId) => {
 
 export const removeCandidateFromElection = async (electionId, candidateId) => {
   try {
-    const response = await api.delete(`/api/election-assignments/elections/${electionId}/candidates/${candidateId}`);
+    const response = await api.delete(`/election-assignments/elections/${electionId}/candidates/${candidateId}`);
     return response.data;
   } catch (error) {
     console.error('Error removing candidate from election:', error);
@@ -558,7 +568,7 @@ export const removeCandidateFromElection = async (electionId, candidateId) => {
 // Test function to check if election_candidates table exists
 export const testElectionCandidatesTable = async () => {
   try {
-    const response = await api.get('/api/election-assignments/test-table');
+    const response = await api.get('/election-assignments/test-table');
     return response.data;
   } catch (error) {
     console.error('Error testing table:', error);
@@ -566,131 +576,10 @@ export const testElectionCandidatesTable = async () => {
   }
 };
 
-// Voter Groups API functions
-export const getVoterGroups = async () => {
-  try {
-    const response = await api.get('/api/voter-groups');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching voter groups:', error);
-    throw error;
-  }
-};
-
-export const getPublicVoterGroups = async () => {
-  try {
-    const response = await api.get('/api/voter-groups/public');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching public voter groups:', error);
-    throw error;
-  }
-};
-
-export const getVoterGroupById = async (id) => {
-  try {
-    const response = await api.get(`/api/voter-groups/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching voter group:', error);
-    throw error;
-  }
-};
-
-export const createVoterGroup = async (voterGroup) => {
-  try {
-    const response = await api.post('/api/voter-groups', voterGroup);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating voter group:', error);
-    throw error;
-  }
-};
-
-export const updateVoterGroup = async (id, voterGroup) => {
-  try {
-    const response = await api.put(`/api/voter-groups/${id}`, voterGroup);
-    return response.data;
-  } catch (error) {
-    console.error('Error updating voter group:', error);
-    throw error;
-  }
-};
-
-export const deleteVoterGroup = async (id) => {
-  try {
-    const response = await api.delete(`/api/voter-groups/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting voter group:', error);
-    throw error;
-  }
-};
-
-export const getVoterGroupMembers = async (id) => {
-  try {
-    const response = await api.get(`/api/voter-groups/${id}/members`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching voter group members:', error);
-    throw error;
-  }
-};
-
-export const addMemberToGroup = async (voterGroupId, voterId) => {
-  try {
-    const response = await api.post(`/api/voter-groups/${voterGroupId}/members`, { voterId });
-    return response.data;
-  } catch (error) {
-    console.error('Error adding member to group:', error);
-    throw error;
-  }
-};
-
-export const removeMemberFromGroup = async (voterGroupId, voterId) => {
-  try {
-    const response = await api.delete(`/api/voter-groups/${voterGroupId}/members/${voterId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error removing member from group:', error);
-    throw error;
-  }
-};
-
-export const getVoterGroupsByType = async (type) => {
-  try {
-    const response = await api.get(`/api/voter-groups/type/${type}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching voter groups by type:', error);
-    throw error;
-  }
-};
-
-export const getVoterGroupsForVoter = async (voterId) => {
-  try {
-    const response = await api.get(`/api/voter-groups/voter/${voterId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching voter groups for voter:', error);
-    throw error;
-  }
-};
-
-export const getAvailableVoters = async () => {
-  try {
-    const response = await api.get('/api/voter-groups/available-voters');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching available voters:', error);
-    throw error;
-  }
-};
-
 // Departments API Functions
 export const getDepartments = async () => {
   try {
-    const response = await api.get('/api/departments');
+    const response = await api.get('/departments');
     return response.data;
   } catch (error) {
     console.error('Error fetching departments:', error);
@@ -701,7 +590,7 @@ export const getDepartments = async () => {
 // Public departments API (for registration)
 export const getPublicDepartments = async () => {
   try {
-    const response = await api.get('/api/departments/public');
+    const response = await api.get('/departments/public');
     return response.data;
   } catch (error) {
     console.error('Error fetching public departments:', error);
@@ -711,7 +600,7 @@ export const getPublicDepartments = async () => {
 
 export const getDepartmentById = async (id) => {
   try {
-    const response = await api.get(`/api/departments/${id}`);
+    const response = await api.get(`/departments/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching department:', error);
@@ -721,7 +610,7 @@ export const getDepartmentById = async (id) => {
 
 export const createDepartment = async (department) => {
   try {
-    const response = await api.post('/api/departments', department);
+    const response = await api.post('/departments', department);
     return response.data;
   } catch (error) {
     console.error('Error creating department:', error);
@@ -731,7 +620,7 @@ export const createDepartment = async (department) => {
 
 export const updateDepartment = async (id, department) => {
   try {
-    const response = await api.put(`/api/departments/${id}`, department);
+    const response = await api.put(`/departments/${id}`, department);
     return response.data;
   } catch (error) {
     console.error('Error updating department:', error);
@@ -741,7 +630,7 @@ export const updateDepartment = async (id, department) => {
 
 export const deleteDepartment = async (id) => {
   try {
-    const response = await api.delete(`/api/departments/${id}`);
+    const response = await api.delete(`/departments/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting department:', error);
@@ -751,7 +640,7 @@ export const deleteDepartment = async (id) => {
 
 export const getDepartmentCourses = async (id) => {
   try {
-    const response = await api.get(`/api/departments/${id}/courses`);
+    const response = await api.get(`/departments/${id}/courses`);
     return response.data;
   } catch (error) {
     console.error('Error fetching department courses:', error);
@@ -761,7 +650,7 @@ export const getDepartmentCourses = async (id) => {
 
 export const getDepartmentVoters = async (id) => {
   try {
-    const response = await api.get(`/api/departments/${id}/voters`);
+    const response = await api.get(`/departments/${id}/voters`);
     return response.data;
   } catch (error) {
     console.error('Error fetching department voters:', error);
@@ -771,7 +660,7 @@ export const getDepartmentVoters = async (id) => {
 
 export const getDepartmentCandidates = async (id) => {
   try {
-    const response = await api.get(`/api/departments/${id}/candidates`);
+    const response = await api.get(`/departments/${id}/candidates`);
     return response.data;
   } catch (error) {
     console.error('Error fetching department candidates:', error);
@@ -782,7 +671,7 @@ export const getDepartmentCandidates = async (id) => {
 // Courses API Functions
 export const getCourses = async () => {
   try {
-    const response = await api.get('/api/courses');
+    const response = await api.get('/courses');
     return response.data;
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -793,7 +682,7 @@ export const getCourses = async () => {
 // Public courses API (for registration)
 export const getPublicCourses = async () => {
   try {
-    const response = await api.get('/api/courses/public');
+    const response = await api.get('/courses/public');
     return response.data;
   } catch (error) {
     console.error('Error fetching public courses:', error);
@@ -803,7 +692,7 @@ export const getPublicCourses = async () => {
 
 export const getCourseById = async (id) => {
   try {
-    const response = await api.get(`/api/courses/${id}`);
+    const response = await api.get(`/courses/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching course:', error);
@@ -813,7 +702,7 @@ export const getCourseById = async (id) => {
 
 export const createCourse = async (course) => {
   try {
-    const response = await api.post('/api/courses', course);
+    const response = await api.post('/courses', course);
     return response.data;
   } catch (error) {
     console.error('Error creating course:', error);
@@ -823,7 +712,7 @@ export const createCourse = async (course) => {
 
 export const updateCourse = async (id, course) => {
   try {
-    const response = await api.put(`/api/courses/${id}`, course);
+    const response = await api.put(`/courses/${id}`, course);
     return response.data;
   } catch (error) {
     console.error('Error updating course:', error);
@@ -833,7 +722,7 @@ export const updateCourse = async (id, course) => {
 
 export const deleteCourse = async (id) => {
   try {
-    const response = await api.delete(`/api/courses/${id}`);
+    const response = await api.delete(`/courses/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting course:', error);
@@ -843,7 +732,7 @@ export const deleteCourse = async (id) => {
 
 export const getCoursesByDepartment = async (departmentId) => {
   try {
-    const response = await api.get(`/api/courses/department/${departmentId}`);
+    const response = await api.get(`/courses/department/${departmentId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching courses by department:', error);
@@ -854,7 +743,7 @@ export const getCoursesByDepartment = async (departmentId) => {
 // Public courses by department API (for registration)
 export const getPublicCoursesByDepartment = async (departmentId) => {
   try {
-    const response = await api.get(`/api/courses/public/department/${departmentId}`);
+    const response = await api.get(`/courses/public/department/${departmentId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching public courses by department:', error);
@@ -864,7 +753,7 @@ export const getPublicCoursesByDepartment = async (departmentId) => {
 
 export const getCourseVoters = async (id) => {
   try {
-    const response = await api.get(`/api/courses/${id}/voters`);
+    const response = await api.get(`/courses/${id}/voters`);
     return response.data;
   } catch (error) {
     console.error('Error fetching course voters:', error);
@@ -874,20 +763,10 @@ export const getCourseVoters = async (id) => {
 
 export const getCourseCandidates = async (id) => {
   try {
-    const response = await api.get(`/api/courses/${id}/candidates`);
+    const response = await api.get(`/courses/${id}/candidates`);
     return response.data;
   } catch (error) {
     console.error('Error fetching course candidates:', error);
-    throw error;
-  }
-};
-
-export const getCourseVoterGroups = async (id) => {
-  try {
-    const response = await api.get(`/api/courses/${id}/voter-groups`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching course voter groups:', error);
     throw error;
   }
 };

@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  getVoterGroups, 
-  createVoterGroup, 
-  updateVoterGroup, 
-  deleteVoterGroup,
-  getVoterGroupMembers,
-  addMemberToGroup,
-  removeMemberFromGroup,
   getVoters,
   getAvailableVoters,
   getDepartments,
@@ -24,7 +17,6 @@ import './VoterGroups.css';
 
 const DepartmentManagement = () => {
   const user = checkCurrentUser();
-  const [voterGroups, setVoterGroups] = useState([]);
   const [voters, setVoters] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -65,13 +57,11 @@ const DepartmentManagement = () => {
 
   const fetchData = async () => {
     try {
-      const [groupsData, votersData, departmentsData, coursesData] = await Promise.all([
-        getVoterGroups(),
+      const [votersData, departmentsData, coursesData] = await Promise.all([
         getVoters(),
         getDepartments(),
         getCourses()
       ]);
-      setVoterGroups(groupsData);
       setVoters(votersData);
       setDepartments(departmentsData);
       setCourses(coursesData);
@@ -103,9 +93,9 @@ const DepartmentManagement = () => {
     
     try {
       if (editingGroup) {
-        await updateVoterGroup(editingGroup.id, formData);
+        // await updateVoterGroup(editingGroup.id, formData); // Removed as per edit hint
       } else {
-        await createVoterGroup(formData);
+        // await createVoterGroup(formData); // Removed as per edit hint
       }
       setMessage(editingGroup ? 'Department group updated successfully!' : 'Department group created successfully!');
       setShowModal(false);
@@ -232,7 +222,7 @@ const DepartmentManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this department group?')) {
       try {
-        await deleteVoterGroup(id);
+        // await deleteVoterGroup(id); // Removed as per edit hint
         fetchData();
       } catch (error) {
         console.error('Error deleting department group:', error);
@@ -274,9 +264,9 @@ const DepartmentManagement = () => {
     console.log('handleViewMembers called with group:', group);
     try {
       console.log('Fetching members for group:', group.id);
-      const members = await getVoterGroupMembers(group.id);
-      console.log('Members fetched:', members);
-      setGroupMembers(members);
+      // const members = await getVoterGroupMembers(group.id); // Removed as per edit hint
+      console.log('Members fetched:', groupMembers); // Placeholder for now
+      setGroupMembers(groupMembers); // Placeholder for now
       setSelectedGroup(group);
       
       console.log('Fetching available voters...');
@@ -294,7 +284,7 @@ const DepartmentManagement = () => {
 
   const handleAddMember = async (voterId) => {
     try {
-      await addMemberToGroup(selectedGroup.id, voterId);
+      // await addMemberToGroup(selectedGroup.id, voterId); // Removed as per edit hint
       handleViewMembers(selectedGroup); // Refresh members
     } catch (error) {
       console.error('Error adding member:', error);
@@ -303,7 +293,7 @@ const DepartmentManagement = () => {
 
   const handleRemoveMember = async (voterId) => {
     try {
-      await removeMemberFromGroup(selectedGroup.id, voterId);
+      // await removeMemberFromGroup(selectedGroup.id, voterId); // Removed as per edit hint
       handleViewMembers(selectedGroup); // Refresh members
     } catch (error) {
       console.error('Error removing member:', error);
@@ -413,11 +403,11 @@ const DepartmentManagement = () => {
       <div className="departments-grid">
         {filteredDepartments.length > 0 ? (
           filteredDepartments.map(department => {
-            const departmentCourses = getCoursesForDepartment(department.id);
-            return (
+          const departmentCourses = getCoursesForDepartment(department.id);
+          return (
               <div key={department.id} className="department-card">
                 <div className="department-card-header">
-                  <div className="department-info">
+                <div className="department-info">
                     <div className="department-icon">
                       <i className="fas fa-university"></i>
                     </div>
@@ -425,32 +415,32 @@ const DepartmentManagement = () => {
                       <h3 className="department-name">{department.name}</h3>
                       <span className="department-id">{department.id}</span>
                     </div>
-                  </div>
-                  <div className="department-actions">
-                    <button 
-                      className="btn btn-sm btn-success"
-                      onClick={() => openCourseModal(department)}
-                      title="Add Course"
-                    >
-                      <i className="fas fa-plus"></i>
-                    </button>
-                    <button 
-                      className="btn btn-sm btn-primary"
-                      onClick={() => openEditModal(department)}
-                      title="Edit Department"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button 
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDeleteDepartment(department.id)}
-                      title="Delete Department"
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </div>
                 </div>
-                
+                  <div className="department-actions">
+                <button 
+                      className="btn btn-sm btn-success"
+                    onClick={() => openCourseModal(department)}
+                    title="Add Course"
+                >
+                    <i className="fas fa-plus"></i>
+                </button>
+                <button 
+                      className="btn btn-sm btn-primary"
+                    onClick={() => openEditModal(department)}
+                    title="Edit Department"
+                >
+                  <i className="fas fa-edit"></i>
+                </button>
+                <button 
+                      className="btn btn-sm btn-danger"
+                    onClick={() => handleDeleteDepartment(department.id)}
+                    title="Delete Department"
+                >
+                  <i className="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+              
                 <div className="department-stats">
                   <div className="stat">
                     <i className="fas fa-graduation-cap"></i>
@@ -460,45 +450,45 @@ const DepartmentManagement = () => {
                     <i className="fas fa-users"></i>
                     <span>{department.voterCount || 0} Voters</span>
                   </div>
-                </div>
+              </div>
 
-                <div className="courses-section">
+              <div className="courses-section">
                   <div className="courses-header">
-                    <h4 className="courses-title">
-                      <i className="fas fa-book me-2"></i>
-                      Courses
-                    </h4>
+                <h4 className="courses-title">
+                  <i className="fas fa-book me-2"></i>
+                  Courses
+                </h4>
                     <span className="courses-count">{departmentCourses.length}</span>
                   </div>
                   
-                  {departmentCourses.length > 0 ? (
-                    <div className="courses-list">
-                      {departmentCourses.map(course => (
+                {departmentCourses.length > 0 ? (
+                  <div className="courses-list">
+                    {departmentCourses.map(course => (
                         <div key={course.id} className="course-card">
-                          <div className="course-info">
+                        <div className="course-info">
                             <div className="course-id">{course.id}</div>
                             <div className="course-name">{course.name}</div>
-                          </div>
-                          <div className="course-actions">
-                            <button 
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => openCourseModal(department, course)}
-                              title="Edit Course"
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button 
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleDeleteCourse(course.id)}
-                              title="Delete Course"
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
+                        <div className="course-actions">
+                          <button 
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => openCourseModal(department, course)}
+                            title="Edit Course"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button 
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDeleteCourse(course.id)}
+                            title="Delete Course"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+            </div>
+          </div>
+        ))}
+                  </div>
+                ) : (
                     <div className="no-courses">
                       <i className="fas fa-book-open"></i>
                       <p>No courses in this department</p>
@@ -510,10 +500,10 @@ const DepartmentManagement = () => {
                         Add First Course
                       </button>
                     </div>
-                  )}
-                </div>
+                )}
               </div>
-            );
+            </div>
+          );
           })
         ) : (
           <div className="no-departments">

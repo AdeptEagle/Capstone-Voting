@@ -813,8 +813,8 @@
 @media (max-width: 480px) {
   .department-header {
     padding: 1.5rem;
-  }
-  
+}
+
   .header-title {
     font-size: 1.75rem;
   }
@@ -827,8 +827,8 @@
     width: 40px;
     height: 40px;
     font-size: 1rem;
-  }
-  
+}
+
   .department-name {
     font-size: 1.1rem;
   }

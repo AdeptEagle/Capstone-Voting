@@ -9,7 +9,7 @@ const ManageAdmins = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
-  const [formData, setFormData] = useState({ id: '', username: '', password: '', role: 'admin' });
+  const [formData, setFormData] = useState({ id: '', username: '', email: '', password: '', role: 'admin' });
   const [error, setError] = useState('');
   const [authError, setAuthError] = useState('');
   const navigate = useNavigate();
@@ -67,7 +67,7 @@ const ManageAdmins = () => {
 
   const handleEdit = (admin) => {
     setEditingAdmin(admin);
-    setFormData({ id: admin.id, username: admin.username, password: '', role: admin.role });
+    setFormData({ id: admin.id, username: admin.username, email: admin.email || '', password: '', role: admin.role });
     setShowModal(true);
   };
 
@@ -85,7 +85,7 @@ const ManageAdmins = () => {
 
   const openModal = () => {
     setEditingAdmin(null);
-    setFormData({ id: '', username: '', password: '', role: 'admin' });
+    setFormData({ id: '', username: '', email: '', password: '', role: 'admin' });
     setShowModal(true);
   };
 
@@ -173,6 +173,7 @@ const ManageAdmins = () => {
                 <tr>
                   <th>ID</th>
                   <th>Username</th>
+                  <th>Email</th>
                   <th>Role</th>
                   <th>Created At</th>
                   <th>Actions</th>
@@ -183,6 +184,7 @@ const ManageAdmins = () => {
                   <tr key={admin.id}>
                     <td>{admin.id}</td>
                     <td>{admin.username}</td>
+                    <td>{admin.email || 'N/A'}</td>
                     <td>
                       <span className={`badge ${admin.role === 'superadmin' ? 'bg-danger' : 'bg-primary'}`}>
                         {admin.role}
@@ -250,6 +252,17 @@ const ManageAdmins = () => {
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                       required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                      placeholder="admin@votingsystem.com"
                     />
                   </div>
                   <div className="mb-3">

@@ -30,7 +30,4 @@ router.get('/:id/voters', CourseController.getVoters);
 // Get candidates in a course
 router.get('/:id/candidates', CourseController.getCandidates);
 
-// Get voter groups in a course
-router.get('/:id/voter-groups', CourseController.getVoterGroups);
-
 export default router; 

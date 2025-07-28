@@ -20,14 +20,12 @@ CREATE TABLE IF NOT EXISTS candidates (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     positionId VARCHAR(36) NOT NULL,
-    voterGroupId VARCHAR(20),
     photoUrl TEXT,
     description TEXT,
     displayOrder INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
-    FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL
+    FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
 );
 
 -- Create voters table
@@ -37,11 +35,13 @@ CREATE TABLE IF NOT EXISTS voters (
     email VARCHAR(255) NOT NULL UNIQUE,
     studentId VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255),
-    voterGroupId VARCHAR(20),
+    departmentId VARCHAR(36),
+    courseId VARCHAR(36),
     hasVoted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL
+    FOREIGN KEY (departmentId) REFERENCES departments(id) ON DELETE SET NULL,
+    FOREIGN KEY (courseId) REFERENCES courses(id) ON DELETE SET NULL
 );
 
 -- Create votes table
@@ -101,27 +101,40 @@ CREATE TABLE IF NOT EXISTS admins (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create voter_groups table
-CREATE TABLE IF NOT EXISTS voter_groups (
-    id VARCHAR(20) PRIMARY KEY,
+-- Create departments table
+CREATE TABLE IF NOT EXISTS departments (
+    id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    type ENUM('department', 'class', 'year', 'custom') NOT NULL DEFAULT 'custom',
     created_by VARCHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
 );
 
--- Create voter_group_members table (many-to-many relationship)
-CREATE TABLE IF NOT EXISTS voter_group_members (
+-- Create courses table
+CREATE TABLE IF NOT EXISTS courses (
     id VARCHAR(36) PRIMARY KEY,
-    voterGroupId VARCHAR(20) NOT NULL,
-    voterId INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    departmentId VARCHAR(36) NOT NULL,
+    created_by VARCHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE CASCADE,
-    FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_voter_group_member (voterGroupId, voterId)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (departmentId) REFERENCES departments(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
+);
+
+-- Password Reset Tokens Table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    user_type ENUM('voter', 'admin') NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_user_type (user_type),
+    INDEX idx_expires_at (expires_at)
 );
 
 -- Insert default superadmin (password should be hashed in production)
@@ -167,8 +180,4 @@ CREATE INDEX idx_candidates_position ON candidates(positionId);
 CREATE INDEX idx_votes_voter ON votes(voterId);
 CREATE INDEX idx_votes_candidate ON votes(candidateId);
 CREATE INDEX idx_voters_email ON voters(email);
-CREATE INDEX idx_voters_student_id ON voters(studentId);
-CREATE INDEX idx_voter_groups_type ON voter_groups(type);
-CREATE INDEX idx_voter_groups_created_by ON voter_groups(created_by);
-CREATE INDEX idx_voter_group_members_group ON voter_group_members(voterGroupId);
-CREATE INDEX idx_voter_group_members_voter ON voter_group_members(voterId); 
+CREATE INDEX idx_voters_student_id ON voters(studentId); 

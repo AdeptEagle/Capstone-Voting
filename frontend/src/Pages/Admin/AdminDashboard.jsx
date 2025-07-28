@@ -222,7 +222,7 @@ const AdminDashboard = () => {
               </div>
               <button 
                 className="btn btn-outline-primary btn-sm mt-2"
-                onClick={() => navigate('/positions')}
+                onClick={() => navigate('/admin/positions')}
               >
                 View All Positions
               </button>
@@ -254,7 +254,7 @@ const AdminDashboard = () => {
               </div>
               <button 
                 className="btn btn-outline-primary btn-sm mt-2"
-                onClick={() => navigate('/candidates')}
+                onClick={() => navigate('/admin/candidates')}
               >
                 View All Candidates
               </button>
@@ -288,7 +288,7 @@ const AdminDashboard = () => {
               </div>
               <button 
                 className="btn btn-outline-primary btn-sm mt-2"
-                onClick={() => navigate('/voters')}
+                onClick={() => navigate('/admin/voters')}
               >
                 View All Voters
               </button>

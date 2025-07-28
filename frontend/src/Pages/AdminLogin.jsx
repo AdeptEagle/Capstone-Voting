@@ -15,7 +15,7 @@ const AdminLogin = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await api.post('/api/auth/admin/login', { username, password });
+      const res = await api.post('/auth/admin/login', { username, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.role);
       setLoading(false);
@@ -96,6 +96,18 @@ const AdminLogin = () => {
               onChange={e => setPassword(e.target.value)}
               required
             />
+            <div className="forgot-password-link">
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('Admin forgot password button clicked');
+                  navigate('/forgot-password');
+                }}
+                className="forgot-password-btn"
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
           <button type="submit" className="admin-login-btn" disabled={loading}>
             {loading ? 'Authenticating...' : 'Sign In'}

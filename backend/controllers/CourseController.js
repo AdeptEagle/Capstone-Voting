@@ -140,24 +140,6 @@ class CourseController {
       res.status(500).json({ error: 'Failed to get course candidates' });
     }
   }
-
-  // Get voter groups in a course
-  static async getVoterGroups(req, res) {
-    try {
-      const { id } = req.params;
-      
-      const existingCourse = await CourseModel.getById(id);
-      if (!existingCourse) {
-        return res.status(404).json({ error: 'Course not found' });
-      }
-      
-      const voterGroups = await CourseModel.getVoterGroups(id);
-      res.json(voterGroups);
-    } catch (error) {
-      console.error('Error getting course voter groups:', error);
-      res.status(500).json({ error: 'Failed to get course voter groups' });
-    }
-  }
 }
 
 export default CourseController; 

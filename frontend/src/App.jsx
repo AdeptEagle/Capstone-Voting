@@ -19,7 +19,10 @@ import UserRegister from './Pages/User/UserRegister';
 import Vote from './Pages/User/Vote';
 import AdminLogin from './Pages/AdminLogin';
 import UserLogin from './Pages/User/UserLogin';
-import DepartmentManagement from './Pages/VoterGroups';
+import ForgotPassword from './Pages/ForgotPassword';
+import AdminForgotPassword from './Pages/AdminForgotPassword';
+import ResetPassword from './Pages/ResetPassword';
+import DepartmentManagement from './Pages/DepartmentManagement';
 import { getToken, checkCurrentUser } from './services/auth';
 import { ElectionProvider } from './contexts/ElectionContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -122,6 +125,9 @@ function App() {
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/user-login" element={<UserLogin />} />
             <Route path="/register" element={<UserRegister />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/admin-forgot-password" element={<AdminForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* SuperAdmin Routes (SuperAdmin only) */}
             <Route path="/superadmin" element={

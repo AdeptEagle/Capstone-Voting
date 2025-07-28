@@ -160,28 +160,6 @@ class CourseModel {
       });
     });
   }
-
-  // Get voter groups in a course
-  static async getVoterGroups(courseId) {
-    const db = createConnection();
-    return new Promise((resolve, reject) => {
-      const query = `
-        SELECT vg.*, a.username as createdByUsername,
-               COUNT(DISTINCT v.id) as memberCount
-        FROM voter_groups vg
-        LEFT JOIN admins a ON vg.created_by = a.id
-        LEFT JOIN voters v ON vg.id = v.voterGroupId
-        WHERE vg.courseId = ?
-        GROUP BY vg.id
-        ORDER BY vg.name
-      `;
-      db.query(query, [courseId], (err, results) => {
-        db.end();
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
-  }
 }
 
 export default CourseModel; 

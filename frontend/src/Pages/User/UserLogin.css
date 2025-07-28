@@ -152,7 +152,29 @@
 }
 
 .user-login-field input::placeholder {
-  color: #a0aec0;
+  color: #a0a0a0;
+}
+
+.forgot-password-link {
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.forgot-password-btn:hover {
+  color: #5a67d8;
+  text-decoration: none;
 }
 
 .user-login-btn {

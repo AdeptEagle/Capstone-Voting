@@ -115,7 +115,7 @@ const UserRegister = () => {
     }
 
     try {
-      const response = await api.post('/api/auth/user/register', {
+      const response = await api.post('/auth/user/register', {
         name: formData.name,
         email: formData.email,
         studentId: formData.studentId,

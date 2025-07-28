@@ -15,7 +15,7 @@ const UserLogin = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await api.post('/api/auth/user/login', { studentId, password });
+      const res = await api.post('/auth/user/login', { studentId, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('role', res.data.role);
       setLoading(false);
@@ -81,6 +81,7 @@ const UserLogin = () => {
               value={studentId}
               onChange={e => setStudentId(e.target.value)}
               placeholder="YYYY-NNNNN"
+              autoComplete="username"
               required
             />
           </div>
@@ -91,8 +92,21 @@ const UserLogin = () => {
               id="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
             />
+            <div className="forgot-password-link">
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('Forgot password button clicked');
+                  navigate('/forgot-password');
+                }}
+                className="forgot-password-btn"
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
           <button type="submit" className="user-login-btn" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}

@@ -51,4 +51,13 @@ export class VoterController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  static async getAvailableVoters(req, res) {
+    try {
+      const voters = await VoterModel.getAvailable();
+      res.json(voters);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 } 

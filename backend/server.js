@@ -18,9 +18,9 @@ import authRoutes from "./routes/authRoutes.js";
 import voteRoutes from "./routes/voteRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import electionAssignmentRoutes from "./routes/electionAssignmentRoutes.js";
-import voterGroupRoutes from "./routes/voterGroupRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
+import passwordResetRoutes from "./routes/passwordResetRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,9 +64,14 @@ app.use("/api/auth", authRoutes);
 app.use("/api/votes", voteRoutes);
 app.use("/api/admins", adminRoutes);
 app.use("/api/election-assignments", electionAssignmentRoutes);
-app.use("/api/voter-groups", voterGroupRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/password-reset", passwordResetRoutes);
+
+// Test route for password reset
+app.get("/api/password-reset/test", (req, res) => {
+  res.json({ message: "Password reset routes are working!" });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -84,6 +89,13 @@ ensureDatabaseAndTables()
   .then(() => {
     app.listen(3000, () => {
       console.log('Voting System Server is running on port 3000');
+      console.log('Registered routes:');
+      console.log('- GET /');
+      console.log('- POST /api/password-reset/forgot-password');
+      console.log('- GET /api/password-reset/verify-token/:token');
+      console.log('- POST /api/password-reset/reset-password');
+      console.log('- POST /api/password-reset/cleanup-tokens');
+      console.log('- GET /api/password-reset/test');
     });
   })
   .catch((err) => {

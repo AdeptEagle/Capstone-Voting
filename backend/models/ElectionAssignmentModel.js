@@ -34,11 +34,10 @@ class ElectionAssignmentModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT c.*, ec.id as assignmentId, p.name as positionName, vg.name as voterGroupName
+        SELECT c.*, ec.id as assignmentId, p.name as positionName
         FROM candidates c
         INNER JOIN election_candidates ec ON c.id = ec.candidateId
         INNER JOIN positions p ON c.positionId = p.id
-        LEFT JOIN voter_groups vg ON c.voterGroupId = vg.id
         WHERE ec.electionId = ?
         ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;
@@ -88,10 +87,9 @@ class ElectionAssignmentModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT c.*, p.name as positionName, vg.name as voterGroupName
+        SELECT c.*, p.name as positionName
         FROM candidates c
         INNER JOIN positions p ON c.positionId = p.id
-        LEFT JOIN voter_groups vg ON c.voterGroupId = vg.id
         WHERE c.id NOT IN (
           SELECT ec.candidateId 
           FROM election_candidates ec 
@@ -217,11 +215,9 @@ class ElectionAssignmentModel {
         SELECT 
           c.*,
           p.name as positionName,
-          vg.name as voterGroupName,
           CASE WHEN ec.candidateId IS NOT NULL THEN 1 ELSE 0 END as isAssigned
         FROM candidates c
         INNER JOIN positions p ON c.positionId = p.id
-        LEFT JOIN voter_groups vg ON c.voterGroupId = vg.id
         LEFT JOIN election_candidates ec ON c.id = ec.candidateId AND ec.electionId = ?
         ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
       `;

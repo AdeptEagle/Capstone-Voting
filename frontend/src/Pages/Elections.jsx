@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getVoterGroups } from '../services/api';
+import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getDepartments } from '../services/api';
 import './Elections.css';
 
 const Elections = () => {
@@ -36,7 +36,7 @@ const Elections = () => {
   const [tempCandidates, setTempCandidates] = useState([]);
   const [existingCandidates, setExistingCandidates] = useState([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
-  const [voterGroups, setVoterGroups] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     fetchElectionsData();
@@ -45,16 +45,16 @@ const Elections = () => {
   const fetchElectionsData = async () => {
     try {
       setLoading(true);
-      const [elections, positions, voterGroupsData] = await Promise.all([
+      const [elections, positions, departmentsData] = await Promise.all([
         getElections(),
         getPositions(),
-        getVoterGroups()
+        getDepartments()
       ]);
 
       console.log('Fetched elections:', elections); // Debug log
       setElections(elections || []);
       setPositions(positions || []);
-      setVoterGroups(voterGroupsData || []);
+      setDepartments(departmentsData || []);
     } catch (error) {
       console.error('Error fetching elections data:', error);
       setError('Failed to load elections data');
@@ -104,7 +104,7 @@ const Elections = () => {
             candidateData.append('id', candidate.id);
             candidateData.append('name', candidate.name);
             candidateData.append('positionId', candidate.positionId);
-            candidateData.append('voterGroupId', candidate.voterGroupId || '');
+            candidateData.append('departmentId', candidate.departmentId || '');
             candidateData.append('description', candidate.description || '');
             
             if (candidate.photoFile) {
@@ -465,7 +465,7 @@ const Elections = () => {
       id: crypto.randomUUID(),
       name: '',
       positionId: positionId,
-      voterGroupId: '',
+      departmentId: '',
       description: '',
       photoFile: null,
       isNew: true
@@ -1398,13 +1398,13 @@ const Elections = () => {
                                               <label className="form-label">Department/Group</label>
                                               <select
                                                 className="form-select"
-                                                value={candidate.voterGroupId}
-                                                onChange={(e) => updateTempCandidate(globalCandidateIndex, 'voterGroupId', e.target.value)}
+                                                value={candidate.departmentId}
+                                                onChange={(e) => updateTempCandidate(globalCandidateIndex, 'departmentId', e.target.value)}
                                               >
-                                                <option value="">Select a department or group</option>
-                                                {voterGroups.map(group => (
-                                                  <option key={group.id} value={group.id}>
-                                                    {group.name} ({group.type})
+                                                <option value="">Select a department</option>
+                                                {departments.map(department => (
+                                                  <option key={department.id} value={department.id}>
+                                                    {department.name}
                                                   </option>
                                                 ))}
                                               </select>
