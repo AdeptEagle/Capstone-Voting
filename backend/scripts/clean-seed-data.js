@@ -574,13 +574,17 @@ function sanitizeValue(value) {
   return value === undefined ? null : value;
 }
 
-export async function seedWithCleanData(connection) {
-  console.log('🌱 Seeding database with clean default data...');
+export async function seedWithCleanData(connection, verbose = true) {
+  if (verbose) {
+    console.log('🌱 Seeding database with clean default data...');
+  }
   
   try {
     // Insert admins
     if (cleanDefaultData.admins.length > 0) {
-      console.log('👨‍💼 Inserting admins...');
+      if (verbose) {
+        console.log('👨‍💼 Inserting admins...');
+      }
       for (const admin of cleanDefaultData.admins) {
         await connection.execute(
           'INSERT IGNORE INTO admins (id, username, email, password, created_at) VALUES (?, ?, ?, ?, ?)',
@@ -597,7 +601,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert departments
     if (cleanDefaultData.departments.length > 0) {
-      console.log('🏢 Inserting departments...');
+      if (verbose) {
+        console.log('🏢 Inserting departments...');
+      }
       for (const dept of cleanDefaultData.departments) {
         await connection.execute(
           'INSERT IGNORE INTO departments (id, name, created_by, created_at) VALUES (?, ?, ?, ?)',
@@ -613,7 +619,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert courses
     if (cleanDefaultData.courses.length > 0) {
-      console.log('📚 Inserting courses...');
+      if (verbose) {
+        console.log('📚 Inserting courses...');
+      }
       for (const course of cleanDefaultData.courses) {
         await connection.execute(
           'INSERT IGNORE INTO courses (id, name, departmentId, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
@@ -630,7 +638,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert positions
     if (cleanDefaultData.positions.length > 0) {
-      console.log('🏛️ Inserting positions...');
+      if (verbose) {
+        console.log('🏛️ Inserting positions...');
+      }
       for (const position of cleanDefaultData.positions) {
         await connection.execute(
           'INSERT IGNORE INTO positions (id, name, voteLimit, displayOrder, created_at) VALUES (?, ?, ?, ?, ?)',
@@ -647,7 +657,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert candidates
     if (cleanDefaultData.candidates.length > 0) {
-      console.log('👥 Inserting candidates...');
+      if (verbose) {
+        console.log('👥 Inserting candidates...');
+      }
       for (const candidate of cleanDefaultData.candidates) {
         await connection.execute(
           'INSERT IGNORE INTO candidates (id, name, positionId, created_at) VALUES (?, ?, ?, ?)',
@@ -663,7 +675,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert voters
     if (cleanDefaultData.voters.length > 0) {
-      console.log('🗳️ Inserting voters...');
+      if (verbose) {
+        console.log('🗳️ Inserting voters...');
+      }
       for (const voter of cleanDefaultData.voters) {
         await connection.execute(
           'INSERT IGNORE INTO voters (name, email, studentId, hasVoted, departmentId, courseId, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -682,7 +696,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert elections
     if (cleanDefaultData.elections.length > 0) {
-      console.log('🗳️ Inserting elections...');
+      if (verbose) {
+        console.log('🗳️ Inserting elections...');
+      }
       for (const election of cleanDefaultData.elections) {
         await connection.execute(
           'INSERT IGNORE INTO elections (id, title, description, startTime, endTime, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -702,7 +718,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert election_positions
     if (cleanDefaultData.election_positions.length > 0) {
-      console.log('📋 Inserting election positions...');
+      if (verbose) {
+        console.log('📋 Inserting election positions...');
+      }
       for (const ep of cleanDefaultData.election_positions) {
         await connection.execute(
           'INSERT IGNORE INTO election_positions (id, electionId, positionId, created_at) VALUES (?, ?, ?, ?)',
@@ -718,7 +736,9 @@ export async function seedWithCleanData(connection) {
     
     // Insert election_candidates
     if (cleanDefaultData.election_candidates.length > 0) {
-      console.log('👥 Inserting election candidates...');
+      if (verbose) {
+        console.log('👥 Inserting election candidates...');
+      }
       for (const ec of cleanDefaultData.election_candidates) {
         await connection.execute(
           'INSERT IGNORE INTO election_candidates (id, electionId, candidateId, created_at) VALUES (?, ?, ?, ?)',
@@ -732,7 +752,9 @@ export async function seedWithCleanData(connection) {
       }
     }
     
-    console.log('✅ Clean default data seeding completed successfully!');
+    if (verbose) {
+      console.log('✅ Clean default data seeding completed successfully!');
+    }
     
   } catch (error) {
     console.error('❌ Error seeding clean data:', error);

@@ -91,22 +91,13 @@ cd backend
 npm run reset-db
 ```
 
-### Test Current Data
-```bash
-cd backend
-npm run test-current-seed
-```
-
 ## Available Scripts
 
 ```bash
 # Database
-npm run seed              # Seed with current data
+npm run setup-db          # Complete database setup
+npm run seed              # Seed with clean data
 npm run reset-db          # Reset database
 npm run troubleshoot      # Database help
-
-# Testing
-npm run test-current-seed # Test seed data
-npm run test-voter-validation # Test validation
-npm run test-course-update # Test course updates
+npm run fix-db            # Auto-fix database issues
 ``` 

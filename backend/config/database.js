@@ -70,23 +70,31 @@ async function testConnection() {
 }
 
 // Create database if it doesn't exist
-async function createDatabase() {
+async function createDatabase(verbose = true) {
   try {
-    console.log(`   Creating database: ${DB_NAME}`);
+    if (verbose) {
+      console.log(`   Creating database: ${DB_NAME}`);
+    }
     await runQuery(dbRoot, `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
-    console.log(`   ✅ Database ${DB_NAME} created/verified`);
+    if (verbose) {
+      console.log(`   ✅ Database ${DB_NAME} created/verified`);
+    }
   } catch (error) {
-    console.error(`   ❌ Error creating database ${DB_NAME}:`, error.message);
+    if (verbose) {
+      console.error(`   ❌ Error creating database ${DB_NAME}:`, error.message);
+    }
     throw error;
   }
 }
 
 // Initialize tables with better error handling
-async function createTables() {
+async function createTables(verbose = true) {
   const db = createConnection();
   
   try {
-    console.log('🏗️ Creating database tables...');
+    if (verbose) {
+      console.log('🏗️ Creating database tables...');
+    }
     
     // Create tables in dependency order
     const tables = [
@@ -180,7 +188,7 @@ async function createTables() {
           description TEXT,
           startTime DATETIME NOT NULL,
           endTime DATETIME NOT NULL,
-          status ENUM('pending', 'active', 'paused', 'stopped', 'ended') DEFAULT 'pending',
+          status ENUM('pending', 'active', 'ended', 'cancelled') DEFAULT 'pending',
           created_by VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -195,8 +203,7 @@ async function createTables() {
           positionId VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
-          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_election_position (electionId, positionId)
+          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
         )`
       },
       {
@@ -207,65 +214,68 @@ async function createTables() {
           candidateId VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
-          FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_election_candidate (electionId, candidateId)
+          FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE
         )`
       },
       {
         name: 'votes',
         sql: `CREATE TABLE IF NOT EXISTS votes (
           id VARCHAR(36) PRIMARY KEY,
-          voterId INT NOT NULL,
-          candidateId VARCHAR(36) NOT NULL,
           electionId VARCHAR(36) NOT NULL,
-          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
-          FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
+          positionId VARCHAR(36) NOT NULL,
+          candidateId VARCHAR(36) NOT NULL,
+          voterId INT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_vote (voterId, candidateId, electionId)
+          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
+          FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
+          FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
+          UNIQUE KEY unique_vote (electionId, positionId, voterId)
         )`
       },
       {
         name: 'password_reset_tokens',
         sql: `CREATE TABLE IF NOT EXISTS password_reset_tokens (
           id VARCHAR(36) PRIMARY KEY,
-          user_id VARCHAR(36) NOT NULL,
-          user_type ENUM('voter', 'admin') NOT NULL,
+          email VARCHAR(255) NOT NULL,
           token VARCHAR(255) NOT NULL UNIQUE,
           expires_at TIMESTAMP NOT NULL,
-          used BOOLEAN DEFAULT FALSE,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          INDEX idx_token (token),
-          INDEX idx_user_type (user_type),
-          INDEX idx_expires_at (expires_at)
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`
       }
     ];
 
+    // Create each table
     for (const table of tables) {
       try {
-        console.log(`   Creating table: ${table.name}`);
+        if (verbose) {
+          console.log(`   Creating table: ${table.name}`);
+        }
         await runQuery(db, table.sql);
-        console.log(`   ✅ Table ${table.name} created successfully`);
+        if (verbose) {
+          console.log(`   ✅ Table ${table.name} created successfully`);
+        }
       } catch (error) {
-        console.error(`   ❌ Error creating table ${table.name}:`, error.message);
+        if (verbose) {
+          console.error(`   ❌ Error creating table ${table.name}:`, error.message);
+        }
         throw error;
       }
     }
 
-    // Create indexes
+    // Create indexes for better performance
     const indexes = [
-      { name: 'idx_candidates_position', sql: 'CREATE INDEX idx_candidates_position ON candidates(positionId)' },
-      { name: 'idx_votes_voter', sql: 'CREATE INDEX idx_votes_voter ON votes(voterId)' },
-      { name: 'idx_votes_candidate', sql: 'CREATE INDEX idx_votes_candidate ON votes(candidateId)' },
-      { name: 'idx_votes_election', sql: 'CREATE INDEX idx_votes_election ON votes(electionId)' },
-      { name: 'idx_voters_email', sql: 'CREATE INDEX idx_voters_email ON voters(email)' },
-      { name: 'idx_voters_student_id', sql: 'CREATE INDEX idx_voters_student_id ON voters(studentId)' },
-      { name: 'idx_admins_email', sql: 'CREATE INDEX idx_admins_email ON admins(email)' },
-      { name: 'idx_elections_status', sql: 'CREATE INDEX idx_elections_status ON elections(status)' },
-      { name: 'idx_elections_time', sql: 'CREATE INDEX idx_elections_time ON elections(startTime, endTime)' }
+      { name: 'idx_voters_email', sql: 'CREATE INDEX IF NOT EXISTS idx_voters_email ON voters(email)' },
+      { name: 'idx_voters_studentId', sql: 'CREATE INDEX IF NOT EXISTS idx_voters_studentId ON voters(studentId)' },
+      { name: 'idx_candidates_positionId', sql: 'CREATE INDEX IF NOT EXISTS idx_candidates_positionId ON candidates(positionId)' },
+      { name: 'idx_courses_departmentId', sql: 'CREATE INDEX IF NOT EXISTS idx_courses_departmentId ON courses(departmentId)' },
+      { name: 'idx_election_positions_electionId', sql: 'CREATE INDEX IF NOT EXISTS idx_election_positions_electionId ON election_positions(electionId)' },
+      { name: 'idx_election_candidates_electionId', sql: 'CREATE INDEX IF NOT EXISTS idx_election_candidates_electionId ON election_candidates(electionId)' },
+      { name: 'idx_votes_electionId', sql: 'CREATE INDEX IF NOT EXISTS idx_votes_electionId ON votes(electionId)' },
+      { name: 'idx_votes_voterId', sql: 'CREATE INDEX IF NOT EXISTS idx_votes_voterId ON votes(voterId)' }
     ];
 
+    // Create indexes silently (they might already exist)
     for (const index of indexes) {
       try {
         await runQuery(db, index.sql);
@@ -282,13 +292,13 @@ async function createTables() {
 }
 
 // Insert default data
-async function insertDefaultData() {
+async function insertDefaultData(verbose = true) {
   const db = createConnection();
   
   try {
     // Import and run clean default seed data
     const { seedWithCleanData } = await import('../scripts/clean-seed-data.js');
-    await seedWithCleanData(db);
+    await seedWithCleanData(db, verbose);
     
     db.end();
   } catch (error) {
@@ -297,40 +307,97 @@ async function insertDefaultData() {
   }
 }
 
+// Check if database and tables already exist
+async function checkDatabaseExists() {
+  try {
+    // Connect without specifying database to check if it exists
+    const connection = mysql.createConnection({
+      ...dbConfig,
+      multipleStatements: true
+    });
+    
+    const result = await runQuery(connection, `SHOW DATABASES LIKE '${DB_NAME}'`);
+    connection.end();
+    return result.length > 0;
+  } catch (error) {
+    return false;
+  }
+}
+
+// Check if tables exist
+async function checkTablesExist() {
+  try {
+    const connection = createConnection();
+    const result = await runQuery(connection, 'SHOW TABLES');
+    connection.end();
+    return result.length > 0;
+  } catch (error) {
+    return false;
+  }
+}
+
 // Main initialization function
 async function ensureDatabaseAndTables() {
   try {
-    console.log('🚀 Initializing database and tables...');
+    // Check if database and tables already exist
+    const dbExists = await checkDatabaseExists();
+    const tablesExist = await checkTablesExist();
+    
+    // Only show verbose logging if this is a fresh setup
+    const isFreshSetup = !dbExists || !tablesExist;
+    
+    if (isFreshSetup) {
+      console.log('🚀 Initializing database and tables...');
+    }
     
     // Test MySQL server connection first (without specific database)
-    console.log('🔍 Testing MySQL server connection...');
+    if (isFreshSetup) {
+      console.log('🔍 Testing MySQL server connection...');
+    }
     const mysqlConnectionOk = await testMySQLConnection();
     if (!mysqlConnectionOk) {
       throw new Error('MySQL server connection failed. Make sure MySQL is running.');
     }
-    console.log('✅ MySQL server connection successful');
+    if (isFreshSetup) {
+      console.log('✅ MySQL server connection successful');
+    }
 
     // Create database
-    console.log('🗄️ Creating database...');
-    await createDatabase();
-    console.log('✅ Database created/verified');
+    if (isFreshSetup) {
+      console.log('🗄️ Creating database...');
+    }
+    await createDatabase(isFreshSetup);
+    if (isFreshSetup) {
+      console.log('✅ Database created/verified');
+    }
 
     // Test database connection after creation
-    console.log('🔍 Testing database connection...');
+    if (isFreshSetup) {
+      console.log('🔍 Testing database connection...');
+    }
     const dbConnectionOk = await testConnection();
     if (!dbConnectionOk) {
       throw new Error('Database connection failed after creation');
     }
-    console.log('✅ Database connection successful');
+    if (isFreshSetup) {
+      console.log('✅ Database connection successful');
+    }
 
     // Create tables
-    await createTables();
-    console.log('✅ All tables created successfully');
+    if (isFreshSetup) {
+      await createTables(isFreshSetup);
+      console.log('✅ All tables created successfully');
+    } else {
+      // Silent table creation for existing databases
+      await createTables(false);
+    }
 
-    // Insert default data
-    console.log('🌱 Inserting default data...');
-    await insertDefaultData();
-    console.log('✅ Default data inserted successfully');
+    // Insert default data only if tables were empty
+    if (isFreshSetup) {
+      console.log('🌱 Inserting default data...');
+      await insertDefaultData(isFreshSetup);
+      console.log('✅ Default data inserted successfully');
+    }
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);

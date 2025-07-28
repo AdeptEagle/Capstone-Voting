@@ -140,14 +140,12 @@ npm run seed:reset      # Reset and seed database
 ```bash
 npm run dev             # Start development server
 npm run start           # Start production server
-npm run test            # Run API tests
 npm run health          # Check server health
 npm run status          # Check server status
 ```
 
 ### **Setup Scripts:**
 ```bash
-npm run setup           # Complete setup (install + test + seed)
 npm run install:clean   # Clean install dependencies
 ```
 
@@ -158,7 +156,7 @@ npm run install:clean   # Clean install dependencies
 # Backend
 cd backend
 npm install
-npm run setup
+npm run setup-db
 
 # Frontend
 cd ../frontend

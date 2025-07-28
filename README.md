@@ -29,10 +29,14 @@ Admin: admin1 / admin123
 Voter: Any voter email / voter123
 ```
 
-#### **3. Seed Data Scripts**
-**New Scripts:**
-- `npm run seed` - Run comprehensive database seeding
+#### **3. Database Scripts**
+**Essential Scripts:**
+- `npm run setup-db` - Complete database setup (create DB, tables, seed data)
+- `npm run seed` - Run database seeding with clean default data
 - `npm run seed:reset` - Reset and seed database with fresh data
+- `npm run troubleshoot` - Database connection diagnostics
+- `npm run fix-db` - Auto-fix common database issues
+- `npm run reset-db` - Reset database completely
 - Automatic seeding on database initialization
 
 #### **4. Realistic Sample Data**
@@ -62,8 +66,8 @@ Voter: Any voter email / voter123
 
 #### **6. How to Use Seed Data**
 **For New Users:**
-1. Run `npm run setup` to initialize the system
-2. Database will automatically be seeded with comprehensive data
+1. Run `npm run setup-db` to initialize the system
+2. Database will automatically be seeded with clean default data
 3. Login with default credentials to start using the system immediately
 
 **For Existing Users:**
