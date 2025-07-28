@@ -57,8 +57,11 @@ async function testConnection() {
 // Create database if it doesn't exist
 async function createDatabase() {
   try {
+    console.log(`   Creating database: ${DB_NAME}`);
     await runQuery(dbRoot, `CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
+    console.log(`   ✅ Database ${DB_NAME} created/verified`);
   } catch (error) {
+    console.error(`   ❌ Error creating database ${DB_NAME}:`, error.message);
     throw error;
   }
 }
@@ -68,6 +71,8 @@ async function createTables() {
   const db = createConnection();
   
   try {
+    console.log('🏗️ Creating database tables...');
+    
     // Create tables in dependency order
     const tables = [
       {
@@ -224,8 +229,11 @@ async function createTables() {
 
     for (const table of tables) {
       try {
+        console.log(`   Creating table: ${table.name}`);
         await runQuery(db, table.sql);
+        console.log(`   ✅ Table ${table.name} created successfully`);
       } catch (error) {
+        console.error(`   ❌ Error creating table ${table.name}:`, error.message);
         throw error;
       }
     }
@@ -277,22 +285,32 @@ async function insertDefaultData() {
 // Main initialization function
 async function ensureDatabaseAndTables() {
   try {
+    console.log('🚀 Initializing database and tables...');
+    
     // Test connection first
+    console.log('🔍 Testing database connection...');
     const connectionOk = await testConnection();
     if (!connectionOk) {
       throw new Error('Database connection failed');
     }
+    console.log('✅ Database connection successful');
 
     // Create database
+    console.log('🗄️ Creating database...');
     await createDatabase();
+    console.log('✅ Database created/verified');
 
     // Create tables
     await createTables();
+    console.log('✅ All tables created successfully');
 
     // Insert default data
+    console.log('🌱 Inserting default data...');
     await insertDefaultData();
+    console.log('✅ Default data inserted successfully');
 
   } catch (error) {
+    console.error('❌ Database initialization failed:', error.message);
     throw error;
   }
 }

@@ -27,6 +27,7 @@
     "test-voter-validation": "node scripts/test-voter-validation.js",
     "export-current-data": "node scripts/export-current-data.js",
     "test-current-seed": "node scripts/test-current-seed-data.js",
+    "setup-db": "node scripts/setup-database.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "clean": "rm -rf node_modules package-lock.json",

@@ -17,7 +17,11 @@ cd ../frontend && npm install
 
 ### 2. Database Setup
 ```bash
-# Start MySQL and create database
+# Option 1: Automatic setup (recommended)
+cd backend
+npm run setup-db
+
+# Option 2: Manual setup
 mysql -u root -p
 CREATE DATABASE voting_system;
 exit;
@@ -75,8 +79,10 @@ npm run dev
 ### Database Connection Issues
 ```bash
 cd backend
-npm run troubleshoot
-npm run fix-db
+npm run setup-db      # Complete database setup
+npm run troubleshoot  # Database connection diagnostics
+npm run fix-db        # Auto-fix common database issues
+npm run reset-db      # Reset database completely
 ```
 
 ### Reset Database
