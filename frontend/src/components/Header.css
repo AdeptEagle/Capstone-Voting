@@ -5,11 +5,11 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: #dbeafe; /* Soft blue background for contrast */
+  background-color: transparent; /* Made transparent */
   color: #1e40af;
   padding: 0.5rem 1rem;
   z-index: 1030;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: none; /* Removed shadow */
 }
 
 .sidebar-toggle-btn {

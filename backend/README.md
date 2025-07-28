@@ -1,202 +1,119 @@
 # Voting System Backend
 
-This is the optimized backend for the Voting System application, organized with a clean architecture pattern.
+A robust Node.js/Express backend API for the voting system with MySQL database support.
 
-## 🚀 Recent Major Upgrades (Version 2.1.0)
+## 🚀 Features
 
-### 📅 Upgrade Session: Enhanced Error Handling & Documentation
-**Date:** Current Session  
-**Focus:** Comprehensive error handling, null safety, and enhanced documentation
+- **Environment-based Configuration**: Support for development, test, and production environments
+- **Database Optimization**: Connection pooling, proper indexing, and error handling
+- **Security**: JWT authentication, password hashing, CORS protection
+- **File Upload**: Secure file handling with validation
+- **Testing**: Comprehensive API testing suite
+- **Error Handling**: Graceful error handling and logging
+- **Health Monitoring**: Health check endpoints and status monitoring
 
-### 🔧 Enhanced Error Handling
+## 📋 Prerequisites
 
-#### **1. Null Value Protection**
-- **Comprehensive Null Checks**: Protection against null/undefined value crashes
-- **Graceful Degradation**: Fallback values for missing or corrupted data
-- **Try-Catch Blocks**: Proper error handling in all async operations
-- **Centralized Error Handling**: Consistent error responses across all endpoints
+- **Node.js**: Version 18.0.0 or higher
+- **MySQL**: Version 8.0 or higher
+- **npm**: Version 8.0.0 or higher
 
-#### **2. Authentication & Authorization Improvements**
-- **JWT Token Validation**: Enhanced token checking with expiration handling
-- **Role-Based Access Control**: Improved middleware for role validation
-- **SuperAdmin Privileges**: Full access without restrictions
-- **Token Interceptor**: Automatic JWT token attachment to API requests
+## 🛠️ Installation
 
-#### **3. Database Connection Improvements**
-- **Connection Pooling**: Improved database performance and reliability
-- **Error Recovery**: Automatic reconnection on database failures
-- **Transaction Support**: Better data consistency for complex operations
-- **Migration Support**: Easy database schema updates
+### 1. Clone and Install Dependencies
 
-### 📊 Performance Improvements
-
-#### **1. Backend Performance**
-- **Modular Architecture**: Better code organization and maintainability
-- **Database Connection Pooling**: Improved database performance
-- **Error Handling**: Reduced server crashes and improved stability
-- **Logging**: Better debugging and monitoring capabilities
-
-#### **2. API Response Optimization**
-- **Consistent Response Format**: Standardized API response structure
-- **Error Status Codes**: Proper HTTP status codes for different error types
-- **Response Caching**: Improved response times for frequently accessed data
-- **Request Validation**: Enhanced input validation and sanitization
-
-### 🔒 Security Enhancements
-
-#### **1. Authentication**
-- **JWT Token Validation**: Enhanced token security and expiration handling
-- **Role Verification**: Improved role-based access control
-- **Token Interceptor**: Secure automatic token management
-
-#### **2. Data Validation**
-- **Input Validation**: Enhanced data validation throughout the application
-- **Null Safety**: Protection against null/undefined value attacks
-- **Error Boundaries**: Graceful error handling without exposing sensitive data
-
-### 🧪 Testing & Quality Assurance
-
-#### **1. Error Scenarios Tested**
-- ✅ **Null Election Status**: Handles missing status gracefully
-- ✅ **Invalid Dates**: Proper error handling for date operations
-- ✅ **Missing User Data**: Fallback values for incomplete user information
-- ✅ **Authentication Failures**: Proper redirects and error messages
-- ✅ **Database Failures**: Graceful handling of connection issues
-
-#### **2. Performance Testing**
-- ✅ **Concurrent Requests**: Handles multiple simultaneous users
-- ✅ **Database Load**: Efficient query execution and connection management
-- ✅ **Memory Usage**: Optimized memory consumption
-- ✅ **Response Times**: Fast API response times
-
-### 📈 Code Quality Metrics
-
-#### **Before vs After**
-- **Error Handling**: Basic → Comprehensive
-- **Null Safety**: Limited → Full protection
-- **Code Maintainability**: Good → Excellent
-- **Debugging Capability**: Basic → Extensive
-- **Documentation**: Basic → Comprehensive
-
-## Project Structure
-
-```
-backend/
-├── config/                 # Configuration files
-│   ├── database.js        # Database configuration and initialization
-│   └── constants.js       # Application constants
-├── middleware/            # Express middleware
-│   ├── auth.js           # Authentication and authorization middleware
-│   └── upload.js         # File upload middleware
-├── models/               # Database models (data access layer)
-│   ├── PositionModel.js
-│   ├── CandidateModel.js
-│   ├── VoterModel.js
-│   ├── VoteModel.js
-│   ├── ElectionModel.js
-│   ├── AdminModel.js
-│   └── index.js
-├── controllers/          # Request handlers (business logic)
-│   ├── PositionController.js
-│   ├── CandidateController.js
-│   ├── VoterController.js
-│   ├── VoteController.js
-│   ├── ElectionController.js
-│   ├── AuthController.js
-│   ├── AdminController.js
-│   └── index.js
-├── services/            # Business logic services
-│   ├── AuthService.js
-│   └── VotingService.js
-├── routes/              # Express routes
-│   ├── positionRoutes.js
-│   ├── candidateRoutes.js
-│   ├── voterRoutes.js
-│   ├── electionRoutes.js
-│   ├── authRoutes.js
-│   ├── voteRoutes.js
-│   └── adminRoutes.js
-├── utils/               # Utility functions and helpers
-│   ├── validation.js
-│   └── logger.js
-├── uploads/             # File upload directory
-├── server.js            # Main application file
-└── package.json
+```bash
+cd backend
+npm install
 ```
 
-## Architecture Overview
+### 2. Database Setup
 
-### Layers
+#### Option A: Automatic Setup (Recommended)
+The server will automatically create the database and tables on first run.
 
-1. **Routes Layer** (`/routes/`)
-   - Defines API endpoints
-   - Handles HTTP methods and URL patterns
-   - Applies middleware (authentication, file upload, etc.)
+#### Option B: Manual Setup
+```sql
+-- Connect to MySQL and run:
+CREATE DATABASE voting_system;
+CREATE DATABASE voting_system_test;
+```
 
-2. **Controllers Layer** (`/controllers/`)
-   - Handles HTTP requests and responses
-   - Validates input data
-   - Calls appropriate services
-   - Returns formatted responses
+### 3. Environment Configuration
 
-3. **Services Layer** (`/services/`)
-   - Contains business logic
-   - Orchestrates multiple models
-   - Handles complex operations
+Copy the example environment file:
+```bash
+cp env.example .env
+```
 
-4. **Models Layer** (`/models/`)
-   - Database operations
-   - Data access logic
-   - Query building
+Edit `.env` with your database credentials:
+```env
+# Database Configuration
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_PORT=3306
 
-5. **Middleware Layer** (`/middleware/`)
-   - Authentication and authorization
-   - File upload handling
-   - Request processing
+# Environment
+NODE_ENV=development
+PORT=3000
+```
 
-6. **Configuration Layer** (`/config/`)
-   - Database configuration
-   - Application constants
-   - Environment settings
+## 🚀 Running the Server
 
-7. **Utilities Layer** (`/utils/`)
-   - Validation functions
-   - Logging utilities
-   - Helper functions
+### Development Mode
+```bash
+npm run dev
+```
 
-## Key Features
+### Production Mode
+```bash
+npm start
+```
 
-### Authentication & Authorization
-- JWT-based authentication
-- Role-based access control (superadmin, admin, user)
-- Middleware for protecting routes
+### Test Mode
+```bash
+npm run test:db
+```
 
-### File Upload
-- Multer configuration for image uploads
-- File size and type validation
-- Automatic file naming and storage
+## 🧪 Testing
 
-### Database
-- MySQL database with proper indexing
-- Connection pooling
-- Automatic table creation and migration
+### Quick Health Check
+```bash
+npm run health
+```
 
-### Error Handling
-- Centralized error handling
-- Proper HTTP status codes
-- Detailed error messages
+### API Testing
+```bash
+# Run comprehensive API tests
+npm test
 
-### Logging
-- Structured logging system
-- Configurable log levels
-- Specialized logging for votes and authentication
+# Or run the test script directly
+node scripts/test-api.js
+```
 
-## API Endpoints
+### Test Database Setup
+```bash
+# Set up test database with sample data
+npm run test:setup
+```
+
+## 📊 API Endpoints
+
+### Health & Status
+- `GET /health` - Health check endpoint
+- `GET /` - API status and version
 
 ### Authentication
-- `POST /api/auth/admin/login` - Admin login
-- `POST /api/auth/user/register` - User registration
-- `POST /api/auth/user/login` - User login
+- `POST /api/auth/admin-login` - Admin login
+- `POST /api/auth/login` - Voter login
+- `GET /api/auth/profile` - Get user profile
+
+### Elections
+- `GET /api/elections` - Get all elections
+- `POST /api/elections` - Create election
+- `PUT /api/elections/:id` - Update election
+- `DELETE /api/elections/:id` - Delete election
 
 ### Positions
 - `GET /api/positions` - Get all positions
@@ -206,7 +123,7 @@ backend/
 
 ### Candidates
 - `GET /api/candidates` - Get all candidates
-- `POST /api/candidates` - Create candidate (with photo upload)
+- `POST /api/candidates` - Create candidate
 - `PUT /api/candidates/:id` - Update candidate
 - `DELETE /api/candidates/:id` - Delete candidate
 
@@ -216,62 +133,194 @@ backend/
 - `PUT /api/voters/:id` - Update voter
 - `DELETE /api/voters/:id` - Delete voter
 
-### Elections
-- `GET /api/elections` - Get all elections
-- `GET /api/elections/active` - Get active election
-- `POST /api/elections` - Create election (admin only)
-- `PUT /api/elections/:id` - Update election (admin only)
-- `DELETE /api/elections/:id` - Delete election (admin only)
+### Voting
+- `POST /api/votes` - Cast vote
+- `GET /api/votes` - Get vote results
 
-### Votes
-- `GET /api/votes` - Get all votes
-- `POST /api/votes` - Submit vote
-- `GET /api/votes/results` - Get voting results
+### Password Reset
+- `POST /api/password-reset/forgot-password` - Request password reset
+- `GET /api/password-reset/verify-token/:token` - Verify reset token
+- `POST /api/password-reset/reset-password` - Reset password
 
-### Admin Management
-- `GET /api/admins` - Get all admins (superadmin only)
-- `POST /api/admins` - Create admin (superadmin only)
-- `PUT /api/admins/:id` - Update admin (superadmin only)
-- `DELETE /api/admins/:id` - Delete admin (superadmin only)
+## 🔧 Configuration
 
-## Getting Started
+### Environment Variables
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NODE_ENV` | `development` | Environment mode |
+| `PORT` | `3000` | Server port |
+| `DB_HOST` | `localhost` | Database host |
+| `DB_USER` | `root` | Database user |
+| `DB_PASSWORD` | `root` | Database password |
+| `DB_PORT` | `3306` | Database port |
+| `IS_TEST` | `false` | Test mode flag |
+| `FRONTEND_URL` | `http://localhost:5173` | Frontend URL for CORS |
 
-2. Configure database:
-   - Update database settings in `config/database.js`
-   - Ensure MySQL server is running
+### Database Configuration
 
-3. Start the server:
-   ```bash
-   npm start
-   ```
+The system supports two database modes:
 
-4. The server will run on `http://localhost:3000`
+1. **Production Database** (`voting_system`)
+   - Used for actual voting operations
+   - Contains real voter and election data
 
-## Environment Variables
+2. **Test Database** (`voting_system_test`)
+   - Used for testing and development
+   - Contains sample data for testing
+   - Activated with `IS_TEST=true`
 
-- `LOG_LEVEL` - Set logging level (ERROR, WARN, INFO, DEBUG)
-- Database credentials in `config/database.js`
+## 🐛 Troubleshooting
 
-## Benefits of This Structure
+### Common Issues
 
-1. **Separation of Concerns**: Each layer has a specific responsibility
-2. **Maintainability**: Easy to locate and modify specific functionality
-3. **Scalability**: Easy to add new features and endpoints
-4. **Testability**: Each layer can be tested independently
-5. **Reusability**: Services and utilities can be reused across controllers
-6. **Readability**: Clear file organization makes code easy to understand
+#### 1. Database Connection Failed
+```
+❌ Database connection failed: connect ECONNREFUSED
+```
 
-## Migration from Monolithic Structure
+**Solution:**
+- Ensure MySQL is running
+- Check database credentials in `.env`
+- Verify MySQL port (default: 3306)
 
-The original `server.js` file was 847 lines long and contained all functionality mixed together. This new structure:
+#### 2. Port Already in Use
+```
+❌ Port 3000 is already in use
+```
 
-- Reduces the main server file to ~60 lines
-- Separates concerns into logical modules
-- Makes the codebase more maintainable and scalable
-- Improves code reusability and testability
-- Follows industry best practices for Node.js applications 
+**Solution:**
+- Change port in `.env`: `PORT=3001`
+- Or kill the process using the port
+
+#### 3. Permission Denied
+```
+❌ ER_ACCESS_DENIED_ERROR
+```
+
+**Solution:**
+- Check MySQL user permissions
+- Verify username/password in `.env`
+- Create MySQL user if needed
+
+#### 4. Module Not Found
+```
+❌ Cannot find module 'dotenv'
+```
+
+**Solution:**
+```bash
+npm install
+# or
+npm run install:clean
+```
+
+### Debug Mode
+
+Enable detailed logging:
+```bash
+NODE_ENV=development npm run dev
+```
+
+### Database Reset
+
+To reset the database:
+```bash
+# Drop and recreate database
+mysql -u root -p
+DROP DATABASE voting_system;
+CREATE DATABASE voting_system;
+exit
+
+# Restart server
+npm run dev
+```
+
+## 📁 Project Structure
+
+```
+backend/
+├── config/
+│   └── database.js          # Database configuration
+├── controllers/             # Route controllers
+├── middleware/              # Custom middleware
+├── models/                  # Database models
+├── routes/                  # API routes
+├── scripts/                 # Utility scripts
+│   ├── setup-test-db.js    # Test database setup
+│   └── test-api.js         # API testing
+├── services/                # Business logic
+├── uploads/                 # File uploads
+├── utils/                   # Utility functions
+├── .env                     # Environment variables
+├── env.example             # Environment template
+├── package.json            # Dependencies
+├── README.md               # This file
+└── server.js               # Main server file
+```
+
+## 🔒 Security Features
+
+- **Password Hashing**: bcrypt with salt rounds
+- **JWT Authentication**: Secure token-based auth
+- **CORS Protection**: Configurable cross-origin requests
+- **Input Validation**: Request data validation
+- **SQL Injection Protection**: Parameterized queries
+- **File Upload Security**: Type and size validation
+
+## 📈 Performance Optimizations
+
+- **Connection Pooling**: Efficient database connections
+- **Database Indexing**: Optimized query performance
+- **Request Logging**: Performance monitoring
+- **Error Handling**: Graceful error recovery
+- **Caching Headers**: Static file optimization
+
+## 🧪 Testing Strategy
+
+### Test Types
+1. **Unit Tests**: Individual function testing
+2. **Integration Tests**: API endpoint testing
+3. **Database Tests**: Data persistence testing
+4. **Security Tests**: Authentication and authorization
+
+### Running Tests
+```bash
+# Full test suite
+npm test
+
+# Database tests only
+npm run test:db
+
+# API tests only
+npm run test:api
+```
+
+## 📝 Logging
+
+The server provides comprehensive logging:
+
+- **Request Logging**: All API requests with timestamps
+- **Error Logging**: Detailed error information
+- **Database Logging**: Connection and query status
+- **Performance Logging**: Response times and metrics
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new features
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.
+
+## 🆘 Support
+
+For issues and questions:
+1. Check the troubleshooting section
+2. Review the logs for error details
+3. Test with the provided test scripts
+4. Create an issue with detailed information 

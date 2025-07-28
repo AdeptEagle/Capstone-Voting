@@ -92,12 +92,13 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  background-color: #f8f9fa;
-  padding: 10px 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 1020;
   display: flex;
   align-items: center;
+  background-color: transparent;
+  color: #1e40af;
+  padding: 0.5rem 1rem;
+  z-index: 1020;
+  box-shadow: none;
 }
 
 .sidebar-toggle-btn {
@@ -111,7 +112,7 @@ body {
 /* Main Content Styles */
 main {
   flex-grow: 1;
-  padding: 80px 20px 20px 20px; /* Adjust top padding for fixed header */
+  padding: 0 20px 20px 20px; /* Removed top padding */
   transition: margin-left 0.3s ease-in-out;
   background-color: #f0f2f5;
 }
