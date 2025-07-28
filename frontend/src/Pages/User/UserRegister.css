@@ -187,6 +187,14 @@
   color: #a0aec0;
 }
 
+.user-register-field .field-help {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
 .user-register-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

@@ -98,6 +98,20 @@
   margin: 0 0 1rem 0;
   color: var(--primary-navy);
   font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voter-group-id {
+  color: var(--accent-steel);
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(69, 123, 157, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(69, 123, 157, 0.2);
+}
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel));
   -webkit-background-clip: text;

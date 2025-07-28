@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
 import './Vote.css';
+import { getCandidatePhotoUrl, CandidatePhotoPlaceholder } from '../../utils/image.jsx';
 
 // Simple UUID generator
 const generateUUID = () => {
@@ -32,17 +33,7 @@ const Vote = () => {
   const [showVoteSummary, setShowVoteSummary] = useState(false);
   const navigate = useNavigate();
   const { canVote, hasActiveElection, triggerImmediateRefresh, activeElection } = useElection();
-
-  // Helper function to get the correct image URL
-  const getImageUrl = (photoUrl) => {
-    if (!photoUrl) return null;
-    // If it's already a full URL, return as is
-    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-      return photoUrl;
-    }
-    // Otherwise, construct the full URL
-    return `http://localhost:3000/uploads/${photoUrl}`;
-  };
+  const [imgError, setImgError] = useState({}); // Track image errors by candidate ID
 
   useEffect(() => {
     // Trigger immediate election status refresh
@@ -357,21 +348,19 @@ const Vote = () => {
                   <span className="rank-number">{index + 1}</span>
                 </div>
                 <div className="vote-candidate-photo-container">
-                  {candidate.photoUrl ? (
-                    <img 
-                      src={getImageUrl(candidate.photoUrl)} 
-                      alt={candidate.name} 
+                  {candidate.photoUrl && !imgError[candidate.id] ? (
+                    <img
+                      src={getCandidatePhotoUrl(candidate.photoUrl)}
+                      alt={candidate.name}
                       className="vote-candidate-photo"
-                      onError={(e) => {
+                      onError={e => {
+                        setImgError(prev => ({ ...prev, [candidate.id]: true }));
                         e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
+                        e.target.parentNode.querySelector('.candidate-photo-placeholder').style.display = 'flex';
                       }}
                     />
-                  ) : (
-                    <div className="vote-candidate-photo-placeholder">
-                      <i className="fas fa-user"></i>
-                    </div>
-                  )}
+                  ) : null}
+                  <CandidatePhotoPlaceholder className="candidate-photo-placeholder" style={{ display: candidate.photoUrl && !imgError[candidate.id] ? 'none' : 'flex' }} />
                 </div>
                 <div className="vote-candidate-overlay">
                   <h3 className="vote-candidate-overlay-name">
@@ -496,19 +485,17 @@ const Vote = () => {
                       <div className="selected-candidates-grid">
                         {selectedCandidates.map(candidate => (
                           <div key={candidate.id} className="selected-candidate-item">
-                            {candidate.photoUrl ? (
-                              <img 
-                                src={getImageUrl(candidate.photoUrl)} 
-                                alt={candidate.name} 
-                                className="selected-candidate-photo"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'flex';
-                                }}
-                              />
-                            ) : null}
-                            <div className="selected-candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
-                              <i className="fas fa-user"></i>
+                            <div className="candidate-avatar-wrapper">
+                              {candidate.photoUrl && !imgError[candidate.id] ? (
+                                <img 
+                                  src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                                  alt={candidate.name} 
+                                  className="selected-candidate-photo"
+                                  onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
+                                />
+                              ) : (
+                                <CandidatePhotoPlaceholder className="selected-candidate-photo-placeholder" />
+                              )}
                             </div>
                             <span className="selected-candidate-name">{candidate.name}</span>
                           </div>
@@ -552,19 +539,17 @@ const Vote = () => {
                           <div className="confirmation-candidates-grid">
                             {selectedCandidates.map(candidate => (
                               <div key={candidate.id} className="confirmation-candidate-item">
-                                {candidate.photoUrl ? (
-                                  <img 
-                                    src={getImageUrl(candidate.photoUrl)} 
-                                    alt={candidate.name} 
-                                    className="confirmation-candidate-photo"
-                                    onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : null}
-                                <div className="confirmation-candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
-                                  <i className="fas fa-user"></i>
+                                <div className="candidate-avatar-wrapper">
+                                  {candidate.photoUrl && !imgError[candidate.id] ? (
+                                    <img 
+                                      src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                                      alt={candidate.name} 
+                                      className="confirmation-candidate-photo"
+                                      onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
+                                    />
+                                  ) : (
+                                    <CandidatePhotoPlaceholder className="confirmation-candidate-photo-placeholder" />
+                                  )}
                                 </div>
                                 <span className="confirmation-candidate-name">{candidate.name}</span>
                               </div>
@@ -633,19 +618,17 @@ const Vote = () => {
                           <div className="confirmation-candidates-grid">
                             {selectedCandidates.map(candidate => (
                               <div key={candidate.id} className="confirmation-candidate-item">
-                                {candidate.photoUrl ? (
-                                  <img 
-                                    src={getImageUrl(candidate.photoUrl)} 
-                                    alt={candidate.name} 
-                                    className="confirmation-candidate-photo"
-                                    onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : null}
-                                <div className="confirmation-candidate-photo-placeholder" style={{ display: candidate.photoUrl ? 'none' : 'flex' }}>
-                                  <i className="fas fa-user"></i>
+                                <div className="candidate-avatar-wrapper">
+                                  {candidate.photoUrl && !imgError[candidate.id] ? (
+                                    <img 
+                                      src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                                      alt={candidate.name} 
+                                      className="confirmation-candidate-photo"
+                                      onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
+                                    />
+                                  ) : (
+                                    <CandidatePhotoPlaceholder className="confirmation-candidate-photo-placeholder" />
+                                  )}
                                 </div>
                                 <span className="confirmation-candidate-name">{candidate.name}</span>
                               </div>

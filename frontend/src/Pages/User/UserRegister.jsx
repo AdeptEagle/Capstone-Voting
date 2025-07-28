@@ -70,13 +70,19 @@ const UserRegister = () => {
       return;
     }
 
+    if (!formData.voterGroupId) {
+      setError('Please select your department or group');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await api.post('/api/auth/user/register', {
         name: formData.name,
         email: formData.email,
         studentId: formData.studentId,
         password: formData.password,
-        voterGroupId: formData.voterGroupId || null
+        voterGroupId: formData.voterGroupId
       });
 
       setSuccess('Registration successful! Redirecting to dashboard...');
@@ -155,7 +161,7 @@ const UserRegister = () => {
           {success && <div className="user-register-success">{success}</div>}
 
           <div className="user-register-field">
-            <label htmlFor="name">Full Name</label>
+            <label htmlFor="name">Full Name *</label>
             <input
               type="text"
               id="name"
@@ -168,7 +174,7 @@ const UserRegister = () => {
           </div>
 
           <div className="user-register-field">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">Email Address *</label>
             <input
               type="email"
               id="email"
@@ -181,7 +187,7 @@ const UserRegister = () => {
           </div>
 
           <div className="user-register-field">
-            <label htmlFor="studentId">Student ID</label>
+            <label htmlFor="studentId">Student ID *</label>
             <input
               type="text"
               id="studentId"
@@ -194,13 +200,14 @@ const UserRegister = () => {
           </div>
 
           <div className="user-register-field">
-            <label htmlFor="voterGroupId">Department/Group (Optional)</label>
+            <label htmlFor="voterGroupId">Department/Group *</label>
             <select
               id="voterGroupId"
               name="voterGroupId"
               value={formData.voterGroupId}
               onChange={handleChange}
               disabled={loadingGroups}
+              required
             >
               <option value="">Select your department or group</option>
               {voterGroups.map(group => (
@@ -210,10 +217,11 @@ const UserRegister = () => {
               ))}
             </select>
             {loadingGroups && <small>Loading groups...</small>}
+            <small className="field-help">Please select your department or group to complete registration</small>
           </div>
 
           <div className="user-register-field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Password *</label>
             <input
               type="password"
               id="password"
@@ -226,7 +234,7 @@ const UserRegister = () => {
           </div>
 
           <div className="user-register-field">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm Password *</label>
             <input
               type="password"
               id="confirmPassword"

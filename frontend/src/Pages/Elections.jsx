@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions } from '../services/api';
+import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getVoterGroups } from '../services/api';
 import './Elections.css';
 
 const Elections = () => {
@@ -16,14 +16,27 @@ const Elections = () => {
   const [loadingPositions, setLoadingPositions] = useState(false);
   const navigate = useNavigate();
 
-  // Form state for creating/editing elections
+  // Enhanced form state for creating elections with positions and candidates
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     startTime: '',
     endTime: '',
-    positionIds: []
+    positionIds: [],
+    // New fields for dynamic position/candidate creation
+    newPositions: [],
+    newCandidates: [],
+    // Existing candidates selection
+    selectedCandidateIds: []
   });
+
+  // Multi-step form state
+  const [currentStep, setCurrentStep] = useState(1);
+  const [tempPositions, setTempPositions] = useState([]);
+  const [tempCandidates, setTempCandidates] = useState([]);
+  const [existingCandidates, setExistingCandidates] = useState([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [voterGroups, setVoterGroups] = useState([]);
 
   useEffect(() => {
     fetchElectionsData();
@@ -32,14 +45,16 @@ const Elections = () => {
   const fetchElectionsData = async () => {
     try {
       setLoading(true);
-      const [elections, positions] = await Promise.all([
+      const [elections, positions, voterGroupsData] = await Promise.all([
         getElections(),
-        getPositions()
+        getPositions(),
+        getVoterGroups()
       ]);
 
       console.log('Fetched elections:', elections); // Debug log
       setElections(elections || []);
       setPositions(positions || []);
+      setVoterGroups(voterGroupsData || []);
     } catch (error) {
       console.error('Error fetching elections data:', error);
       setError('Failed to load elections data');
@@ -55,16 +70,74 @@ const Elections = () => {
       setError('');
       setSuccess('');
 
+      // First, create any new positions
+      const createdPositions = [];
+      for (const position of tempPositions) {
+        if (position.isNew) {
+          try {
+            // Validate required fields
+            if (!position.id || !position.name) {
+              throw new Error(`Position ${position.id || 'Unknown'} is missing required fields (ID and Name)`);
+            }
+            
+            const newPosition = await createPosition({
+              id: position.id,
+              name: position.name,
+              voteLimit: position.voteLimit,
+              displayOrder: position.displayOrder
+            });
+            createdPositions.push(newPosition);
+          } catch (error) {
+            console.error('Error creating position:', error);
+            // Use the specific error message from the backend if available
+            const errorMessage = error.response?.data?.error || error.message || `Failed to create position: ${position.name}`;
+            throw new Error(errorMessage);
+          }
+        }
+      }
+
+      // Then, create any new candidates
+      for (const candidate of tempCandidates) {
+        if (candidate.isNew) {
+          try {
+            const candidateData = new FormData();
+            candidateData.append('id', candidate.id);
+            candidateData.append('name', candidate.name);
+            candidateData.append('positionId', candidate.positionId);
+            candidateData.append('voterGroupId', candidate.voterGroupId || '');
+            candidateData.append('description', candidate.description || '');
+            
+            if (candidate.photoFile) {
+              candidateData.append('photo', candidate.photoFile);
+            }
+
+            await createCandidate(candidateData);
+          } catch (error) {
+            console.error('Error creating candidate:', error);
+            throw new Error(`Failed to create candidate: ${candidate.name}`);
+          }
+        }
+      }
+
+      // Finally, create the election with all position IDs (existing + new)
+      const allPositionIds = [
+        ...formData.positionIds,
+        ...createdPositions.map(p => p.id)
+      ];
+
       const electionData = {
         id: crypto.randomUUID(),
-        ...formData,
+        title: formData.title,
+        description: formData.description,
         startTime: new Date(formData.startTime).toISOString().slice(0, 19).replace('T', ' '),
-        endTime: new Date(formData.endTime).toISOString().slice(0, 19).replace('T', ' ')
+        endTime: new Date(formData.endTime).toISOString().slice(0, 19).replace('T', ' '),
+        positionIds: allPositionIds,
+        candidateIds: formData.selectedCandidateIds
       };
 
       await createElection(electionData);
       
-      setSuccess('Election created successfully!');
+      setSuccess('Election created successfully with all positions and candidates!');
       setShowCreateModal(false);
       resetForm();
       await fetchElectionsData();
@@ -72,7 +145,7 @@ const Elections = () => {
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error creating election:', error);
-      setError(error.response?.data?.error || 'Failed to create election');
+      setError(error.response?.data?.error || error.message || 'Failed to create election');
     } finally {
       setLoading(false);
     }
@@ -328,10 +401,12 @@ const Elections = () => {
     }
   };
 
-  const openCreateModal = () => {
+  const openCreateModal = async () => {
     setEditingElection(null);
     resetForm();
     setShowCreateModal(true);
+    // Fetch existing candidates for selection
+    await fetchExistingCandidates();
   };
 
   const resetForm = () => {
@@ -340,8 +415,213 @@ const Elections = () => {
       description: '',
       startTime: '',
       endTime: '',
-      positionIds: []
+      positionIds: [],
+      // New fields for dynamic position/candidate creation
+      newPositions: [],
+      newCandidates: [],
+      // Existing candidates selection
+      selectedCandidateIds: []
     });
+    setCurrentStep(1);
+    setTempPositions([]);
+    setTempCandidates([]);
+    setExistingCandidates([]);
+  };
+
+  // Helper functions for multi-step form
+  const addNewPosition = () => {
+    const newPosition = {
+      id: '',
+      name: '',
+      voteLimit: 1,
+      displayOrder: tempPositions.length + 1,
+      isNew: true,
+      candidates: []
+    };
+    setTempPositions([...tempPositions, newPosition]);
+  };
+
+  const updateTempPosition = useCallback((index, field, value) => {
+    setTempPositions(prev => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+      return updated;
+    });
+  }, []);
+
+  const removeTempPosition = (index) => {
+    setTempPositions(tempPositions.filter((_, i) => i !== index));
+    // Also remove associated candidates
+    const positionId = tempPositions[index]?.id;
+    if (positionId) {
+      setTempCandidates(tempCandidates.filter(c => c.positionId !== positionId));
+    }
+  };
+
+  const addCandidateToPosition = (positionId) => {
+    const newCandidate = {
+      id: crypto.randomUUID(),
+      name: '',
+      positionId: positionId,
+      voterGroupId: '',
+      description: '',
+      photoFile: null,
+      isNew: true
+    };
+    setTempCandidates([...tempCandidates, newCandidate]);
+  };
+
+  const updateTempCandidate = useCallback((index, field, value) => {
+    setTempCandidates(prev => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [field]: value };
+      }
+      return updated;
+    });
+  }, []);
+
+  const removeTempCandidate = (index) => {
+    setTempCandidates(tempCandidates.filter((_, i) => i !== index));
+  };
+
+  const handlePhotoChange = (candidateIndex, file) => {
+    const updated = [...tempCandidates];
+    updated[candidateIndex] = { ...updated[candidateIndex], photoFile: file };
+    setTempCandidates(updated);
+  };
+
+  // Candidate selection functions
+  const fetchExistingCandidates = async () => {
+    try {
+      setLoadingCandidates(true);
+      const candidates = await getCandidates();
+      setExistingCandidates(candidates);
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      setError('Failed to load existing candidates');
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
+  const handleCandidateSelection = (candidateId, isSelected) => {
+    setFormData(prev => {
+      const updated = { ...prev };
+      if (isSelected) {
+        if (!updated.selectedCandidateIds.includes(candidateId)) {
+          updated.selectedCandidateIds = [...updated.selectedCandidateIds, candidateId];
+        }
+      } else {
+        updated.selectedCandidateIds = updated.selectedCandidateIds.filter(id => id !== candidateId);
+      }
+      return updated;
+    });
+  };
+
+  const addAllCandidates = () => {
+    const filteredCandidates = getFilteredCandidates();
+    const allCandidateIds = filteredCandidates.map(c => c.id);
+    setFormData(prev => ({
+      ...prev,
+      selectedCandidateIds: allCandidateIds
+    }));
+  };
+
+  const removeAllCandidates = () => {
+    setFormData(prev => ({
+      ...prev,
+      selectedCandidateIds: []
+    }));
+  };
+
+  const getCandidatesForPosition = (positionId) => {
+    return existingCandidates.filter(c => c.positionId === positionId);
+  };
+
+  // Get candidates for selected positions only
+  const getFilteredCandidates = () => {
+    const selectedPositionIds = [
+      ...formData.positionIds,
+      ...tempPositions.map(p => p.id)
+    ];
+    
+    if (selectedPositionIds.length === 0) {
+      return [];
+    }
+    
+    return existingCandidates.filter(candidate => 
+      selectedPositionIds.includes(candidate.positionId)
+    );
+  };
+
+  const nextStep = () => {
+    if (currentStep === 1 && (!formData.title || !formData.startTime || !formData.endTime)) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    if (currentStep === 2) {
+      // Check if we have at least one position (existing or new)
+      if (tempPositions.length === 0 && formData.positionIds.length === 0) {
+        setError('Please add at least one position');
+        return;
+      }
+      
+      // Validate new positions
+      for (const position of tempPositions) {
+        if (!position.id || !position.name) {
+          setError(`Position ${tempPositions.indexOf(position) + 1} is missing required fields (ID and Name)`);
+          return;
+        }
+        
+        // Check for duplicate IDs within new positions (case-insensitive)
+        const duplicateId = tempPositions.filter(p => p.id.toLowerCase() === position.id.toLowerCase()).length > 1;
+        if (duplicateId) {
+          setError(`Duplicate Position ID: "${position.id}". Each position must have a unique ID.`);
+          return;
+        }
+        
+        // Check for duplicate names within new positions (case-insensitive)
+        const duplicateName = tempPositions.filter(p => p.name.toLowerCase() === position.name.toLowerCase()).length > 1;
+        if (duplicateName) {
+          setError(`Duplicate Position Name: "${position.name}". Each position must have a unique name.`);
+          return;
+        }
+        
+        // Check if ID conflicts with existing positions (case-insensitive)
+        const existingPosition = positions.find(p => p.id.toLowerCase() === position.id.toLowerCase());
+        if (existingPosition) {
+          setError(`Position ID "${position.id}" already exists. Please use a different ID.`);
+          return;
+        }
+        
+        // Check if name conflicts with existing positions (case-insensitive)
+        const existingPositionName = positions.find(p => p.name.toLowerCase() === position.name.toLowerCase());
+        if (existingPositionName) {
+          setError(`Position name "${position.name}" already exists. Please use a different name.`);
+          return;
+        }
+      }
+    }
+    
+    if (currentStep === 3) {
+      // Check if we have at least some candidates (existing or new)
+      const totalCandidates = formData.selectedCandidateIds.length + tempCandidates.length;
+      if (totalCandidates === 0) {
+        setError('Please select at least one candidate or add new candidates');
+        return;
+      }
+    }
+    
+    setCurrentStep(currentStep + 1);
+    setError('');
+  };
+
+  const prevStep = () => {
+    setCurrentStep(currentStep - 1);
+    setError('');
   };
 
   const getStatusColor = (status) => {
@@ -383,13 +663,8 @@ const Elections = () => {
   const getStatusActions = (election) => {
     const actions = [];
     
-    // Debug: Log the election status
-    console.log('Election status:', election.status, 'Election ID:', election.id);
-    
     // If status is null/undefined, treat as 'pending' (default status)
     const status = election.status || 'pending';
-    
-    console.log('Processed status:', status);
     
     // If status is null/undefined, show a fix button
     if (!election.status) {
@@ -562,7 +837,7 @@ const Elections = () => {
         <div className="dashboard-header-row">
           <div>
             <h1 className="dashboard-title-pro">Election Management</h1>
-            <p className="dashboard-subtitle-pro">Manage the single election ballot system (one election at a time)</p>
+            <p className="dashboard-subtitle-pro">Create complete ballots with positions and candidates in one streamlined process</p>
           </div>
           <div className="dashboard-header-actions">
             <button
@@ -572,7 +847,7 @@ const Elections = () => {
               title={elections.some(e => e.status !== 'ended') ? "End the current election first" : ""}
             >
               <i className="fas fa-plus me-2"></i>
-              Create New Election
+              Create Ballot with Positions & Candidates
             </button>
             <button
               className="btn btn-outline-secondary ms-2"
@@ -711,19 +986,21 @@ const Elections = () => {
               onClick={openCreateModal}
             >
               <i className="fas fa-plus me-2"></i>
-              Create Election
+              Create Ballot with Positions & Candidates
             </button>
           </div>
         )}
       </div>
 
-      {/* Create Election Modal */}
+      {/* Enhanced Create Election Modal with Multi-Step Form */}
       {showCreateModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Create New Election</h5>
+                <h5 className="modal-title">
+                  Create New Election - Step {currentStep} of 3
+                </h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -733,32 +1010,44 @@ const Elections = () => {
                   }}
                 ></button>
               </div>
-              <form onSubmit={handleCreateElection}>
+              
+              {error && (
+                <div className="alert alert-danger m-3">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  {error}
+                </div>
+              )}
+
                 <div className="modal-body">
+                {/* Step 1: Basic Election Info */}
+                {currentStep === 1 && (
+                  <div>
                   <div className="mb-3">
-                    <label className="form-label">Election Title</label>
+                      <label className="form-label">Election Title *</label>
                     <input
                       type="text"
                       className="form-control"
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        placeholder="e.g., Student Council Election 2024"
                       required
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Description</label>
+                      <label className="form-label">Description *</label>
                     <textarea
                       className="form-control"
                       rows="3"
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        placeholder="Describe the purpose and scope of this election..."
                       required
                     />
                   </div>
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">Start Time</label>
+                          <label className="form-label">Start Time *</label>
                         <input
                           type="datetime-local"
                           className="form-control"
@@ -770,7 +1059,7 @@ const Elections = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label">End Time</label>
+                          <label className="form-label">End Time *</label>
                         <input
                           type="datetime-local"
                           className="form-control"
@@ -781,8 +1070,17 @@ const Elections = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="mb-3">
-                    <label className="form-label">Positions to Include</label>
+                  </div>
+                )}
+
+                {/* Step 2: Positions Setup */}
+                {currentStep === 2 && (
+                  <div>
+                    <div className="mb-4">
+                      <h6 className="mb-3">
+                        <i className="fas fa-list me-2"></i>
+                        Select Existing Positions
+                      </h6>
                     <div className="position-checkboxes">
                       {positions.length > 0 ? (
                         positions.map(position => (
@@ -807,23 +1105,381 @@ const Elections = () => {
                               }}
                             />
                             <label className="form-check-label" htmlFor={`create-position-${position.id}`}>
-                              {position.name}
+                                {position.name} (Vote Limit: {position.voteLimit})
                             </label>
                           </div>
                         ))
                       ) : (
-                        <p className="text-muted">No positions available. Please create positions first.</p>
+                          <p className="text-muted">No existing positions available.</p>
                       )}
                     </div>
-                    {formData.positionIds.length === 0 && (
-                      <small className="text-danger">Please select at least one position</small>
+                    </div>
+
+                                          <div className="mb-4">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <h6>
+                            <i className="fas fa-plus me-2"></i>
+                            Add New Positions
+                          </h6>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={addNewPosition}
+                          >
+                            <i className="fas fa-plus me-1"></i>
+                            Add Position
+                          </button>
+                        </div>
+                        <div className="alert alert-info mb-3">
+                          <i className="fas fa-info-circle me-2"></i>
+                          <strong>Tip:</strong> Position IDs and names must be unique. Use descriptive names like "President", "Vice President", etc. Position IDs are typically short codes like "PRES", "VP", "SEC".
+                        </div>
+                      
+                                             {tempPositions.map((position, index) => (
+                         <div key={`temp-position-${index}`} className="card mb-3">
+                          <div className="card-body">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                              <h6 className="card-title mb-0">New Position {index + 1}</h6>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => removeTempPosition(index)}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6">
+                                <div className="mb-3">
+                                  <label className="form-label">Position ID *</label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={position.id}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      updateTempPosition(index, 'id', value);
+                                    }}
+                                    onBlur={(e) => {
+                                      // Convert to uppercase on blur for consistency
+                                      const value = e.target.value.toUpperCase();
+                                      if (value !== position.id) {
+                                        updateTempPosition(index, 'id', value);
+                                      }
+                                    }}
+                                    placeholder="e.g., PRES, VP, SEC"
+                                    required
+                                  />
+                                  <small className="text-muted">Type normally, will convert to uppercase when you leave the field</small>
+                                </div>
+                              </div>
+                              <div className="col-md-6">
+                                <div className="mb-3">
+                                  <label className="form-label">Position Name *</label>
+                                  <input
+                                    type="text"
+                                    className="form-control"
+                                    value={position.name}
+                                    onChange={(e) => updateTempPosition(index, 'name', e.target.value)}
+                                    placeholder="e.g., President, Vice President"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="row">
+                              <div className="col-md-6">
+                                <div className="mb-3">
+                                  <label className="form-label">Vote Limit</label>
+                                  <input
+                                    type="number"
+                                    className="form-control"
+                                    min="1"
+                                    value={position.voteLimit}
+                                    onChange={(e) => updateTempPosition(index, 'voteLimit', parseInt(e.target.value))}
+                                  />
+                                </div>
+                              </div>
+                              <div className="col-md-6">
+                                <div className="mb-3">
+                                  <label className="form-label">Display Order</label>
+                                  <input
+                                    type="number"
+                                    className="form-control"
+                                    min="0"
+                                    value={position.displayOrder}
+                                    onChange={(e) => updateTempPosition(index, 'displayOrder', parseInt(e.target.value))}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Candidates Setup */}
+                {currentStep === 3 && (
+                  <div>
+                    {/* Existing Candidates Selection */}
+                    <div className="mb-4">
+                      <div className="candidate-selection-header">
+                        <div className="header-content">
+                          <div className="header-title">
+                            <i className="fas fa-users"></i>
+                            <span className="title-text">Select Existing Candidates</span>
+                  </div>
+                          <div className="header-actions">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-success action-btn"
+                              onClick={addAllCandidates}
+                              disabled={loadingCandidates || getFilteredCandidates().length === 0}
+                            >
+                              <i className="fas fa-check-double"></i>
+                              <span>Add All</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-danger action-btn"
+                              onClick={removeAllCandidates}
+                              disabled={formData.selectedCandidateIds.length === 0}
+                            >
+                              <i className="fas fa-times"></i>
+                              <span>Remove All</span>
+                            </button>
+                </div>
+                        </div>
+                        {getFilteredCandidates().length > 0 && (
+                          <div className="header-subtitle">
+                            <span className="candidate-count">
+                              <i className="fas fa-info-circle me-1"></i>
+                              {getFilteredCandidates().length} candidates available for selected positions
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {loadingCandidates ? (
+                        <div className="text-center py-3">
+                          <div className="spinner-border spinner-border-sm text-primary me-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                          <span className="text-muted">Loading existing candidates...</span>
+                        </div>
+                      ) : getFilteredCandidates().length > 0 ? (
+                        <div className="candidate-selection-grid">
+                          {getFilteredCandidates().map(candidate => (
+                            <div key={candidate.id} className={`candidate-selection-card ${formData.selectedCandidateIds.includes(candidate.id) ? 'selected' : ''}`}>
+                              <div className="form-check">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  id={`candidate-${candidate.id}`}
+                                  checked={formData.selectedCandidateIds.includes(candidate.id)}
+                                  onChange={(e) => handleCandidateSelection(candidate.id, e.target.checked)}
+                                />
+                                <label className="form-check-label" htmlFor={`candidate-${candidate.id}`}>
+                                  <div className="candidate-card-header">
+                                    <div className="candidate-photo-container">
+                                      {candidate.photoUrl && candidate.photoUrl.trim() !== '' ? (
+                                        <img 
+                                          src={candidate.photoUrl} 
+                                          alt={candidate.name}
+                                          className="candidate-photo"
+                                          onError={(e) => {
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                          }}
+                                          onLoad={(e) => {
+                                            // Ensure image fits properly
+                                            e.target.style.maxWidth = '100%';
+                                            e.target.style.maxHeight = '100%';
+                                            e.target.style.objectFit = 'cover';
+                                            e.target.style.objectPosition = 'center';
+                                          }}
+                                        />
+                                      ) : null}
+                                      <div className="candidate-photo-placeholder" style={{ display: candidate.photoUrl && candidate.photoUrl.trim() !== '' ? 'none' : 'flex' }}>
+                                        <i className="fas fa-user"></i>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="candidate-card-body">
+                                    <div className="candidate-info">
+                                      <div className="candidate-name">
+                                        {candidate.name}
+                                      </div>
+                                      <div className="candidate-position">
+                                        {candidate.positionName}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </label>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="alert alert-info">
+                          <i className="fas fa-info-circle me-2"></i>
+                          {existingCandidates.length === 0 ? 
+                            'No existing candidates available. You can add new candidates below.' :
+                            'No candidates available for the selected positions. Please select different positions or add new candidates below.'
+                          }
+                        </div>
+                      )}
+                    </div>
+
+                    {/* New Candidates for New Positions */}
+                    {tempPositions.length > 0 && (
+                      <div className="mb-4">
+                        <h6 className="mb-3">
+                          <i className="fas fa-plus me-2"></i>
+                          Add New Candidates for New Positions
+                        </h6>
+                        
+                        {tempPositions.map((position, posIndex) => (
+                          <div key={`temp-position-${posIndex}`} className="card mb-4">
+                            <div className="card-header">
+                              <h6 className="mb-0">
+                                <i className="fas fa-user-tie me-2"></i>
+                                {position.name || `Position ${posIndex + 1}`}
+                              </h6>
+                            </div>
+                            <div className="card-body">
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                <span className="text-muted">Candidates for this position</span>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => addCandidateToPosition(position.id)}
+                                >
+                                  <i className="fas fa-plus me-1"></i>
+                                  Add Candidate
+                                </button>
+                              </div>
+                              
+                              {tempCandidates
+                                .filter(candidate => candidate.positionId === position.id)
+                                .map((candidate, candidateIndex) => {
+                                  const globalCandidateIndex = tempCandidates.findIndex(c => c.id === candidate.id);
+                                  return (
+                                    <div key={`temp-candidate-${globalCandidateIndex}`} className="card mb-3">
+                                      <div className="card-body">
+                                        <div className="d-flex justify-content-between align-items-start mb-3">
+                                          <h6 className="card-title mb-0">Candidate {candidateIndex + 1}</h6>
+                                          <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-danger"
+                                            onClick={() => removeTempCandidate(globalCandidateIndex)}
+                                          >
+                                            <i className="fas fa-trash"></i>
+                                          </button>
+                                        </div>
+                                        <div className="row">
+                                          <div className="col-md-6">
+                                            <div className="mb-3">
+                                              <label className="form-label">Candidate Name *</label>
+                                              <input
+                                                type="text"
+                                                className="form-control"
+                                                value={candidate.name}
+                                                onChange={(e) => updateTempCandidate(globalCandidateIndex, 'name', e.target.value)}
+                                                placeholder="Enter candidate name"
+                                                required
+                                              />
+                                            </div>
+                                          </div>
+                                          <div className="col-md-6">
+                                            <div className="mb-3">
+                                              <label className="form-label">Department/Group</label>
+                                              <select
+                                                className="form-select"
+                                                value={candidate.voterGroupId}
+                                                onChange={(e) => updateTempCandidate(globalCandidateIndex, 'voterGroupId', e.target.value)}
+                                              >
+                                                <option value="">Select a department or group</option>
+                                                {voterGroups.map(group => (
+                                                  <option key={group.id} value={group.id}>
+                                                    {group.name} ({group.type})
+                                                  </option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="row">
+                                          <div className="col-md-6">
+                                            <div className="mb-3">
+                                              <label className="form-label">Photo (Optional)</label>
+                                              <input
+                                                type="file"
+                                                className="form-control"
+                                                accept="image/*"
+                                                onChange={(e) => handlePhotoChange(globalCandidateIndex, e.target.files[0])}
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="mb-3">
+                                          <label className="form-label">Description/Platform</label>
+                                          <textarea
+                                            className="form-control"
+                                            rows="3"
+                                            value={candidate.description}
+                                            onChange={(e) => updateTempCandidate(globalCandidateIndex, 'description', e.target.value)}
+                                            placeholder="Describe the candidate's platform, qualifications, or vision..."
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              
+                              {tempCandidates.filter(c => c.positionId === position.id).length === 0 && (
+                                <div className="text-center py-3">
+                                  <p className="text-muted mb-2">No candidates added yet</p>
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={() => addCandidateToPosition(position.id)}
+                                  >
+                                    <i className="fas fa-plus me-1"></i>
+                                    Add First Candidate
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
+              </div>
+
                 <div className="modal-footer">
+                <div className="d-flex justify-content-between w-100">
+                  <div>
+                    {currentStep > 1 && (
                   <button
                     type="button"
                     className="btn btn-secondary"
+                        onClick={prevStep}
+                      >
+                        <i className="fas fa-arrow-left me-1"></i>
+                        Previous
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary me-2"
                     onClick={() => {
                       setShowCreateModal(false);
                       resetForm();
@@ -831,20 +1487,34 @@ const Elections = () => {
                   >
                     Cancel
                   </button>
+                    
+                    {currentStep < 3 ? (
                   <button
-                    type="submit"
+                        type="button"
                     className="btn btn-primary"
-                    disabled={loading || formData.positionIds.length === 0}
+                        onClick={nextStep}
+                      >
+                        Next
+                        <i className="fas fa-arrow-right ms-1"></i>
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="btn btn-success"
+                        onClick={handleCreateElection}
+                        disabled={loading}
                   >
                     {loading ? (
                       <i className="fas fa-spinner fa-spin me-1"></i>
                     ) : (
-                      <i className="fas fa-plus me-1"></i>
+                          <i className="fas fa-check me-1"></i>
                     )}
                     Create Election
                   </button>
+                    )}
                 </div>
-              </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>

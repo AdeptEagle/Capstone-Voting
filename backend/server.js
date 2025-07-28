@@ -29,8 +29,24 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(uploadsDir));
+// Serve static files from uploads directory with correct headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(uploadsDir, {
+  setHeaders: (res, filePath) => {
+    // Set Content-Type for common image types
+    if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.webp')) {
+      res.setHeader('Content-Type', 'image/webp');
+    } else if (filePath.endsWith('.gif')) {
+      res.setHeader('Content-Type', 'image/gif');
+    }
+  }
+}));
 
     // Test endpoint
     app.get("/", (req, res) => {

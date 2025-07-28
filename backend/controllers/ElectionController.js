@@ -28,6 +28,15 @@ export class ElectionController {
     }
   }
 
+  static async getCurrentElection(req, res) {
+    try {
+      const election = await ElectionModel.getCurrentElection();
+      res.json(election);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   static async getElectionById(req, res) {
     try {
       const electionId = req.params.id;
@@ -43,7 +52,7 @@ export class ElectionController {
 
   static async createElection(req, res) {
     try {
-      const { title, description, startTime, endTime, positionIds } = req.body;
+      const { title, description, startTime, endTime, positionIds, candidateIds } = req.body;
       const electionId = req.body.id;
       const createdBy = req.user.id;
 
@@ -61,6 +70,7 @@ export class ElectionController {
         startTime,
         endTime,
         positionIds,
+        candidateIds,
         createdBy
       };
 
@@ -74,7 +84,7 @@ export class ElectionController {
   static async updateElection(req, res) {
     try {
       const electionId = req.params.id;
-      const { title, description, startTime, endTime, status, positionIds } = req.body;
+      const { title, description, startTime, endTime, status, positionIds, candidateIds } = req.body;
 
       // Validate dates
       const start = new Date(startTime);
@@ -89,7 +99,8 @@ export class ElectionController {
         startTime,
         endTime,
         status,
-        positionIds
+        positionIds,
+        candidateIds
       };
 
       const result = await ElectionModel.update(electionId, electionData);

@@ -64,8 +64,22 @@ export class PositionModel {
       const values = [positionData.id, positionData.name, positionData.voteLimit, positionData.displayOrder || 0];
       db.query(query, values, (err, data) => {
         db.end();
-        if (err) reject(err);
-        else resolve({ message: "Position created successfully!", id: positionData.id });
+        if (err) {
+          // Handle specific MySQL errors
+          if (err.code === 'ER_DUP_ENTRY') {
+            if (err.message.includes('name')) {
+              reject(new Error(`Position name "${positionData.name}" already exists. Please use a different name.`));
+            } else if (err.message.includes('id')) {
+              reject(new Error(`Position ID "${positionData.id}" already exists. Please use a different ID.`));
+            } else {
+              reject(new Error('Position already exists with this information.'));
+            }
+          } else {
+            reject(err);
+          }
+        } else {
+          resolve({ message: "Position created successfully!", id: positionData.id });
+        }
       });
     });
   }

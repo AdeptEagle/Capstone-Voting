@@ -84,7 +84,7 @@ async function ensureDatabaseAndTables() {
     )`);
 
     await runQuery(db, `CREATE TABLE IF NOT EXISTS voter_groups (
-      id VARCHAR(36) PRIMARY KEY,
+      id VARCHAR(20) PRIMARY KEY,
       name VARCHAR(255) NOT NULL UNIQUE,
       description TEXT,
       type ENUM('department', 'class', 'year', 'custom') NOT NULL DEFAULT 'custom',
@@ -152,7 +152,7 @@ async function ensureDatabaseAndTables() {
       });
     });
     if (voterGroupIdColumns.length === 0) {
-      await runQuery(db, `ALTER TABLE voters ADD COLUMN voterGroupId VARCHAR(36)`);
+      await runQuery(db, `ALTER TABLE voters ADD COLUMN voterGroupId VARCHAR(20)`);
       // Add foreign key constraint if voter_groups table exists
       try {
         await runQuery(db, `ALTER TABLE voters ADD CONSTRAINT fk_voters_group FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL`);

@@ -10,6 +10,9 @@ router.get("/", ElectionController.getAllElections);
 // Get active election (MUST come before /:id route)
 router.get("/active", ElectionController.getActiveElection);
 
+// Get current election (includes paused/stopped elections for admin monitoring)
+router.get("/current", ElectionController.getCurrentElection);
+
 // Get election history
 router.get("/history", ElectionController.getElectionHistory);
 

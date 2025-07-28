@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert } from 'react-bootstrap';
-import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions } from '../services/api';
+import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions, getPublicVoterGroups } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
 import './Candidates.css';
+import { getCandidatePhotoUrl, CandidatePhotoPlaceholder } from '../utils/image.jsx';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [voterGroups, setVoterGroups] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCandidate, setEditingCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +18,7 @@ const Candidates = () => {
   const [formData, setFormData] = useState({
     name: '',
     positionId: '',
+    voterGroupId: '',
     photoUrl: '',
     description: ''
   });
@@ -36,14 +39,17 @@ const Candidates = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [candidatesData, positionsData] = await Promise.all([
+      const [candidatesData, positionsData, voterGroupsData] = await Promise.all([
         getCandidates(),
-        getPositions()
+        getPositions(),
+        getPublicVoterGroups()
       ]);
       console.log('Fetched candidates data:', candidatesData);
       console.log('Fetched positions data:', positionsData);
+      console.log('Fetched voter groups data:', voterGroupsData);
       setCandidates(candidatesData);
       setPositions(positionsData);
+      setVoterGroups(voterGroupsData);
       setError('');
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -54,11 +60,15 @@ const Candidates = () => {
   };
 
   const handleShowModal = (candidate = null) => {
+    // Close view modal if it's open
+    setViewCandidate(null);
+    
     if (candidate) {
       setEditingCandidate(candidate);
       setFormData({
         name: candidate.name,
         positionId: candidate.positionId,
+        voterGroupId: candidate.voterGroupId || '',
         photoUrl: candidate.photoUrl || '',
         description: candidate.description || ''
       });
@@ -69,6 +79,7 @@ const Candidates = () => {
       setFormData({
         name: '',
         positionId: '',
+        voterGroupId: '',
         photoUrl: '',
         description: ''
       });
@@ -118,6 +129,7 @@ const Candidates = () => {
         dataToSend = new FormData();
         dataToSend.append('name', formData.name);
         dataToSend.append('positionId', formData.positionId);
+        dataToSend.append('voterGroupId', formData.voterGroupId);
         dataToSend.append('description', formData.description);
         dataToSend.append('photo', photoFile);
       } else {
@@ -150,6 +162,18 @@ const Candidates = () => {
         setError('Failed to delete candidate');
       }
     }
+  };
+
+  // Helper to get correct candidate photo URL
+  const getCandidatePhotoUrl = (photoUrl) => {
+    if (!photoUrl) return null;
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return photoUrl;
+    }
+    if (photoUrl.startsWith('/uploads/')) {
+      return `http://localhost:3000${photoUrl}`;
+    }
+    return `http://localhost:3000/uploads/${photoUrl}`;
   };
 
   // User view: modern candidate cards grouped by position
@@ -199,7 +223,7 @@ const Candidates = () => {
                       </div>
                       <div className="candidate-photo-container">
                         {candidate.photoUrl ? (
-                          <img src={candidate.photoUrl} alt={candidate.name} className="candidate-photo" />
+                          <img src={getCandidatePhotoUrl(candidate.photoUrl)} alt={candidate.name} className="candidate-photo" />
                         ) : (
                           <div className="candidate-photo-placeholder">
                             <i className="fas fa-user"></i>
@@ -214,6 +238,12 @@ const Candidates = () => {
                           <span className="verified"><i className="fas fa-check-circle"></i></span>
                         </h3>
                         <p className="candidate-position">{candidate.positionName}</p>
+                        {candidate.voterGroupName && (
+                          <p className="candidate-department">
+                            <i className="fas fa-building me-1"></i>
+                            {candidate.voterGroupName}
+                          </p>
+                        )}
                       </div>
                       <div className="candidate-brief">
                         <p>
@@ -247,16 +277,16 @@ const Candidates = () => {
           </div>
         )}
         
-        {/* View Candidate Modal */}
+        {/* Enhanced View Candidate Modal */}
         {viewCandidate && (
           <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-dialog modal-dialog-centered modal-xl">
               <div className="modal-content">
                 <div className="modal-header">
                   <div className="modal-candidate-info">
                     <div className="modal-candidate-photo-container">
                       {viewCandidate?.photoUrl ? (
-                        <img src={viewCandidate.photoUrl} alt={viewCandidate.name} className="modal-candidate-photo" />
+                        <img src={getCandidatePhotoUrl(viewCandidate.photoUrl)} alt={viewCandidate.name} className="modal-candidate-photo" />
                       ) : (
                         <div className="modal-candidate-photo-placeholder">
                           <i className="fas fa-user"></i>
@@ -266,6 +296,12 @@ const Candidates = () => {
                     <div className="modal-candidate-details">
                       <h4 className="modal-candidate-name">{viewCandidate?.name}</h4>
                       <p className="modal-position">{viewCandidate?.positionName}</p>
+                      <div className="candidate-status">
+                        <span className="badge bg-success">
+                          <i className="fas fa-check-circle me-1"></i>
+                          Verified Candidate
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <button
@@ -275,43 +311,159 @@ const Candidates = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <div className="candidate-platform">
-                    <div className="platform-header">
-                      <i className="fas fa-bullhorn"></i>
-                      <h5>Platform & Vision</h5>
-                    </div>
-                    <div className="platform-content">
-                      {viewCandidate?.description ? (
-                        <div className="platform-text">
-                          {viewCandidate.description.split('\n').map((paragraph, index) => (
-                            <p key={index}>{paragraph}</p>
-                          ))}
+                  <div className="row">
+                    {/* Main Content */}
+                    <div className="col-lg-8">
+                      {/* Platform & Vision Section */}
+                      <div className="candidate-platform mb-4">
+                        <div className="platform-header">
+                          <i className="fas fa-bullhorn"></i>
+                          <h5>Platform & Vision</h5>
                         </div>
-                      ) : (
-                        <div className="no-platform">
-                          <i className="fas fa-info-circle"></i>
-                          <p>No platform information available yet.</p>
+                        <div className="platform-content">
+                          {viewCandidate?.description ? (
+                            <div className="platform-text">
+                              {viewCandidate.description.split('\n').map((paragraph, index) => (
+                                <p key={index}>{paragraph}</p>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="no-platform">
+                              <i className="fas fa-info-circle"></i>
+                              <p>No platform information available yet.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Key Priorities Section */}
+                      <div className="candidate-priorities mb-4">
+                        <div className="priorities-header">
+                          <i className="fas fa-target"></i>
+                          <h5>Key Priorities</h5>
+                        </div>
+                        <div className="priorities-content">
+                          <div className="priority-item">
+                            <i className="fas fa-star text-warning"></i>
+                            <span>Transparency and Accountability</span>
+                          </div>
+                          <div className="priority-item">
+                            <i className="fas fa-star text-warning"></i>
+                            <span>Community Engagement</span>
+                          </div>
+                          <div className="priority-item">
+                            <i className="fas fa-star text-warning"></i>
+                            <span>Innovation and Progress</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="col-lg-4">
+                      {/* Candidate Details */}
+                      <div className="candidate-details-card mb-4">
+                        <div className="card">
+                          <div className="card-header">
+                            <h6><i className="fas fa-user-circle me-2"></i>Candidate Details</h6>
+                          </div>
+                          <div className="card-body">
+                            <div className="detail-item">
+                              <i className="fas fa-id-card"></i>
+                              <span><strong>Position:</strong> {viewCandidate?.positionName}</span>
+                            </div>
+                            <div className="detail-item">
+                              <i className="fas fa-user"></i>
+                              <span><strong>Name:</strong> {viewCandidate?.name}</span>
+                            </div>
+                            <div className="detail-item">
+                              <i className="fas fa-calendar-alt"></i>
+                              <span><strong>Registration Date:</strong> {new Date().toLocaleDateString()}</span>
+                            </div>
+                            <div className="detail-item">
+                              <i className="fas fa-check-circle"></i>
+                              <span><strong>Status:</strong> <span className="text-success">Active</span></span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Campaign Statistics */}
+                      <div className="campaign-stats-card mb-4">
+                        <div className="card">
+                          <div className="card-header">
+                            <h6><i className="fas fa-chart-bar me-2"></i>Campaign Statistics</h6>
+                          </div>
+                          <div className="card-body">
+                            <div className="stat-item">
+                              <div className="stat-number">0</div>
+                              <div className="stat-label">Total Votes</div>
+                            </div>
+                            <div className="stat-item">
+                              <div className="stat-number">0%</div>
+                              <div className="stat-label">Vote Share</div>
+                            </div>
+                            <div className="stat-item">
+                              <div className="stat-number">0</div>
+                              <div className="stat-label">Endorsements</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Actions - Only for Admins */}
+                      {(role === 'admin' || role === 'superadmin') && (
+                        <div className="quick-actions-card">
+                          <div className="card">
+                            <div className="card-header">
+                              <h6><i className="fas fa-bolt me-2"></i>Quick Actions</h6>
+                            </div>
+                            <div className="card-body">
+                              <button 
+                                className="btn btn-outline-primary btn-sm w-100 mb-2"
+                                onClick={() => {
+                                  setViewCandidate(null);
+                                  handleShowModal(viewCandidate);
+                                }}
+                              >
+                                <i className="fas fa-edit me-2"></i>Edit Candidate
+                              </button>
+                              <button className="btn btn-outline-info btn-sm w-100 mb-2">
+                                <i className="fas fa-share me-2"></i>Share Profile
+                              </button>
+                              <button className="btn btn-outline-success btn-sm w-100">
+                                <i className="fas fa-download me-2"></i>Export Details
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
-                  
-                  <div className="candidate-details">
-                    <div className="detail-item">
-                      <i className="fas fa-id-card"></i>
-                      <span><strong>Position:</strong> {viewCandidate?.positionName}</span>
-                    </div>
-                    <div className="detail-item">
-                      <i className="fas fa-user"></i>
-                      <span><strong>Candidate:</strong> {viewCandidate?.name}</span>
-                    </div>
-                  </div>
                 </div>
                 <div className="modal-footer">
-                  <button className="btn-custom-blue" onClick={() => setViewCandidate(null)}>
-                    <i className="fas fa-times me-2"></i>
-                    Close
-                  </button>
+                  <div className="d-flex justify-content-between w-100">
+                    {/* Admin Actions - Only for Admins */}
+                    {(role === 'admin' || role === 'superadmin') && (
+                      <div className="modal-actions">
+                        <button 
+                          className="btn btn-outline-primary me-2"
+                          onClick={() => {
+                            setViewCandidate(null);
+                            handleShowModal(viewCandidate);
+                          }}
+                        >
+                          <i className="fas fa-edit me-2"></i>Edit
+                        </button>
+                        <button className="btn btn-outline-info me-2">
+                          <i className="fas fa-share me-2"></i>Share
+                        </button>
+                      </div>
+                    )}
+                    <button className="btn btn-secondary" onClick={() => setViewCandidate(null)}>
+                      <i className="fas fa-times me-2"></i>Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -361,6 +513,7 @@ const Candidates = () => {
                   <th>Photo</th>
                   <th>Name</th>
                   <th>Position</th>
+                  <th>Department</th>
                   <th>Description</th>
                   <th>Actions</th>
                 </tr>
@@ -373,7 +526,7 @@ const Candidates = () => {
                       <td>
                         {candidate.photoUrl ? (
                           <img 
-                            src={candidate.photoUrl} 
+                            src={getCandidatePhotoUrl(candidate.photoUrl)} 
                             alt={candidate.name}
                             className="candidate-table-photo"
                             onError={(e) => {
@@ -390,6 +543,7 @@ const Candidates = () => {
                       </td>
                       <td>{candidate.name}</td>
                       <td>{candidate.positionName}</td>
+                      <td>{candidate.voterGroupName || '-'}</td>
                       <td>{candidate.description || '-'}</td>
                       <td>
                         <button 
@@ -415,7 +569,7 @@ const Candidates = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="text-center">No candidates found</td>
+                    <td colSpan="7" className="text-center">No candidates found</td>
                   </tr>
                 )}
               </tbody>
@@ -424,7 +578,189 @@ const Candidates = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Enhanced View Candidate Modal */}
+      {viewCandidate && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered modal-xl">
+            <div className="modal-content">
+              <div className="modal-header">
+                <div className="modal-candidate-info">
+                  <div className="modal-candidate-photo-container">
+                    {viewCandidate?.photoUrl ? (
+                      <img src={getCandidatePhotoUrl(viewCandidate.photoUrl)} alt={viewCandidate.name} className="modal-candidate-photo" />
+                    ) : (
+                      <div className="modal-candidate-photo-placeholder">
+                        <i className="fas fa-user"></i>
+                      </div>
+                    )}
+                  </div>
+                  <div className="modal-candidate-details">
+                    <h4 className="modal-candidate-name">{viewCandidate?.name}</h4>
+                    <p className="modal-position">{viewCandidate?.positionName}</p>
+                    <div className="candidate-status">
+                      <span className="badge bg-success">
+                        <i className="fas fa-check-circle me-1"></i>
+                        Verified Candidate
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setViewCandidate(null)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row">
+                  {/* Main Content */}
+                  <div className="col-lg-8">
+                    {/* Platform & Vision Section */}
+                    <div className="candidate-platform mb-4">
+                      <div className="platform-header">
+                        <i className="fas fa-bullhorn"></i>
+                        <h5>Platform & Vision</h5>
+                      </div>
+                      <div className="platform-content">
+                        {viewCandidate?.description ? (
+                          <div className="platform-text">
+                            {viewCandidate.description.split('\n').map((paragraph, index) => (
+                              <p key={index}>{paragraph}</p>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="no-platform">
+                            <i className="fas fa-info-circle"></i>
+                            <p>No platform information available yet.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Key Priorities Section */}
+                    <div className="candidate-priorities mb-4">
+                      <div className="priorities-header">
+                        <i className="fas fa-target"></i>
+                        <h5>Key Priorities</h5>
+                      </div>
+                      <div className="priorities-content">
+                        <div className="priority-item">
+                          <i className="fas fa-star text-warning"></i>
+                          <span>Transparency and Accountability</span>
+                        </div>
+                        <div className="priority-item">
+                          <i className="fas fa-star text-warning"></i>
+                          <span>Community Engagement</span>
+                        </div>
+                        <div className="priority-item">
+                          <i className="fas fa-star text-warning"></i>
+                          <span>Innovation and Progress</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sidebar */}
+                  <div className="col-lg-4">
+                    {/* Candidate Details */}
+                    <div className="candidate-details-card mb-4">
+                      <div className="card">
+                        <div className="card-header">
+                          <h6><i className="fas fa-user-circle me-2"></i>Candidate Details</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="detail-item">
+                            <i className="fas fa-id-card"></i>
+                            <span><strong>Position:</strong> {viewCandidate?.positionName}</span>
+                          </div>
+                          <div className="detail-item">
+                            <i className="fas fa-user"></i>
+                            <span><strong>Name:</strong> {viewCandidate?.name}</span>
+                          </div>
+                          {viewCandidate?.voterGroupName && (
+                            <div className="detail-item">
+                              <i className="fas fa-building"></i>
+                              <span><strong>Department/Group:</strong> {viewCandidate?.voterGroupName}</span>
+                            </div>
+                          )}
+                          <div className="detail-item">
+                            <i className="fas fa-calendar-alt"></i>
+                            <span><strong>Registration Date:</strong> {new Date().toLocaleDateString()}</span>
+                          </div>
+                          <div className="detail-item">
+                            <i className="fas fa-check-circle"></i>
+                            <span><strong>Status:</strong> <span className="text-success">Active</span></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Campaign Statistics */}
+                    <div className="campaign-stats-card mb-4">
+                      <div className="card">
+                        <div className="card-header">
+                          <h6><i className="fas fa-chart-bar me-2"></i>Campaign Statistics</h6>
+                        </div>
+                        <div className="card-body">
+                          <div className="stat-item">
+                            <div className="stat-number">0</div>
+                            <div className="stat-label">Total Votes</div>
+                          </div>
+                          <div className="stat-item">
+                            <div className="stat-number">0%</div>
+                            <div className="stat-label">Vote Share</div>
+                          </div>
+                          <div className="stat-item">
+                            <div className="stat-number">0</div>
+                            <div className="stat-label">Endorsements</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="quick-actions-card">
+                      <div className="card">
+                        <div className="card-header">
+                          <h6><i className="fas fa-bolt me-2"></i>Quick Actions</h6>
+                        </div>
+                        <div className="card-body">
+                          <button className="btn btn-outline-primary btn-sm w-100 mb-2" onClick={() => handleShowModal(viewCandidate)}>
+                            <i className="fas fa-edit me-2"></i>Edit Candidate
+                          </button>
+                          <button className="btn btn-outline-info btn-sm w-100 mb-2">
+                            <i className="fas fa-share me-2"></i>Share Profile
+                          </button>
+                          <button className="btn btn-outline-success btn-sm w-100">
+                            <i className="fas fa-download me-2"></i>Export Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <div className="d-flex justify-content-between w-100">
+                  <div className="modal-actions">
+                    <button className="btn btn-outline-primary me-2" onClick={() => handleShowModal(viewCandidate)}>
+                      <i className="fas fa-edit me-2"></i>Edit
+                    </button>
+                    <button className="btn btn-outline-info me-2">
+                      <i className="fas fa-share me-2"></i>Share
+                    </button>
+                  </div>
+                  <button className="btn btn-secondary" onClick={() => setViewCandidate(null)}>
+                    <i className="fas fa-times me-2"></i>Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Modal */}
       {showModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -468,6 +804,23 @@ const Candidates = () => {
                         </option>
                       ))}
                     </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Department/Group</label>
+                    <select
+                      className="form-select"
+                      name="voterGroupId"
+                      value={formData.voterGroupId}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select a department or group</option>
+                      {voterGroups.map(group => (
+                        <option key={group.id} value={group.id}>
+                          {group.name} ({group.type})
+                        </option>
+                      ))}
+                    </select>
+                    <small className="text-muted">Choose the department or group this candidate represents</small>
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Photo (profile picture)</label>

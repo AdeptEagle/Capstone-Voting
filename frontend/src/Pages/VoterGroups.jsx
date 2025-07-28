@@ -23,6 +23,7 @@ const VoterGroups = () => {
   const [groupMembers, setGroupMembers] = useState([]);
   const [availableVoters, setAvailableVoters] = useState([]);
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     description: '',
     type: 'custom'
@@ -72,6 +73,7 @@ const VoterGroups = () => {
   const handleEdit = (group) => {
     setEditingGroup(group);
     setFormData({
+      id: group.id,
       name: group.name,
       description: group.description || '',
       type: group.type
@@ -92,7 +94,7 @@ const VoterGroups = () => {
 
   const openModal = () => {
     setEditingGroup(null);
-    setFormData({ name: '', description: '', type: 'custom' });
+    setFormData({ id: '', name: '', description: '', type: 'custom' });
     setShowModal(true);
   };
 
@@ -205,7 +207,10 @@ const VoterGroups = () => {
                 </button>
               </div>
             </div>
-            <h4 className="voter-group-name">{group.name}</h4>
+            <h4 className="voter-group-name">
+              {group.name}
+              <span className="voter-group-id">({group.id})</span>
+            </h4>
             {group.description && (
               <p className="voter-group-description">{group.description}</p>
             )}
@@ -239,6 +244,22 @@ const VoterGroups = () => {
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="modal-body">
+                  {!editingGroup && (
+                    <div className="mb-3">
+                      <label className="form-label">Custom ID *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={formData.id}
+                        onChange={(e) => setFormData({...formData, id: e.target.value.toUpperCase()})}
+                        placeholder="e.g., CCS for College of Computer Studies"
+                        maxLength="20"
+                        pattern="[A-Za-z0-9]+"
+                        required
+                      />
+                      <small className="text-muted">Enter a short, unique identifier (1-20 characters, letters and numbers only)</small>
+                    </div>
+                  )}
                   <div className="mb-3">
                     <label className="form-label">Name *</label>
                     <input

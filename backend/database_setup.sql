@@ -20,12 +20,14 @@ CREATE TABLE IF NOT EXISTS candidates (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     positionId VARCHAR(36) NOT NULL,
+    voterGroupId VARCHAR(20),
     photoUrl TEXT,
     description TEXT,
     displayOrder INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
+    FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
+    FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE SET NULL
 );
 
 -- Create voters table
@@ -35,7 +37,7 @@ CREATE TABLE IF NOT EXISTS voters (
     email VARCHAR(255) NOT NULL UNIQUE,
     studentId VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255),
-    voterGroupId VARCHAR(36),
+    voterGroupId VARCHAR(20),
     hasVoted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -101,7 +103,7 @@ CREATE TABLE IF NOT EXISTS admins (
 
 -- Create voter_groups table
 CREATE TABLE IF NOT EXISTS voter_groups (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(20) PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     type ENUM('department', 'class', 'year', 'custom') NOT NULL DEFAULT 'custom',
@@ -114,7 +116,7 @@ CREATE TABLE IF NOT EXISTS voter_groups (
 -- Create voter_group_members table (many-to-many relationship)
 CREATE TABLE IF NOT EXISTS voter_group_members (
     id VARCHAR(36) PRIMARY KEY,
-    voterGroupId VARCHAR(36) NOT NULL,
+    voterGroupId VARCHAR(20) NOT NULL,
     voterId INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (voterGroupId) REFERENCES voter_groups(id) ON DELETE CASCADE,

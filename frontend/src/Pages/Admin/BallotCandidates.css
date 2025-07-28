@@ -1,5 +1,7 @@
 .ballot-candidates-container {
   padding: 0 0 2rem 0;
+  background-color: var(--background-off-white, #f8f9fa);
+  min-height: 100vh;
 }
 
 .ballot-candidates-loading,
@@ -242,4 +244,77 @@
 
 .candidates-list::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Ballot Candidates specific styles */
+.ballot-candidates-container .candidates-user-view {
+  padding: 0 2rem 2rem 2rem;
+}
+
+.ballot-candidates-container .position-section {
+  margin-bottom: 3rem;
+}
+
+.ballot-candidates-container .position-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 2rem;
+}
+
+.ballot-candidates-container .position-title {
+  color: var(--primary-navy, #1e293b);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, var(--primary-navy, #1e293b), var(--accent-steel, #64748b));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ballot-candidates-container .candidate-count {
+  background: linear-gradient(135deg, var(--accent-steel, #64748b), var(--primary-navy, #1e293b));
+  color: var(--text-white, #ffffff);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(69, 123, 157, 0.25);
+}
+
+.ballot-candidates-container .candidate-card-grid {
+  padding: 0 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.ballot-candidates-container .no-candidates {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.ballot-candidates-container .no-candidates-content {
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.ballot-candidates-container .no-candidates-content i {
+  font-size: 4rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.ballot-candidates-container .no-candidates-content h3 {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.ballot-candidates-container .no-candidates-content p {
+  color: #6c757d;
+  margin: 0;
 } 

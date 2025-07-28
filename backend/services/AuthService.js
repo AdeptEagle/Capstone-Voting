@@ -35,6 +35,11 @@ export class AuthService {
     try {
       const { name, email, studentId, password, voterGroupId } = userData;
       
+      // Validate required fields
+      if (!name || !email || !studentId || !password || !voterGroupId) {
+        throw new Error("All fields are required including department/group selection");
+      }
+      
       // Check if user already exists
       const existingUser = await VoterModel.getByEmail(email) || await VoterModel.getByStudentId(studentId);
       if (existingUser) {
@@ -50,7 +55,7 @@ export class AuthService {
         email,
         studentId,
         password: hashedPassword,
-        voterGroupId: voterGroupId || null
+        voterGroupId: voterGroupId
       });
       
       // Create JWT token for immediate login

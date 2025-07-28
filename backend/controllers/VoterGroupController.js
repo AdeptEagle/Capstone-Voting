@@ -32,13 +32,23 @@ class VoterGroupController {
   // Create a new voter group
   static async createVoterGroup(req, res) {
     try {
-      const { name, description, type } = req.body;
+      const { id, name, description, type } = req.body;
       
       if (!name || !type) {
         return res.status(400).json({ error: 'Name and type are required' });
       }
 
+      if (!id) {
+        return res.status(400).json({ error: 'Custom ID is required (e.g., CCS for College of Computer Studies)' });
+      }
+
+      // Validate custom ID format (alphanumeric, max 20 characters)
+      if (!/^[A-Za-z0-9]{1,20}$/.test(id)) {
+        return res.status(400).json({ error: 'Custom ID must be 1-20 characters long and contain only letters and numbers' });
+      }
+
       const voterGroupData = {
+        id: id.toUpperCase(), // Convert to uppercase for consistency
         name,
         description,
         type,
@@ -50,7 +60,11 @@ class VoterGroupController {
     } catch (error) {
       console.error('Error creating voter group:', error);
       if (error.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ error: 'Voter group with this name already exists' });
+        if (error.message.includes('PRIMARY')) {
+          res.status(400).json({ error: 'A voter group with this custom ID already exists' });
+        } else {
+          res.status(400).json({ error: 'Voter group with this name already exists' });
+        }
       } else {
         res.status(500).json({ error: 'Failed to create voter group' });
       }
