@@ -25,6 +25,8 @@
     "test-course-update": "node scripts/test-course-update.js",
     "test-course-validation": "node scripts/test-course-validation.js",
     "test-voter-validation": "node scripts/test-voter-validation.js",
+    "export-current-data": "node scripts/export-current-data.js",
+    "test-current-seed": "node scripts/test-current-seed-data.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "clean": "rm -rf node_modules package-lock.json",

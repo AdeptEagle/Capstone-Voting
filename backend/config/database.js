@@ -263,9 +263,9 @@ async function insertDefaultData() {
   const db = createConnection();
   
   try {
-    // Import and run comprehensive seed data
-    const { seedDatabase } = await import('../scripts/seed-data.js');
-    await seedDatabase();
+    // Import and run current data as default seed data
+    const { seedWithCurrentData } = await import('../scripts/current-seed-data.js');
+    await seedWithCurrentData(db);
     
     db.end();
   } catch (error) {
