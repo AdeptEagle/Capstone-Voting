@@ -12,9 +12,6 @@ router.get('/department/:departmentId', CourseController.getByDepartment);
 router.use(authenticate);
 router.use(requireRole(['admin', 'superadmin']));
 
-// Get course by ID
-router.get('/:id', CourseController.getById);
-
 // Create a new course
 router.post('/', CourseController.create);
 
@@ -29,5 +26,8 @@ router.get('/:id/voters', CourseController.getVoters);
 
 // Get candidates in a course
 router.get('/:id/candidates', CourseController.getCandidates);
+
+// Get course by ID (must come last to avoid conflicts with other routes)
+router.get('/:id', CourseController.getById);
 
 export default router; 

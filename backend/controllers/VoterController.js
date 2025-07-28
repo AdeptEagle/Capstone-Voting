@@ -12,6 +12,16 @@ export class VoterController {
 
   static async createVoter(req, res) {
     try {
+      const { studentId } = req.body;
+      
+      // Validate student ID format: YYYY-NNNNN
+      const idPattern = /^\d{4}-\d{5}$/;
+      if (!idPattern.test(studentId)) {
+        return res.status(400).json({ 
+          error: 'Student ID must be in the format YYYY-NNNNN (e.g., 2024-00001)' 
+        });
+      }
+      
       const result = await VoterModel.create(req.body);
       res.json(result);
     } catch (error) {
@@ -22,6 +32,16 @@ export class VoterController {
   static async updateVoter(req, res) {
     try {
       const voterId = req.params.id;
+      const { studentId } = req.body;
+      
+      // Validate student ID format: YYYY-NNNNN
+      const idPattern = /^\d{4}-\d{5}$/;
+      if (!idPattern.test(studentId)) {
+        return res.status(400).json({ 
+          error: 'Student ID must be in the format YYYY-NNNNN (e.g., 2024-00001)' 
+        });
+      }
+      
       const result = await VoterModel.update(voterId, req.body);
       res.json(result);
     } catch (error) {

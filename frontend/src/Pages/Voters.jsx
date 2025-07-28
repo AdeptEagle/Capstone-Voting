@@ -205,6 +205,15 @@ const Voters = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    
+    // Student ID format validation for both new and edited voters
+    const idPattern = /^\d{4}-\d{5}$/;
+    if (!idPattern.test(formData.studentId)) {
+      setError('Student ID must be in the format YYYY-NNNNN (e.g., 2024-00001)');
+      return;
+    }
+    
     try {
       if (editingVoter) {
         await updateVoter(editingVoter.id, formData);

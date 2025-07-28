@@ -65,6 +65,12 @@ export class AuthService {
         throw new Error("All fields are required including department and course selection");
       }
       
+      // Validate student ID format: YYYY-NNNNN
+      const idPattern = /^\d{4}-\d{5}$/;
+      if (!idPattern.test(studentId)) {
+        throw new Error("Student ID must be in the format YYYY-NNNNN (e.g., 2024-00001)");
+      }
+      
       // Check if user already exists
       const existingUser = await VoterModel.getByEmail(email) || await VoterModel.getByStudentId(studentId);
       if (existingUser) {

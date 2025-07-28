@@ -158,31 +158,31 @@ async function seedDatabase() {
     const voterPassword = await bcrypt.hash('voter123', 10);
     const voters = [
       // Computer Science & IT Voters
-      { name: 'Alexandra Marie Santos', email: 'alexandra.santos@student.edu', studentId: '2024-CS-0001', departmentId: 'dept-001', courseId: 'course-001' },
-      { name: 'Miguel Angel Cruz', email: 'miguel.cruz@student.edu', studentId: '2024-CS-0002', departmentId: 'dept-001', courseId: 'course-001' },
-      { name: 'Isabella Grace Reyes', email: 'isabella.reyes@student.edu', studentId: '2024-CS-0003', departmentId: 'dept-001', courseId: 'course-001' },
-      { name: 'Carlos Eduardo Mendoza', email: 'carlos.mendoza@student.edu', studentId: '2024-IT-0001', departmentId: 'dept-002', courseId: 'course-002' },
-      { name: 'Sofia Alejandra Torres', email: 'sofia.torres@student.edu', studentId: '2024-IT-0002', departmentId: 'dept-002', courseId: 'course-002' },
+      { name: 'Alexandra Marie Santos', email: 'alexandra.santos@student.edu', studentId: '2024-00001', departmentId: 'dept-001', courseId: 'course-001' },
+      { name: 'Miguel Angel Cruz', email: 'miguel.cruz@student.edu', studentId: '2024-00002', departmentId: 'dept-001', courseId: 'course-001' },
+      { name: 'Isabella Grace Reyes', email: 'isabella.reyes@student.edu', studentId: '2024-00003', departmentId: 'dept-001', courseId: 'course-001' },
+      { name: 'Carlos Eduardo Mendoza', email: 'carlos.mendoza@student.edu', studentId: '2024-00004', departmentId: 'dept-002', courseId: 'course-002' },
+      { name: 'Sofia Alejandra Torres', email: 'sofia.torres@student.edu', studentId: '2024-00005', departmentId: 'dept-002', courseId: 'course-002' },
       
       // Engineering Voters
-      { name: 'Luis Fernando Fernandez', email: 'luis.fernandez@student.edu', studentId: '2024-CE-0001', departmentId: 'dept-003', courseId: 'course-004' },
-      { name: 'Ana Gabriela Lopez', email: 'ana.lopez@student.edu', studentId: '2024-CE-0002', departmentId: 'dept-003', courseId: 'course-004' },
-      { name: 'Roberto Carlos Silva', email: 'roberto.silva@student.edu', studentId: '2024-ME-0001', departmentId: 'dept-004', courseId: 'course-005' },
-      { name: 'Maria Elena Castro', email: 'maria.castro@student.edu', studentId: '2024-ME-0002', departmentId: 'dept-004', courseId: 'course-005' },
-      { name: 'Diego Alejandro Vargas', email: 'diego.vargas@student.edu', studentId: '2024-EE-0001', departmentId: 'dept-005', courseId: 'course-006' },
+      { name: 'Luis Fernando Fernandez', email: 'luis.fernandez@student.edu', studentId: '2024-00006', departmentId: 'dept-003', courseId: 'course-004' },
+      { name: 'Ana Gabriela Lopez', email: 'ana.lopez@student.edu', studentId: '2024-00007', departmentId: 'dept-003', courseId: 'course-004' },
+      { name: 'Roberto Carlos Silva', email: 'roberto.silva@student.edu', studentId: '2024-00008', departmentId: 'dept-004', courseId: 'course-005' },
+      { name: 'Maria Elena Castro', email: 'maria.castro@student.edu', studentId: '2024-00009', departmentId: 'dept-004', courseId: 'course-005' },
+      { name: 'Diego Alejandro Vargas', email: 'diego.vargas@student.edu', studentId: '2024-00010', departmentId: 'dept-005', courseId: 'course-006' },
       
       // Business Voters
-      { name: 'Valentina Sofia Jimenez', email: 'valentina.jimenez@student.edu', studentId: '2024-BA-0001', departmentId: 'dept-006', courseId: 'course-008' },
-      { name: 'Santiago Jose Morales', email: 'santiago.morales@student.edu', studentId: '2024-BA-0002', departmentId: 'dept-006', courseId: 'course-008' },
-      { name: 'Camila Elena Rodriguez', email: 'camila.rodriguez@student.edu', studentId: '2024-AC-0001', departmentId: 'dept-007', courseId: 'course-009' },
-      { name: 'Andres Felipe Herrera', email: 'andres.herrera@student.edu', studentId: '2024-AC-0002', departmentId: 'dept-007', courseId: 'course-009' },
-      { name: 'Natalia Sofia Gonzalez', email: 'natalia.gonzalez@student.edu', studentId: '2024-MM-0001', departmentId: 'dept-008', courseId: 'course-010' },
+      { name: 'Valentina Sofia Jimenez', email: 'valentina.jimenez@student.edu', studentId: '2024-00011', departmentId: 'dept-006', courseId: 'course-008' },
+      { name: 'Santiago Jose Morales', email: 'santiago.morales@student.edu', studentId: '2024-00012', departmentId: 'dept-006', courseId: 'course-008' },
+      { name: 'Camila Elena Rodriguez', email: 'camila.rodriguez@student.edu', studentId: '2024-00013', departmentId: 'dept-007', courseId: 'course-009' },
+      { name: 'Andres Felipe Herrera', email: 'andres.herrera@student.edu', studentId: '2024-00014', departmentId: 'dept-007', courseId: 'course-009' },
+      { name: 'Natalia Sofia Gonzalez', email: 'natalia.gonzalez@student.edu', studentId: '2024-00015', departmentId: 'dept-008', courseId: 'course-010' },
       
       // Arts & Sciences Voters
-      { name: 'Ricardo Manuel Ramirez', email: 'ricardo.ramirez@student.edu', studentId: '2024-PS-0001', departmentId: 'dept-009', courseId: 'course-012' },
-      { name: 'Daniela Patricia Martinez', email: 'daniela.martinez@student.edu', studentId: '2024-EL-0001', departmentId: 'dept-010', courseId: 'course-013' },
-      { name: 'Javier Enrique Santos', email: 'javier.santos@student.edu', studentId: '2024-MA-0001', departmentId: 'dept-011', courseId: 'course-014' },
-      { name: 'Sofia Alejandra Cruz', email: 'sofia.cruz@student.edu', studentId: '2024-BI-0001', departmentId: 'dept-012', courseId: 'course-015' }
+      { name: 'Ricardo Manuel Ramirez', email: 'ricardo.ramirez@student.edu', studentId: '2024-00016', departmentId: 'dept-009', courseId: 'course-012' },
+      { name: 'Daniela Patricia Martinez', email: 'daniela.martinez@student.edu', studentId: '2024-00017', departmentId: 'dept-010', courseId: 'course-013' },
+      { name: 'Javier Enrique Santos', email: 'javier.santos@student.edu', studentId: '2024-00018', departmentId: 'dept-011', courseId: 'course-014' },
+      { name: 'Sofia Alejandra Cruz', email: 'sofia.cruz@student.edu', studentId: '2024-00019', departmentId: 'dept-012', courseId: 'course-015' }
     ];
 
     for (const voter of voters) {

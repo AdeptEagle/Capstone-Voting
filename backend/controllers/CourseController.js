@@ -55,6 +55,17 @@ class CourseController {
       const { id } = req.params;
       const courseData = req.body;
       
+      console.log('Course update request:', { id, courseData });
+      
+      // Validate required fields
+      if (!courseData.name) {
+        return res.status(400).json({ error: 'Course name is required' });
+      }
+      
+      if (!courseData.departmentId) {
+        return res.status(400).json({ error: 'Department ID is required' });
+      }
+      
       const existingCourse = await CourseModel.getById(id);
       if (!existingCourse) {
         return res.status(404).json({ error: 'Course not found' });
@@ -69,6 +80,8 @@ class CourseController {
       console.error('Error updating course:', error);
       if (error.code === 'ER_DUP_ENTRY') {
         res.status(400).json({ error: 'Course name already exists in this department' });
+      } else if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+        res.status(400).json({ error: 'Department not found' });
       } else {
         res.status(500).json({ error: 'Failed to update course' });
       }

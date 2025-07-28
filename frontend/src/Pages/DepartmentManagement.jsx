@@ -42,7 +42,8 @@ const DepartmentManagement = () => {
   
   const [courseFormData, setCourseFormData] = useState({
     id: '',
-    name: ''
+    name: '',
+    departmentId: ''
   });
 
   useEffect(() => {
@@ -100,11 +101,12 @@ const DepartmentManagement = () => {
       setEditingCourse(course);
       setCourseFormData({
         id: course.id,
-        name: course.name
+        name: course.name,
+        departmentId: course.departmentId || department.id
       });
     } else {
       setEditingCourse(null);
-      setCourseFormData({ id: '', name: '' });
+      setCourseFormData({ id: '', name: '', departmentId: department.id });
     }
     setShowCourseModal(true);
   };
@@ -540,6 +542,11 @@ const DepartmentManagement = () => {
             </div>
             <form onSubmit={editingCourse ? handleUpdateCourse : handleCreateCourse}>
               <div className="department-modal-body">
+                <input
+                  type="hidden"
+                  name="departmentId"
+                  value={courseFormData.departmentId}
+                />
                 <div className="department-form-group">
                   <label className="department-form-label">Course ID</label>
                   <input

@@ -72,7 +72,7 @@ const ManageAdmins = () => {
   };
 
   const handleDelete = async (id) => {
-    {
+    if (window.confirm('Are you sure you want to delete this admin account?')) {
       try {
         await deleteAdmin(id);
         fetchAdmins();

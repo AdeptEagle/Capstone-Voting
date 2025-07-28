@@ -11,6 +11,9 @@ const Elections = () => {
   const [success, setSuccess] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingElection, setDeletingElection] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [editingElection, setEditingElection] = useState(null);
   const [updatingElection, setUpdatingElection] = useState(null);
   const [loadingPositions, setLoadingPositions] = useState(false);
@@ -284,15 +287,35 @@ const Elections = () => {
   };
 
   const handleDeleteElection = async (electionId) => {
+    const election = elections.find(e => e.id === electionId);
+    setDeletingElection(election);
+    setDeleteConfirmation('');
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteElection = async () => {
+    if (!deletingElection) return;
+    
+    const electionTitle = deletingElection.title || 'Untitled Election';
+    
+    if (deleteConfirmation !== electionTitle) {
+      setError('Confirmation text does not match the ballot name. Please type the exact ballot name to confirm deletion.');
+      return;
+    }
+
     try {
-      setUpdatingElection(electionId);
+      setUpdatingElection(deletingElection.id);
       setError('');
       setSuccess('');
 
-      await deleteElection(electionId);
+      await deleteElection(deletingElection.id);
       
-      setSuccess('Election deleted successfully!');
+      setSuccess(`Ballot "${electionTitle}" deleted successfully!`);
       await fetchElectionsData();
+      
+      setShowDeleteModal(false);
+      setDeletingElection(null);
+      setDeleteConfirmation('');
       
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
@@ -301,6 +324,13 @@ const Elections = () => {
     } finally {
       setUpdatingElection(null);
     }
+  };
+
+  const cancelDeleteElection = () => {
+    setShowDeleteModal(false);
+    setDeletingElection(null);
+    setDeleteConfirmation('');
+    setError('');
   };
 
   const handleStatusChange = async (electionId, newStatus) => {
@@ -1662,6 +1692,92 @@ const Elections = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deletingElection && (
+        <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-danger text-white">
+                <h5 className="modal-title">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  Delete Ballot
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={cancelDeleteElection}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="alert alert-danger">
+                  <h6 className="alert-heading">
+                    <i className="fas fa-exclamation-triangle me-2"></i>
+                    Warning: This action cannot be undone!
+                  </h6>
+                  <p className="mb-0">
+                    You are about to permanently delete the ballot <strong>"{deletingElection.title}"</strong>.
+                  </p>
+                </div>
+                
+                <p>This will permanently remove:</p>
+                <ul className="text-danger">
+                  <li>All election data</li>
+                  <li>All votes cast by voters</li>
+                  <li>All candidate assignments</li>
+                  <li>All position assignments</li>
+                </ul>
+                
+                <div className="mb-3">
+                  <label className="form-label">
+                    Type <strong>"{deletingElection.title}"</strong> to confirm deletion:
+                  </label>
+                  <input
+                    type="text"
+                    className={`form-control ${deleteConfirmation && deleteConfirmation !== deletingElection.title ? 'is-invalid' : ''}`}
+                    value={deleteConfirmation}
+                    onChange={(e) => setDeleteConfirmation(e.target.value)}
+                    placeholder={`Type "${deletingElection.title}" to confirm`}
+                    autoFocus
+                  />
+                  {deleteConfirmation && deleteConfirmation !== deletingElection.title && (
+                    <div className="invalid-feedback">
+                      Confirmation text does not match the ballot name.
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={cancelDeleteElection}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={confirmDeleteElection}
+                  disabled={deleteConfirmation !== deletingElection.title || updatingElection === deletingElection.id}
+                >
+                  {updatingElection === deletingElection.id ? (
+                    <i className="fas fa-spinner fa-spin me-1"></i>
+                  ) : (
+                    <i className="fas fa-trash me-1"></i>
+                  )}
+                  Delete Ballot
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Backdrop */}
+      {showDeleteModal && (
+        <div className="modal-backdrop fade show"></div>
       )}
     </div>
   );
