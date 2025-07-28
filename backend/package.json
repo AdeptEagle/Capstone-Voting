@@ -16,6 +16,8 @@
     "setup": "node scripts/quick-setup.js",
     "seed": "node scripts/seed-data.js",
     "seed:reset": "npm run seed && echo 'Database seeded with comprehensive default data'",
+    "troubleshoot": "node scripts/troubleshoot-db.js",
+    "fix-db": "node scripts/fix-db-config.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "clean": "rm -rf node_modules package-lock.json",
