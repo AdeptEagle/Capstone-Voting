@@ -180,6 +180,18 @@ async function createTables() {
         )`
       },
       {
+        name: 'election_candidates',
+        sql: `CREATE TABLE IF NOT EXISTS election_candidates (
+          id VARCHAR(36) PRIMARY KEY,
+          electionId VARCHAR(36) NOT NULL,
+          candidateId VARCHAR(36) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
+          FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
+          UNIQUE KEY unique_election_candidate (electionId, candidateId)
+        )`
+      },
+      {
         name: 'votes',
         sql: `CREATE TABLE IF NOT EXISTS votes (
           id VARCHAR(36) PRIMARY KEY,
