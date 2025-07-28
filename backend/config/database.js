@@ -147,6 +147,24 @@ async function ensureDatabaseAndTables() {
       'superadmin-001', 'superadmin', '${superadminPassword}', 'superadmin'
     )`);
 
+    // Insert some initial positions with display order
+    await runQuery(db, `INSERT IGNORE INTO positions (id, name, voteLimit, displayOrder) VALUES
+      ('president-001', 'President', 1, 1),
+      ('vice-president-001', 'Vice President', 1, 2),
+      ('secretary-001', 'Secretary', 1, 3),
+      ('treasurer-001', 'Treasurer', 1, 4),
+      ('auditor-001', 'Auditor', 1, 5)
+    `);
+
+    // Insert some sample candidates
+    await runQuery(db, `INSERT IGNORE INTO candidates (id, name, positionId, description, displayOrder) VALUES
+      ('candidate-001', 'John Doe', 'president-001', 'Experienced leader with strong communication skills', 1),
+      ('candidate-002', 'Jane Smith', 'president-001', 'Dedicated student advocate with innovative ideas', 2),
+      ('candidate-003', 'Mike Johnson', 'vice-president-001', 'Organized and detail-oriented team player', 1),
+      ('candidate-004', 'Sarah Wilson', 'secretary-001', 'Excellent record-keeping and organizational skills', 1),
+      ('candidate-005', 'David Brown', 'treasurer-001', 'Strong financial management background', 1)
+    `);
+
     // Ensure password column exists in voters table (for legacy DBs)
     const [passwordColumns] = await new Promise((resolve, reject) => {
       db.query(`SHOW COLUMNS FROM voters LIKE 'password'`, (err, result) => {

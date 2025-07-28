@@ -14,13 +14,13 @@ export class CandidateController {
 
   static async createCandidate(req, res) {
     try {
-      const { name, positionId, departmentId, courseId, description } = req.body;
+      const { name, positionId, description } = req.body;
       const photoUrl = req.file ? req.file.filename : null;
 
       // Validate required fields
-      if (!name || !positionId || !departmentId || !courseId) {
+      if (!name || !positionId) {
         return res.status(400).json({ 
-          error: 'Name, position, department, and course are required' 
+          error: 'Name and position are required' 
         });
       }
 
@@ -28,8 +28,6 @@ export class CandidateController {
         id: req.body.id,
         name,
         positionId,
-        departmentId,
-        courseId,
         photoUrl,
         description
       };
@@ -44,12 +42,12 @@ export class CandidateController {
   static async updateCandidate(req, res) {
     try {
       const candidateId = req.params.id;
-      const { name, positionId, departmentId, courseId, description } = req.body;
+      const { name, positionId, description } = req.body;
       
       // Validate required fields
-      if (!name || !positionId || !departmentId || !courseId) {
+      if (!name || !positionId) {
         return res.status(400).json({ 
-          error: 'Name, position, department, and course are required' 
+          error: 'Name and position are required' 
         });
       }
       
@@ -62,8 +60,6 @@ export class CandidateController {
       const candidateData = {
         name,
         positionId,
-        departmentId,
-        courseId,
         photoUrl,
         description
       };
