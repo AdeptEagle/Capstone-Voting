@@ -22,8 +22,5 @@ RUN npm prune --production
 # Expose port
 EXPOSE 4173
 
-# Create a simple HTTP server script using ES modules with PORT environment variable
-RUN echo 'import http from "http"; import fs from "fs"; import path from "path"; import { fileURLToPath } from "url"; const __filename = fileURLToPath(import.meta.url); const __dirname = path.dirname(__filename); const port = process.env.PORT || 4173; const server = http.createServer((req, res) => { if (req.url === "/health") { res.writeHead(200, { "Content-Type": "text/plain" }); res.end("healthy"); return; } let filePath = path.join(__dirname, "dist", req.url === "/" ? "index.html" : req.url); if (!fs.existsSync(filePath)) { filePath = path.join(__dirname, "dist", "index.html"); } const ext = path.extname(filePath); const contentType = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".gif": "image/gif", ".svg": "image/svg+xml", ".ico": "image/x-icon" }[ext] || "application/octet-stream"; fs.readFile(filePath, (err, content) => { if (err) { res.writeHead(500); res.end("Error loading " + req.url); } else { res.writeHead(200, { "Content-Type": contentType }); res.end(content); } }); }); server.listen(port, "0.0.0.0", () => { console.log(`Frontend server running at http://0.0.0.0:${port}/`); });' > server.js
-
-# Start the application
+# Start the application using the server.js file
 CMD ["node", "server.js"] 
