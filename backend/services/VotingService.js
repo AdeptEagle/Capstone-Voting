@@ -42,13 +42,20 @@ export class VotingService {
       
       console.log(`Voter ${voterId} has not voted yet, proceeding with vote recording`);
       
+      // Get the position ID from the candidate
+      const { CandidateModel } = await import("../models/CandidateModel.js");
+      const candidate = await CandidateModel.getById(candidateId);
+      if (!candidate) {
+        throw new Error("Candidate not found");
+      }
+      
       // Record the vote
       await VoteModel.create({
         id,
         voterId,
         candidateId,
         electionId: activeElection.id,
-        timestamp: now
+        positionId: candidate.positionId
       });
       
       console.log(`Vote recorded successfully: ${id}`);

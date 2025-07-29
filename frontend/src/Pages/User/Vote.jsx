@@ -166,6 +166,7 @@ const Vote = () => {
             id: voteId,
             voterId: voterId, // Use the correct voter ID
             candidateId,
+            positionId: pos.id, // Add the position ID
             isLastVote: isLastVote
           });
         }
