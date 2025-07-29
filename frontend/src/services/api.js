@@ -225,7 +225,7 @@ export const getVotes = async () => {
 
 export const createVote = async (vote) => {
   try {
-    const response = await api.post('/votes', { ...vote, id: crypto.randomUUID() });
+    const response = await api.post('/votes', vote);
     return response.data;
   } catch (error) {
     console.error('Error creating vote:', error);
@@ -240,6 +240,36 @@ export const getResults = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching results:', error);
+    throw error;
+  }
+};
+
+export const getActiveElectionResults = async () => {
+  try {
+    const response = await api.get('/votes/active-results');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching active election results:', error);
+    throw error;
+  }
+};
+
+export const getRealTimeStats = async () => {
+  try {
+    const response = await api.get('/votes/real-time-stats');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching real-time stats:', error);
+    throw error;
+  }
+};
+
+export const getVoteTimeline = async () => {
+  try {
+    const response = await api.get('/votes/vote-timeline');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching vote timeline:', error);
     throw error;
   }
 };
@@ -288,7 +318,7 @@ export const getElection = async (id) => {
 
 export const getElectionPositions = async (id) => {
   try {
-    const response = await api.get(`/votes/ballot/positions/${id}`);
+    const response = await api.get(`/elections/${id}/positions`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election positions:', error);
@@ -298,7 +328,7 @@ export const getElectionPositions = async (id) => {
 
 export const createElection = async (election) => {
   try {
-    const response = await api.post('/elections', { ...election, id: crypto.randomUUID() });
+    const response = await api.post('/elections', election);
     return response.data;
   } catch (error) {
     console.error('Error creating election:', error);

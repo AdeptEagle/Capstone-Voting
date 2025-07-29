@@ -129,7 +129,6 @@ const Elections = () => {
       ];
 
       const electionData = {
-        id: crypto.randomUUID(),
         title: formData.title,
         description: formData.description,
         startTime: new Date(formData.startTime).toISOString().slice(0, 19).replace('T', ' '),

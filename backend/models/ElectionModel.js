@@ -102,200 +102,215 @@ export class ElectionModel {
 
   static async create(electionData) {
     const db = createConnection();
-    return new Promise(async (resolve, reject) => {
+    
+    try {
+      // Check if there's already an active election in the system
+      const hasActive = await this.hasActiveElection();
+      if (hasActive) {
+        const currentElection = await this.getCurrentElection();
+        db.end();
+        throw new Error(`Cannot create a new election. There is already an election "${currentElection.title}" in the system. You must end or delete the existing election first to create a new one.`);
+      }
+
+      const { title, description, startTime, endTime, positionIds, candidateIds, id, createdBy } = electionData;
+
+      // Convert dates to MySQL datetime format
+      const mysqlStartTime = new Date(startTime).toISOString().slice(0, 19).replace('T', ' ');
+      const mysqlEndTime = new Date(endTime).toISOString().slice(0, 19).replace('T', ' ');
+
+      // BEGIN TRANSACTION - ACID Atomicity
+      await new Promise((resolve, reject) => {
+        db.beginTransaction((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
       try {
-        // Check if there's already an active election in the system
-        const hasActive = await this.hasActiveElection();
-        if (hasActive) {
-          const currentElection = await this.getCurrentElection();
-          db.end();
-          return reject(new Error(`Cannot create a new election. There is already an election "${currentElection.title}" in the system. You must end or delete the existing election first to create a new one.`));
-        }
+        // Insert the election
+        await new Promise((resolve, reject) => {
+          db.query("INSERT INTO elections (id, title, description, startTime, endTime, status, created_by) VALUES (?, ?, ?, ?, ?, 'pending', ?)",
+            [id, title, description, mysqlStartTime, mysqlEndTime, createdBy], (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          });
+        });
 
-        const { title, description, startTime, endTime, positionIds, candidateIds, id, createdBy } = electionData;
+        // Import ID generator once
+        const IDGenerator = await import('../utils/idGenerator.js');
 
-        // Convert dates to MySQL datetime format
-        const mysqlStartTime = new Date(startTime).toISOString().slice(0, 19).replace('T', ' ');
-        const mysqlEndTime = new Date(endTime).toISOString().slice(0, 19).replace('T', ' ');
-
-        db.query("INSERT INTO elections (id, title, description, startTime, endTime, status, created_by) VALUES (?, ?, ?, ?, ?, 'pending', ?)",
-          [id, title, description, mysqlStartTime, mysqlEndTime, createdBy], (err, result) => {
-          if (err) {
-            db.end();
-            return reject(err);
+        // Add positions to election
+        if (positionIds && positionIds.length > 0) {
+          const positionValues = [];
+          for (const posId of positionIds) {
+            const positionId = await IDGenerator.default.getNextElectionPositionID();
+            positionValues.push([positionId, id, posId]);
           }
-
-          // Add positions to election
-          if (positionIds && positionIds.length > 0) {
-            const positionValues = positionIds.map(posId => [crypto.randomUUID(), id, posId]);
+          
+          await new Promise((resolve, reject) => {
             const positionQuery = "INSERT INTO election_positions (id, electionId, positionId) VALUES ?";
             db.query(positionQuery, [positionValues], (err) => {
-              if (err) {
-                db.end();
-                return reject(err);
-              }
-
-              // Add candidates to election
-              if (candidateIds && candidateIds.length > 0) {
-                const candidateValues = candidateIds.map(candidateId => [crypto.randomUUID(), id, candidateId]);
-                const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
-                db.query(candidateQuery, [candidateValues], (err) => {
-                  db.end();
-                  if (err) reject(err);
-                  else resolve({ message: "Election created successfully!", id });
-                });
-              } else {
-                db.end();
-                resolve({ message: "Election created successfully!", id });
-              }
+              if (err) reject(err);
+              else resolve();
             });
-          } else {
-            // Add candidates to election even if no positions
-            if (candidateIds && candidateIds.length > 0) {
-              const candidateValues = candidateIds.map(candidateId => [crypto.randomUUID(), id, candidateId]);
-              const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
-              db.query(candidateQuery, [candidateValues], (err) => {
-                db.end();
-                if (err) reject(err);
-                else resolve({ message: "Election created successfully!", id });
-              });
-            } else {
-              db.end();
-              resolve({ message: "Election created successfully!", id });
-            }
+          });
+        }
+
+        // Add candidates to election
+        if (candidateIds && candidateIds.length > 0) {
+          const candidateValues = [];
+          for (const candidateId of candidateIds) {
+            const electionCandidateId = await IDGenerator.default.getNextElectionCandidateID();
+            candidateValues.push([electionCandidateId, id, candidateId]);
           }
+          
+          await new Promise((resolve, reject) => {
+            const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
+            db.query(candidateQuery, [candidateValues], (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+        }
+
+        // COMMIT TRANSACTION - ACID Durability
+        await new Promise((resolve, reject) => {
+          db.commit((err) => {
+            if (err) reject(err);
+            else resolve();
+          });
         });
+
+        return { message: "Election created successfully!", id };
+
       } catch (error) {
-        db.end();
-        reject(error);
+        // ROLLBACK TRANSACTION - ACID Consistency
+        await new Promise((resolve) => {
+          db.rollback(() => resolve());
+        });
+        throw error;
       }
-    });
+
+    } catch (error) {
+      throw error;
+    } finally {
+      db.end();
+    }
   }
 
   static async update(id, electionData) {
     const db = createConnection();
-    return new Promise((resolve, reject) => {
+    
+    try {
       const { title, description, startTime, endTime, status, positionIds, candidateIds } = electionData;
 
       // Convert dates to MySQL datetime format
       const mysqlStartTime = new Date(startTime).toISOString().slice(0, 19).replace('T', ' ');
       const mysqlEndTime = new Date(endTime).toISOString().slice(0, 19).replace('T', ' ');
 
-      db.query("UPDATE elections SET title = ?, description = ?, startTime = ?, endTime = ?, status = ? WHERE id = ?",
-        [title, description, mysqlStartTime, mysqlEndTime, status, id], (err) => {
-        if (err) {
-          db.end();
-          return reject(err);
-        }
+      // BEGIN TRANSACTION - ACID Atomicity
+      await new Promise((resolve, reject) => {
+        db.beginTransaction((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      try {
+        // Update the election
+        await new Promise((resolve, reject) => {
+          db.query("UPDATE elections SET title = ?, description = ?, startTime = ?, endTime = ?, status = ? WHERE id = ?",
+            [title, description, mysqlStartTime, mysqlEndTime, status, id], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
 
         // Update positions if provided
         if (positionIds !== undefined) {
           // Remove existing positions
-          db.query("DELETE FROM election_positions WHERE electionId = ?", [id], (err) => {
-            if (err) {
-              db.end();
-              return reject(err);
-            }
+          await new Promise((resolve, reject) => {
+            db.query("DELETE FROM election_positions WHERE electionId = ?", [id], (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
 
-            // Add new positions
-            if (positionIds.length > 0) {
-              const positionValues = positionIds.map(posId => [crypto.randomUUID(), id, posId]);
+          // Add new positions
+          if (positionIds.length > 0) {
+            // Import ID generator once
+            const IDGenerator = await import('../utils/idGenerator.js');
+            
+            const positionValues = [];
+            for (const posId of positionIds) {
+              const positionId = await IDGenerator.default.getNextElectionPositionID();
+              positionValues.push([positionId, id, posId]);
+            }
+            
+            await new Promise((resolve, reject) => {
               const positionQuery = "INSERT INTO election_positions (id, electionId, positionId) VALUES ?";
               db.query(positionQuery, [positionValues], (err) => {
-                if (err) {
-                  db.end();
-                  return reject(err);
-                }
-
-                // Update candidates if provided
-                if (candidateIds !== undefined) {
-                  // Remove existing candidates
-                  db.query("DELETE FROM election_candidates WHERE electionId = ?", [id], (err) => {
-                    if (err) {
-                      db.end();
-                      return reject(err);
-                    }
-
-                    // Add new candidates
-                    if (candidateIds.length > 0) {
-                      const candidateValues = candidateIds.map(candidateId => [crypto.randomUUID(), id, candidateId]);
-                      const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
-                      db.query(candidateQuery, [candidateValues], (err) => {
-                        db.end();
-                        if (err) reject(err);
-                        else resolve({ message: "Election updated successfully!" });
-                      });
-                    } else {
-                      db.end();
-                      resolve({ message: "Election updated successfully!" });
-                    }
-                  });
-                } else {
-                  db.end();
-                  resolve({ message: "Election updated successfully!" });
-                }
+                if (err) reject(err);
+                else resolve();
               });
-            } else {
-              // Update candidates even if no positions
-              if (candidateIds !== undefined) {
-                // Remove existing candidates
-                db.query("DELETE FROM election_candidates WHERE electionId = ?", [id], (err) => {
-                  if (err) {
-                    db.end();
-                    return reject(err);
-                  }
-
-                  // Add new candidates
-                  if (candidateIds.length > 0) {
-                    const candidateValues = candidateIds.map(candidateId => [crypto.randomUUID(), id, candidateId]);
-                    const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
-                    db.query(candidateQuery, [candidateValues], (err) => {
-                      db.end();
-                      if (err) reject(err);
-                      else resolve({ message: "Election updated successfully!" });
-                    });
-                  } else {
-                    db.end();
-                    resolve({ message: "Election updated successfully!" });
-                  }
-                });
-              } else {
-                db.end();
-                resolve({ message: "Election updated successfully!" });
-              }
-            }
-          });
-        } else {
-          // Update candidates even if positions not provided
-          if (candidateIds !== undefined) {
-            // Remove existing candidates
-            db.query("DELETE FROM election_candidates WHERE electionId = ?", [id], (err) => {
-              if (err) {
-                db.end();
-                return reject(err);
-              }
-
-              // Add new candidates
-              if (candidateIds.length > 0) {
-                const candidateValues = candidateIds.map(candidateId => [crypto.randomUUID(), id, candidateId]);
-                const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
-                db.query(candidateQuery, [candidateValues], (err) => {
-                  db.end();
-                  if (err) reject(err);
-                  else resolve({ message: "Election updated successfully!" });
-                });
-              } else {
-                db.end();
-                resolve({ message: "Election updated successfully!" });
-              }
             });
-          } else {
-            db.end();
-            resolve({ message: "Election updated successfully!" });
           }
         }
-      });
-    });
+
+        // Update candidates if provided
+        if (candidateIds !== undefined) {
+          // Remove existing candidates
+          await new Promise((resolve, reject) => {
+            db.query("DELETE FROM election_candidates WHERE electionId = ?", [id], (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+
+          // Add new candidates
+          if (candidateIds.length > 0) {
+            // Import ID generator once
+            const IDGenerator = await import('../utils/idGenerator.js');
+            
+            const candidateValues = [];
+            for (const candidateId of candidateIds) {
+              const electionCandidateId = await IDGenerator.default.getNextElectionCandidateID();
+              candidateValues.push([electionCandidateId, id, candidateId]);
+            }
+            
+            await new Promise((resolve, reject) => {
+              const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
+              db.query(candidateQuery, [candidateValues], (err) => {
+                if (err) reject(err);
+                else resolve();
+              });
+            });
+          }
+        }
+
+        // COMMIT TRANSACTION - ACID Durability
+        await new Promise((resolve, reject) => {
+          db.commit((err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        return { message: "Election updated successfully!" };
+
+      } catch (error) {
+        // ROLLBACK TRANSACTION - ACID Consistency
+        await new Promise((resolve) => {
+          db.rollback(() => resolve());
+        });
+        throw error;
+      }
+
+    } catch (error) {
+      throw error;
+    } finally {
+      db.end();
+    }
   }
 
   static async startElection(id) {
@@ -356,13 +371,72 @@ export class ElectionModel {
 
   static async delete(id) {
     const db = createConnection();
-    return new Promise((resolve, reject) => {
-      db.query("DELETE FROM elections WHERE id = ?", [id], (err) => {
-        db.end();
-        if (err) reject(err);
-        else resolve({ message: "Election deleted successfully!" });
+    
+    try {
+      // BEGIN TRANSACTION - ACID Atomicity
+      await new Promise((resolve, reject) => {
+        db.beginTransaction((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       });
-    });
+
+      try {
+        // Delete related votes first (due to foreign key constraints)
+        await new Promise((resolve, reject) => {
+          db.query("DELETE FROM votes WHERE electionId = ?", [id], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        // Delete election candidates
+        await new Promise((resolve, reject) => {
+          db.query("DELETE FROM election_candidates WHERE electionId = ?", [id], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        // Delete election positions
+        await new Promise((resolve, reject) => {
+          db.query("DELETE FROM election_positions WHERE electionId = ?", [id], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        // Delete the election
+        await new Promise((resolve, reject) => {
+          db.query("DELETE FROM elections WHERE id = ?", [id], (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        // COMMIT TRANSACTION - ACID Durability
+        await new Promise((resolve, reject) => {
+          db.commit((err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+
+        return { message: "Election deleted successfully!" };
+
+      } catch (error) {
+        // ROLLBACK TRANSACTION - ACID Consistency
+        await new Promise((resolve) => {
+          db.rollback(() => resolve());
+        });
+        throw error;
+      }
+
+    } catch (error) {
+      throw error;
+    } finally {
+      db.end();
+    }
   }
 
   static async getPositions(electionId) {

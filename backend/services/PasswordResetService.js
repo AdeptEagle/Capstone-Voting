@@ -25,18 +25,22 @@ class PasswordResetService {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
       
-      // Store token in database (using only available columns)
+      // Format expires_at for MySQL (UTC)
+      const expiresAtUTC = expiresAt.toISOString().slice(0, 19).replace('T', ' ');
+      
+      // Store token in database
       const resetToken = {
         id: crypto.randomUUID(),
         email: email,
         token: token,
-        expires_at: expiresAt
+        user_type: userType,
+        expires_at: expiresAtUTC
       };
       
       await new Promise((resolve, reject) => {
         db.query(
-          'INSERT INTO password_reset_tokens (id, email, token, expires_at) VALUES (?, ?, ?, ?)',
-          [resetToken.id, resetToken.email, resetToken.token, resetToken.expires_at],
+          'INSERT INTO password_reset_tokens (id, email, token, user_type, expires_at) VALUES (?, ?, ?, ?, ?)',
+          [resetToken.id, resetToken.email, resetToken.token, resetToken.user_type, resetToken.expires_at],
           (err, result) => {
             if (err) reject(err);
             else resolve(result);
@@ -70,7 +74,7 @@ class PasswordResetService {
     try {
       const result = await new Promise((resolve, reject) => {
         db.query(
-          'SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > NOW()',
+          'SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > UTC_TIMESTAMP()',
           [token],
           (err, results) => {
             if (err) reject(err);

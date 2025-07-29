@@ -13,7 +13,12 @@ const dbConfig = {
   password: "root",
   port: 3306,
   charset: 'utf8mb4',
-  timezone: '+00:00'
+  timezone: '+00:00',
+  // Connection pool settings for better ACID support
+  connectionLimit: 10,
+  queueLimit: 0,
+  // Enable multiple statements for transactions
+  multipleStatements: true
 };
 
 // Create a connection without specifying database to create DB if needed
@@ -183,7 +188,7 @@ async function createTables(verbose = true) {
       {
         name: 'elections',
         sql: `CREATE TABLE IF NOT EXISTS elections (
-          id VARCHAR(36) PRIMARY KEY,
+          id VARCHAR(20) PRIMARY KEY,
           title VARCHAR(255) NOT NULL,
           description TEXT,
           startTime DATETIME NOT NULL,
@@ -198,8 +203,8 @@ async function createTables(verbose = true) {
       {
         name: 'election_positions',
         sql: `CREATE TABLE IF NOT EXISTS election_positions (
-          id VARCHAR(36) PRIMARY KEY,
-          electionId VARCHAR(36) NOT NULL,
+          id VARCHAR(20) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
           positionId VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
@@ -209,8 +214,8 @@ async function createTables(verbose = true) {
       {
         name: 'election_candidates',
         sql: `CREATE TABLE IF NOT EXISTS election_candidates (
-          id VARCHAR(36) PRIMARY KEY,
-          electionId VARCHAR(36) NOT NULL,
+          id VARCHAR(20) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
           candidateId VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
@@ -220,8 +225,8 @@ async function createTables(verbose = true) {
       {
         name: 'votes',
         sql: `CREATE TABLE IF NOT EXISTS votes (
-          id VARCHAR(36) PRIMARY KEY,
-          electionId VARCHAR(36) NOT NULL,
+          id VARCHAR(20) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
           positionId VARCHAR(36) NOT NULL,
           candidateId VARCHAR(36) NOT NULL,
           voterId INT NOT NULL,
@@ -239,6 +244,7 @@ async function createTables(verbose = true) {
           id VARCHAR(36) PRIMARY KEY,
           email VARCHAR(255) NOT NULL,
           token VARCHAR(255) NOT NULL UNIQUE,
+          user_type ENUM('voter', 'admin') NOT NULL,
           expires_at TIMESTAMP NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`
