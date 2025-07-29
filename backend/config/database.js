@@ -239,6 +239,7 @@ async function createTables(verbose = true) {
           id VARCHAR(36) PRIMARY KEY,
           email VARCHAR(255) NOT NULL,
           token VARCHAR(255) NOT NULL UNIQUE,
+          user_type ENUM('voter', 'admin') NOT NULL,
           expires_at TIMESTAMP NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`
