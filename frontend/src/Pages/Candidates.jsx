@@ -5,7 +5,7 @@ import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
 import './Candidates.css';
-import { getCandidatePhotoUrl, CandidatePhotoPlaceholder } from '../utils/image.jsx';
+import { getImageUrl } from '../utils/image';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
@@ -242,14 +242,7 @@ const Candidates = () => {
 
   // Helper to get correct candidate photo URL
   const getCandidatePhotoUrl = (photoUrl) => {
-    if (!photoUrl) return null;
-    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-      return photoUrl;
-    }
-    if (photoUrl.startsWith('/uploads/')) {
-      return `http://localhost:3000${photoUrl}`;
-    }
-    return `http://localhost:3000/uploads/${photoUrl}`;
+    return getImageUrl(photoUrl);
   };
 
   // Filter and sort candidates

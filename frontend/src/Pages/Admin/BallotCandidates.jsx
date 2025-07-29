@@ -5,7 +5,7 @@ import {
 } from '../../services/api';
 import './BallotCandidates.css';
 import '../Candidates.css';
-import { getCandidatePhotoUrl, CandidatePhotoPlaceholder } from '../../utils/image.jsx';
+import { getImageUrl } from '../../utils/image';
 
 const BallotCandidates = () => {
   const { activeElection } = useElection();
@@ -37,14 +37,7 @@ const BallotCandidates = () => {
 
   // Helper to get correct candidate photo URL
   const getCandidatePhotoUrl = (photoUrl) => {
-    if (!photoUrl) return null;
-    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-      return photoUrl;
-    }
-    if (photoUrl.startsWith('/uploads/')) {
-      return `http://localhost:3000${photoUrl}`;
-    }
-    return `http://localhost:3000/uploads/${photoUrl}`;
+    return getImageUrl(photoUrl);
   };
 
 

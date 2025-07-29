@@ -1,18 +1,17 @@
 import React from 'react';
-// Utility to get the correct candidate photo URL
-export function getCandidatePhotoUrl(photoUrl) {
-  if (!photoUrl) return null;
-  // If already a full URL, use as is
-  if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
-    return photoUrl;
-  }
-  // If already starts with /uploads/, use as is (prepend host)
+
+// Get backend URL from environment variable
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000';
+
+export const getImageUrl = (photoUrl) => {
+  if (!photoUrl) return '/default-avatar.png';
+  
   if (photoUrl.startsWith('/uploads/')) {
-    return `http://localhost:3000${photoUrl}`;
+    return `${BACKEND_URL}${photoUrl}`;
   }
-  // If just a filename, prepend /uploads/
-  return `http://localhost:3000/uploads/${photoUrl}`;
-}
+  
+  return `${BACKEND_URL}/uploads/${photoUrl}`;
+};
 
 // Placeholder component for candidate photo
 export function CandidatePhotoPlaceholder({ className = '', style = {} }) {
