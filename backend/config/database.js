@@ -5,19 +5,20 @@ import bcrypt from "bcryptjs";
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_TEST = false;
 
-// Database configuration - use environment variables for Railway
-const DB_NAME = process.env.DB_NAME || (IS_TEST ? "voting_system_test" : "voting_system");
+// Database configuration - use Railway MySQL plugin variables directly
+const DB_NAME = process.env.MYSQLDATABASE || process.env.DB_NAME || (IS_TEST ? "voting_system_test" : "voting_system");
 const dbConfig = {
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "root",
-  port: parseInt(process.env.DB_PORT) || 3306,
+  host: process.env.MYSQLHOST || process.env.DB_HOST || "localhost",
+  user: process.env.MYSQLUSER || process.env.DB_USER || "root",
+  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || "root",
+  port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
   charset: process.env.DB_CHARSET || 'utf8mb4',
   timezone: process.env.DB_TIMEZONE || '+00:00',
   // Connection pool settings for better ACID support
   connectionLimit: 10,
-  queueLimit: 0,
-  // Enable multiple statements for transactions
+  acquireTimeout: 60000,
+  timeout: 60000,
+  reconnect: true,
   multipleStatements: true
 };
 
@@ -403,13 +404,6 @@ async function ensureDatabaseAndTables() {
     } else {
       // Silent table creation for existing databases
       await createTables(false);
-    }
-
-    // Insert default data only if tables were empty
-    if (isFreshSetup) {
-      console.log('🌱 Inserting default data...');
-      await insertDefaultData(isFreshSetup);
-      console.log('✅ Default data inserted successfully');
     }
 
   } catch (error) {
