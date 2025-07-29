@@ -7,6 +7,14 @@
   box-shadow: 0 16px 48px rgba(29, 53, 87, 0.12);
   padding: 2.5rem 2rem;
   border: 1px solid rgba(69, 123, 157, 0.1);
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure proper background inheritance */
+.user-dashboard {
+  background-color: var(--background-off-white) !important;
+  min-height: 100vh;
 }
 
 .user-dashboard-header {

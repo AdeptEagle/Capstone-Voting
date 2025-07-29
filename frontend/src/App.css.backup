@@ -30,62 +30,6 @@ main {
   background-color: transparent !important;
 }
 
-/* Ensure no white overlays cover content */
-.App {
-  background-color: var(--background-off-white) !important;
-  min-height: 100vh;
-}
-
-/* Fix for main content area */
-#content {
-  background-color: var(--background-off-white) !important;
-  z-index: 1;
-  position: relative;
-}
-
-/* Ensure cards and headers are visible */
-.card, .card-header, .card-body {
-  background-color: var(--white) !important;
-  z-index: 2;
-  position: relative;
-}
-
-/* Ensure proper text colors for card headers */
-.card-header h1, .card-header h2, .card-header h3, .card-header h4, .card-header h5, .card-header h6 {
-  color: var(--text-dark) !important;
-}
-
-.card-body h1, .card-body h2, .card-body h3, .card-body h4, .card-body h5, .card-body h6 {
-  color: var(--text-dark) !important;
-}
-
-/* Fix for dashboard headers */
-.dashboard-header-pro, .dashboard-title-pro, .dashboard-subtitle-pro {
-  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%) !important;
-  z-index: 2;
-  position: relative;
-}
-
-/* Ensure proper text colors for headers */
-.dashboard-title-pro {
-  color: var(--primary-navy) !important;
-  background: linear-gradient(135deg, var(--primary-navy), var(--accent-steel)) !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
-}
-
-.dashboard-subtitle-pro {
-  color: var(--text-muted) !important;
-}
-
-/* Fix for stat cards */
-.stat-card {
-  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%) !important;
-  z-index: 2;
-  position: relative;
-}
-
 /* Sidebar */
 #sidebar {
   width: 220px;

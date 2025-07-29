@@ -3,6 +3,21 @@
   padding: 0 0 2rem 0;
   background-color: var(--background-off-white);
   min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Remove any potential white overlays */
+.admin-dashboard * {
+  background-color: inherit;
+}
+
+.admin-dashboard .card {
+  background-color: var(--white);
+}
+
+.admin-dashboard .stat-card {
+  background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
 }
 
 /* Unified Professional Dashboard Header */
