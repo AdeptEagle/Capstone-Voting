@@ -25,5 +25,5 @@ RUN npm prune --production
 # Expose port
 EXPOSE 4173
 
-# Start the application
-CMD ["serve", "-s", "dist", "-l", "4173"] 
+# Start the application - bind to 0.0.0.0 for external access
+CMD ["serve", "-s", "dist", "-l", "4173", "-a", "0.0.0.0"] 
