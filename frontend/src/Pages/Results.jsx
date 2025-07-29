@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getResults, getPositions, getCandidates, getVoters, getElectionPositions, getDepartments, getCourses } from '../services/api';
+import { getActiveElectionResults, getRealTimeStats, getVoteTimeline, getPositions, getCandidates, getVoters, getDepartments, getCourses } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
@@ -36,7 +36,7 @@ const ProgressBar = ({ value, max, label, color = '#3498db', showPercentage = tr
       {showPercentage && (
         <span className="progress-value">{formatPercentage(value, max)}</span>
       )}
-        </div>
+    </div>
     <div className="progress-bar-container">
       <div 
         className="progress-bar-fill"
@@ -45,62 +45,58 @@ const ProgressBar = ({ value, max, label, color = '#3498db', showPercentage = tr
           backgroundColor: color
         }}
       />
-          </div>
+    </div>
     <div className="progress-stats">
       <span>{value} votes</span>
       <span>{max} total</span>
-          </div>
-        </div>
+    </div>
+  </div>
 );
 
 const DonutChart = ({ data, title, size = 200 }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="chart-placeholder">
+        <p>No data available</p>
+      </div>
+    );
+  }
+
   const total = data.reduce((sum, item) => sum + item.value, 0);
   let currentAngle = 0;
 
   return (
     <div className="donut-chart">
       <h4>{title}</h4>
-      <div className="donut-container" style={{ width: size, height: size }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          {data.map((item, index) => {
-            const percentage = total > 0 ? item.value / total : 0;
-            const angle = percentage * 360;
-            const radius = size / 2 - 10;
-            const x1 = size / 2 + radius * Math.cos(currentAngle * Math.PI / 180);
-            const y1 = size / 2 + radius * Math.sin(currentAngle * Math.PI / 180);
-            const x2 = size / 2 + radius * Math.cos((currentAngle + angle) * Math.PI / 180);
-            const y2 = size / 2 + radius * Math.sin((currentAngle + angle) * Math.PI / 180);
-            
-            const largeArcFlag = angle > 180 ? 1 : 0;
-            const pathData = [
-              `M ${size / 2} ${size / 2}`,
-              `L ${x1} ${y1}`,
-              `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-              'Z'
-            ].join(' ');
-
-            currentAngle += angle;
-            
-            return (
-              <path
-                key={index}
-                d={pathData}
-                fill={getRandomColor(index)}
-                stroke="white"
-                strokeWidth="2"
-              />
-            );
-          })}
-        </svg>
-        <div className="donut-center">
-          <div className="donut-total">{total}</div>
-          <div className="donut-label">Total Votes</div>
-        </div>
-      </div>
-      <div className="donut-legend">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {data.map((item, index) => {
+          const percentage = total > 0 ? item.value / total : 0;
+          const angle = percentage * 360;
+          const radius = size / 2 - 10;
+          const x1 = size / 2 + radius * Math.cos(currentAngle * Math.PI / 180);
+          const y1 = size / 2 + radius * Math.sin(currentAngle * Math.PI / 180);
+          const x2 = size / 2 + radius * Math.cos((currentAngle + angle) * Math.PI / 180);
+          const y2 = size / 2 + radius * Math.sin((currentAngle + angle) * Math.PI / 180);
+          
+          const largeArcFlag = angle > 180 ? 1 : 0;
+          
+          currentAngle += angle;
+          
+          return (
+            <path
+              key={index}
+              d={`M ${size / 2} ${size / 2} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
+              fill={getRandomColor(index)}
+              stroke="#fff"
+              strokeWidth="2"
+            />
+          );
+        })}
+      </svg>
+      <div className="chart-legend">
         {data.map((item, index) => (
           <div key={index} className="legend-item">
-            <div 
+            <span 
               className="legend-color" 
               style={{ backgroundColor: getRandomColor(index) }}
             />
@@ -114,151 +110,167 @@ const DonutChart = ({ data, title, size = 200 }) => {
 };
 
 const BarChart = ({ data, title, height = 300 }) => {
-  const maxValue = Math.max(...data.map(item => item.value), 1);
+  if (!data || data.length === 0) {
+    return (
+      <div className="chart-placeholder">
+        <p>No data available</p>
+      </div>
+    );
+  }
+
+  const maxValue = Math.max(...data.map(item => item.value));
+  const barWidth = 100 / data.length;
 
   return (
     <div className="bar-chart">
       <h4>{title}</h4>
-      <div className="bar-container" style={{ height }}>
+      <div className="chart-container" style={{ height }}>
         {data.map((item, index) => (
           <div key={index} className="bar-item">
+            <div 
+              className="bar"
+              style={{ 
+                height: `${maxValue > 0 ? (item.value / maxValue) * 100 : 0}%`,
+                backgroundColor: getRandomColor(index),
+                width: `${barWidth}%`
+              }}
+            />
             <div className="bar-label">{item.label}</div>
-            <div className="bar-wrapper">
-              <div 
-                className="bar-fill"
-                style={{ 
-                  height: `${(item.value / maxValue) * 100}%`,
-                  backgroundColor: getRandomColor(index)
-                }}
-              />
-            </div>
             <div className="bar-value">{item.value}</div>
           </div>
         ))}
-        </div>
+      </div>
     </div>
   );
 };
 
 const LineChart = ({ data, title, height = 200 }) => {
-  const maxValue = Math.max(...data.map(item => item.value), 1);
-  const points = data.map((item, index) => ({
-    x: (index / (data.length - 1)) * 100,
-    y: 100 - ((item.value / maxValue) * 100)
-  }));
+  if (!data || data.length === 0) {
+    return (
+      <div className="chart-placeholder">
+        <p>No data available</p>
+      </div>
+    );
+  }
 
-  const pathData = points.map((point, index) => 
-    `${index === 0 ? 'M' : 'L'} ${point.x}% ${point.y}%`
-  ).join(' ');
+  const maxValue = Math.max(...data.map(item => item.value));
+  const points = data.map((item, index) => {
+    const x = (index / (data.length - 1)) * 100;
+    const y = maxValue > 0 ? 100 - (item.value / maxValue) * 100 : 100;
+    return `${x}%,${y}%`;
+  }).join(' ');
 
   return (
     <div className="line-chart">
       <h4>{title}</h4>
-      <div className="line-container" style={{ height }}>
-        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path
-            d={pathData}
+      <div className="chart-container" style={{ height }}>
+        <svg width="100%" height="100%" viewBox="0 0 100 100">
+          <polyline
+            points={points}
+            fill="none"
             stroke="#3498db"
             strokeWidth="2"
-            fill="none"
           />
-          {points.map((point, index) => (
-            <circle
-              key={index}
-              cx={`${point.x}%`}
-              cy={`${point.y}%`}
-              r="2"
-              fill="#3498db"
-            />
-          ))}
+          {data.map((item, index) => {
+            const x = (index / (data.length - 1)) * 100;
+            const y = maxValue > 0 ? 100 - (item.value / maxValue) * 100 : 100;
+            return (
+              <circle
+                key={index}
+                cx={`${x}%`}
+                cy={`${y}%`}
+                r="2"
+                fill="#3498db"
+              />
+            );
+          })}
         </svg>
-        <div className="line-labels">
+        <div className="chart-labels">
           {data.map((item, index) => (
-            <div key={index} className="line-label">
-              <span className="line-label-text">{item.label}</span>
-              <span className="line-label-value">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-          </div>
+            <div key={index} className="chart-label">
+              {item.label}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
 
 const AnalyticsCard = ({ title, value, change, icon, color = '#3498db' }) => (
   <div className="analytics-card">
-    <div className="analytics-icon" style={{ backgroundColor: color }}>
+    <div className="card-icon" style={{ backgroundColor: color }}>
       <i className={icon}></i>
-              </div>
-    <div className="analytics-content">
-      <h3 className="analytics-title">{title}</h3>
-      <div className="analytics-value">{value}</div>
+    </div>
+    <div className="card-content">
+      <h3>{title}</h3>
+      <div className="card-value">{value}</div>
       {change && (
-        <div className={`analytics-change ${change > 0 ? 'positive' : 'negative'}`}>
-          <i className={`fas fa-arrow-${change > 0 ? 'up' : 'down'}`}></i>
+        <div className={`card-change ${change >= 0 ? 'positive' : 'negative'}`}>
+          <i className={`fas fa-arrow-${change >= 0 ? 'up' : 'down'}`}></i>
           {Math.abs(change)}%
         </div>
       )}
     </div>
   </div>
-  );
+);
 
 const Results = () => {
   const [resultsData, setResultsData] = useState([]);
+  const [realTimeStats, setRealTimeStats] = useState({});
+  const [voteTimeline, setVoteTimeline] = useState([]);
   const [positions, setPositions] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [voters, setVoters] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [electionPositions, setElectionPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(0);
   const [activeTab, setActiveTab] = useState('overview');
+  const [lastUpdate, setLastUpdate] = useState(new Date());
   
-  const { currentElection } = useElection();
+  const { currentElection, canViewResults } = useElection();
   const currentUser = checkCurrentUser();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [
-          results,
-          positionsData,
-          candidatesData,
-          votersData,
-          departmentsData,
-          coursesData,
-          electionPositionsData
-        ] = await Promise.all([
-          getResults(),
-          getPositions(),
-          getCandidates(),
-          getVoters(),
-          getDepartments(),
-          getCourses(),
-          getElectionPositions()
-        ]);
-        
-          setResultsData(results);
-        setPositions(positionsData);
-        setCandidates(candidatesData);
-        setVoters(votersData);
-        setDepartments(departmentsData);
-        setCourses(coursesData);
-        setElectionPositions(electionPositionsData);
-      } catch (error) {
-        console.error('Error fetching results data:', error);
-        setError('Failed to load results data');
-      } finally {
-          setLoading(false);
-      }
-    };
+  // Fetch data with real-time updates
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [
+        activeResults,
+        stats,
+        timeline
+      ] = await Promise.all([
+        getActiveElectionResults(),
+        getRealTimeStats(),
+        getVoteTimeline()
+      ]);
+      
+      setResultsData(activeResults);
+      setRealTimeStats(stats);
+      setVoteTimeline(timeline);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Error fetching results data:', error);
+      setError('Failed to load results data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Initial data fetch
+  useEffect(() => {
     fetchData();
   }, []);
 
+  // Real-time updates every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update time display
   useEffect(() => {
     if (currentElection) {
       const updateTimeDisplay = () => {
@@ -274,81 +286,50 @@ const Results = () => {
     }
   }, [currentElection]);
 
-  // Calculate analytics data
+  // Calculate analytics data from real-time stats
   const analyticsData = useMemo(() => {
-    if (!resultsData.length || !voters.length) return {};
+    if (!resultsData.length) return {};
 
-    const totalVotes = resultsData.length;
-    const totalVoters = voters.length;
-    const voterTurnout = totalVoters > 0 ? (totalVotes / totalVoters) * 100 : 0;
+    const totalVotes = realTimeStats.totalVotes || 0;
+    const totalVoters = realTimeStats.totalVoters || 0;
+    const voterTurnout = realTimeStats.voterTurnout || 0;
     
-    // Votes per position
-    const votesPerPosition = positions.map(position => {
-      const positionVotes = resultsData.filter(vote => {
-        const candidate = candidates.find(c => c.id === vote.candidateId);
-        return candidate && candidate.positionId === position.id;
-      }).length;
-      return { label: position.name, value: positionVotes };
+    // Group results by position
+    const positionGroups = {};
+    resultsData.forEach(result => {
+      if (!positionGroups[result.positionId]) {
+        positionGroups[result.positionId] = {
+          positionName: result.positionName,
+          candidates: []
+        };
+      }
+      positionGroups[result.positionId].candidates.push({
+        candidateId: result.candidateId,
+        candidateName: result.candidateName,
+        voteCount: result.voteCount
+      });
     });
+
+    // Votes per position
+    const votesPerPosition = Object.values(positionGroups).map(position => ({
+      label: position.positionName,
+      value: position.candidates.reduce((sum, candidate) => sum + candidate.voteCount, 0)
+    }));
 
     // Top candidates
-    const candidateVotes = {};
-    resultsData.forEach(vote => {
-      candidateVotes[vote.candidateId] = (candidateVotes[vote.candidateId] || 0) + 1;
-    });
-
-    const topCandidates = Object.entries(candidateVotes)
-      .map(([candidateId, votes]) => {
-        const candidate = candidates.find(c => c.id === candidateId);
-    return { 
-          label: candidate ? candidate.name : 'Unknown',
-          value: votes
-        };
-      })
+    const topCandidates = resultsData
+      .map(result => ({
+        label: result.candidateName,
+        value: result.voteCount
+      }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
 
-    // Department analytics
-    const departmentVotes = {};
-    voters.forEach(voter => {
-      if (voter.departmentId) {
-        const department = departments.find(d => d.id === voter.departmentId);
-        if (department) {
-          departmentVotes[department.name] = (departmentVotes[department.name] || 0) + 1;
-        }
-      }
-    });
-
-    const departmentData = Object.entries(departmentVotes)
-      .map(([name, votes]) => ({ label: name, value: votes }))
-      .sort((a, b) => b.value - a.value);
-
-    // Course analytics
-    const courseVotes = {};
-    voters.forEach(voter => {
-      if (voter.courseId) {
-        const course = courses.find(c => c.id === voter.courseId);
-        if (course) {
-          courseVotes[course.name] = (courseVotes[course.name] || 0) + 1;
-        }
-      }
-    });
-
-    const courseData = Object.entries(courseVotes)
-      .map(([name, votes]) => ({ label: name, value: votes }))
-      .sort((a, b) => b.value - a.value);
-
-    // Voting timeline (simulated)
-    const timelineData = [
-      { label: '9:00 AM', value: Math.floor(totalVotes * 0.1) },
-      { label: '10:00 AM', value: Math.floor(totalVotes * 0.25) },
-      { label: '11:00 AM', value: Math.floor(totalVotes * 0.4) },
-      { label: '12:00 PM', value: Math.floor(totalVotes * 0.6) },
-      { label: '1:00 PM', value: Math.floor(totalVotes * 0.75) },
-      { label: '2:00 PM', value: Math.floor(totalVotes * 0.85) },
-      { label: '3:00 PM', value: Math.floor(totalVotes * 0.95) },
-      { label: '4:00 PM', value: totalVotes }
-    ];
+    // Timeline data from real-time API
+    const timelineData = voteTimeline.map(item => ({
+      label: item.hour,
+      value: item.voteCount
+    }));
 
     return {
       totalVotes,
@@ -356,19 +337,42 @@ const Results = () => {
       voterTurnout,
       votesPerPosition,
       topCandidates,
-      departmentData,
-      courseData,
-      timelineData
+      timelineData,
+      positionGroups
     };
-  }, [resultsData, voters, positions, candidates, departments, courses]);
+  }, [resultsData, realTimeStats, voteTimeline]);
+
+  if (!canViewResults) {
+    return <ElectionStatusMessage type="results" />;
+  }
+
+  // Check if there's any active election data
+  if (!resultsData.length) {
+    return (
+      <div className="results-container">
+        <div className="results-header">
+          <div className="results-title">
+            <h1>Election Results</h1>
+            <p className="text-muted">No active election found</p>
+          </div>
+        </div>
+        <div className="alert alert-info text-center">
+          <i className="fas fa-info-circle fa-2x mb-3"></i>
+          <h4>No Active Election</h4>
+          <p>There is currently no active election with results to display.</p>
+          <p className="mb-0">Please wait for an election to be started or check back later.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
       <div className="results-loading">
-        <div className="loading-spinner">
-          <i className="fas fa-chart-line fa-spin"></i>
-          <p>Loading analytics...</p>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
+        <p className="mt-3">Loading real-time results...</p>
       </div>
     );
   }
@@ -376,10 +380,14 @@ const Results = () => {
   if (error) {
     return (
       <div className="results-error">
-        <div className="error-message">
-          <i className="fas fa-exclamation-triangle"></i>
-          <h3>Error Loading Results</h3>
+        <div className="alert alert-danger text-center">
+          <i className="fas fa-exclamation-triangle fa-2x mb-3"></i>
+          <h4>Error Loading Results</h4>
           <p>{error}</p>
+          <button className="btn btn-primary" onClick={fetchData}>
+            <i className="fas fa-refresh me-2"></i>
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -390,23 +398,40 @@ const Results = () => {
       {/* Header */}
       <div className="results-header">
         <div className="results-title">
-          <h1><i className="fas fa-chart-bar"></i> Election Analytics</h1>
-          <p>Comprehensive voting statistics and real-time insights</p>
-          </div>
-        {currentElection && (
-          <div className="election-status">
-            <ElectionStatusMessage />
-            {timeLeft > 0 && (
-              <div className="time-remaining">
-                <i className="fas fa-clock"></i>
-                <span>Time Remaining: {formatTime(timeLeft)}</span>
-            </div>
-          )}
+          <h1>Live Election Results</h1>
+          <p className="text-muted">Real-time voting statistics and analytics</p>
         </div>
-        )}
+        <div className="results-actions">
+          <button className="btn btn-outline-primary" onClick={fetchData}>
+            <i className="fas fa-sync-alt me-2"></i>
+            Refresh
+          </button>
+          <div className="last-update">
+            Last updated: {lastUpdate.toLocaleTimeString()}
+          </div>
+        </div>
       </div>
 
-      {/* Analytics Cards */}
+      {/* Election Status */}
+      {currentElection && (
+        <div className="election-status">
+          <div className="status-card">
+            <h3>{currentElection.title}</h3>
+            <p className="status-text">
+              Status: <span className={`status-badge ${currentElection.status}`}>
+                {currentElection.status.toUpperCase()}
+              </span>
+            </p>
+            {timeLeft > 0 && (
+              <p className="time-remaining">
+                Time Remaining: <span className="countdown">{formatTime(timeLeft)}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Real-time Analytics Cards */}
       <div className="analytics-grid">
         <AnalyticsCard
           title="Total Votes"
@@ -422,17 +447,17 @@ const Results = () => {
         />
         <AnalyticsCard
           title="Active Voters"
-          value={voters.filter(v => v.hasVoted).length}
+          value={realTimeStats.votersWhoVoted || 0}
           icon="fas fa-user-check"
           color="#e74c3c"
         />
         <AnalyticsCard
           title="Positions"
-          value={positions.length}
+          value={Object.keys(analyticsData.positionGroups || {}).length}
           icon="fas fa-briefcase"
           color="#f39c12"
-            />
-          </div>
+        />
+      </div>
 
       {/* Navigation Tabs */}
       <div className="results-tabs">
@@ -449,13 +474,6 @@ const Results = () => {
         >
           <i className="fas fa-briefcase"></i>
           By Position
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'demographics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('demographics')}
-        >
-          <i className="fas fa-users"></i>
-          Demographics
         </button>
         <button 
           className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
@@ -502,33 +520,27 @@ const Results = () => {
         {activeTab === 'positions' && (
           <div className="positions-tab">
             <div className="positions-grid">
-              {positions.map((position, index) => {
-                const positionCandidates = candidates.filter(c => c.positionId === position.id);
-                const positionVotes = resultsData.filter(vote => {
-                  const candidate = candidates.find(c => c.id === vote.candidateId);
-                  return candidate && candidate.positionId === position.id;
-                });
+              {Object.values(analyticsData.positionGroups || {}).map((position, index) => {
+                const candidateResults = position.candidates
+                  .sort((a, b) => b.voteCount - a.voteCount);
 
-                const candidateResults = positionCandidates.map(candidate => {
-                  const votes = positionVotes.filter(vote => vote.candidateId === candidate.id).length;
-                  return { ...candidate, votes };
-                }).sort((a, b) => b.votes - a.votes);
+                const totalPositionVotes = position.candidates.reduce((sum, candidate) => sum + candidate.voteCount, 0);
 
                 return (
-                  <div key={position.id} className="position-card">
-                    <h3>{position.name}</h3>
+                  <div key={position.positionName} className="position-card">
+                    <h3>{position.positionName}</h3>
                     <div className="candidate-results">
                       {candidateResults.map((candidate, idx) => (
-                        <div key={candidate.id} className="candidate-result">
+                        <div key={candidate.candidateId} className="candidate-result">
                           <div className="candidate-info">
-                            <span className="candidate-name">{candidate.name}</span>
-                            <span className="candidate-votes">{candidate.votes} votes</span>
+                            <span className="candidate-name">{candidate.candidateName}</span>
+                            <span className="candidate-votes">{candidate.voteCount} votes</span>
                           </div>
                           <div className="candidate-progress">
                             <div 
                               className="candidate-progress-bar"
                               style={{ 
-                                width: `${positionVotes.length > 0 ? (candidate.votes / positionVotes.length) * 100 : 0}%`,
+                                width: `${totalPositionVotes > 0 ? (candidate.voteCount / totalPositionVotes) * 100 : 0}%`,
                                 backgroundColor: getRandomColor(idx)
                               }}
                             />
@@ -543,76 +555,23 @@ const Results = () => {
           </div>
         )}
 
-        {activeTab === 'demographics' && (
-          <div className="demographics-tab">
-            <div className="charts-grid">
-              <div className="chart-card">
-                <DonutChart 
-                  data={analyticsData.departmentData || []}
-                  title="Votes by Department"
-                />
-              </div>
-              <div className="chart-card">
-                <BarChart 
-                  data={analyticsData.courseData || []}
-                  title="Votes by Course"
-                />
-              </div>
-            </div>
-            <div className="demographics-stats">
-              <div className="stat-card">
-                <h4>Department Participation</h4>
-                <div className="stat-list">
-                  {analyticsData.departmentData?.map((dept, index) => (
-                    <div key={index} className="stat-item">
-                      <span>{dept.label}</span>
-                      <span>{dept.value} votes</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="stat-card">
-                <h4>Course Participation</h4>
-                <div className="stat-list">
-                  {analyticsData.courseData?.map((course, index) => (
-                    <div key={index} className="stat-item">
-                      <span>{course.label}</span>
-                      <span>{course.value} votes</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeTab === 'timeline' && (
           <div className="timeline-tab">
-            <div className="chart-card full-width">
+            <div className="timeline-chart">
               <LineChart 
                 data={analyticsData.timelineData || []}
-                title="Voting Timeline"
-                height={300}
+                title="Voting Activity (Last 24 Hours)"
               />
             </div>
-            <div className="timeline-insights">
-              <h3>Voting Insights</h3>
-              <div className="insights-grid">
-                <div className="insight-card">
-                  <i className="fas fa-chart-line"></i>
-                  <h4>Peak Voting Time</h4>
-                  <p>12:00 PM - 2:00 PM</p>
-                </div>
-                <div className="insight-card">
-                  <i className="fas fa-clock"></i>
-                  <h4>Average Voting Rate</h4>
-                  <p>15 votes per hour</p>
-                </div>
-                <div className="insight-card">
-                  <i className="fas fa-trending-up"></i>
-                  <h4>Growth Rate</h4>
-                  <p>+25% from last hour</p>
-                </div>
+            <div className="timeline-stats">
+              <h3>Voting Timeline</h3>
+              <div className="timeline-items">
+                {analyticsData.timelineData?.map((item, index) => (
+                  <div key={index} className="timeline-item">
+                    <span className="timeline-time">{item.label}</span>
+                    <span className="timeline-votes">{item.value} votes</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
