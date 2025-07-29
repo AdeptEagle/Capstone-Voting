@@ -22,8 +22,8 @@ RUN npm prune --production
 # Expose port
 EXPOSE 4173
 
-# Create a simple test server that responds immediately
-RUN echo 'import http from "http"; const port = 4173; const server = http.createServer((req, res) => { console.log(`Request: ${req.method} ${req.url}`); res.writeHead(200, { "Content-Type": "text/html" }); res.end("<h1>Frontend is working!</h1><p>Server is running on port " + port + "</p>"); }); server.listen(port, "0.0.0.0", () => { console.log(`Test server running at http://0.0.0.0:${port}/`); });' > server.js
+# Create a simple test server that uses PORT environment variable
+RUN echo 'import http from "http"; const port = process.env.PORT || 4173; console.log("Starting server on port:", port); const server = http.createServer((req, res) => { console.log(`Request: ${req.method} ${req.url}`); res.writeHead(200, { "Content-Type": "text/html" }); res.end("<h1>Frontend is working!</h1><p>Server is running on port " + port + "</p>"); }); server.listen(port, "0.0.0.0", () => { console.log(`Test server running at http://0.0.0.0:${port}/`); console.log("Server is ready for requests!"); });' > server.js
 
 # Start the application
 CMD ["node", "server.js"] 
