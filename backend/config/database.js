@@ -2,18 +2,18 @@ import mysql from "mysql2";
 import bcrypt from "bcryptjs";
 
 // Environment-based configuration
-const NODE_ENV = 'development';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_TEST = false;
 
-// Database configuration
-const DB_NAME = IS_TEST ? "voting_system_test" : "voting_system";
+// Database configuration - use environment variables for Railway
+const DB_NAME = process.env.DB_NAME || (IS_TEST ? "voting_system_test" : "voting_system");
 const dbConfig = {
-  host: "localhost",
-  user: "root",
-  password: "root",
-  port: 3306,
-  charset: 'utf8mb4',
-  timezone: '+00:00',
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "root",
+  port: parseInt(process.env.DB_PORT) || 3306,
+  charset: process.env.DB_CHARSET || 'utf8mb4',
+  timezone: process.env.DB_TIMEZONE || '+00:00',
   // Connection pool settings for better ACID support
   connectionLimit: 10,
   queueLimit: 0,
@@ -50,14 +50,21 @@ function runQuery(connection, sql, params = []) {
 // Test MySQL server connection (without specific database)
 async function testMySQLConnection() {
   try {
+    console.log('🔍 Testing MySQL connection...');
+    console.log(`   Host: ${dbConfig.host}:${dbConfig.port}`);
+    console.log(`   User: ${dbConfig.user}`);
+    console.log(`   Database: ${DB_NAME}`);
+    
     const connection = mysql.createConnection({
       ...dbConfig,
       multipleStatements: true
     });
     await runQuery(connection, 'SELECT 1 as test');
     connection.end();
+    console.log('✅ MySQL connection successful');
     return true;
   } catch (error) {
+    console.error('❌ MySQL connection failed:', error.message);
     return false;
   }
 }
