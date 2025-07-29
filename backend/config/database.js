@@ -188,7 +188,7 @@ async function createTables(verbose = true) {
           description TEXT,
           startTime DATETIME NOT NULL,
           endTime DATETIME NOT NULL,
-          status ENUM('pending', 'active', 'ended', 'cancelled') DEFAULT 'pending',
+          status ENUM('pending', 'active', 'paused', 'stopped', 'ended', 'cancelled') DEFAULT 'pending',
           created_by VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

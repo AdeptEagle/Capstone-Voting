@@ -5,37 +5,15 @@ export class VoteModel {
     const db = createConnection();
     return new Promise((resolve, reject) => {
       const query = `
-        SELECT v.id, v.voterId, v.candidateId, v.electionId, v.timestamp, vt.studentId, vt.name as voterName
+        SELECT v.id, v.voterId, v.candidateId, v.electionId, v.positionId, v.created_at as timestamp, vt.studentId, vt.name as voterName
         FROM votes v
         LEFT JOIN voters vt ON v.voterId = vt.id
-        ORDER BY v.timestamp DESC
+        ORDER BY v.created_at DESC
       `;
       db.query(query, (err, data) => {
         db.end();
         if (err) {
-          // If the error is about missing electionId column, try without it
-          if (err.message.includes('electionId')) {
-            const fallbackQuery = `
-              SELECT v.id, v.voterId, v.candidateId, v.timestamp, vt.studentId, vt.name as voterName
-              FROM votes v
-              LEFT JOIN voters vt ON v.voterId = vt.id
-              ORDER BY v.timestamp DESC
-            `;
-            db.query(fallbackQuery, (fallbackErr, fallbackData) => {
-              db.end();
-              if (fallbackErr) reject(fallbackErr);
-              else {
-                // Add default electionId for backward compatibility
-                const dataWithElectionId = fallbackData.map(vote => ({
-                  ...vote,
-                  electionId: 'legacy-election-001'
-                }));
-                resolve(dataWithElectionId);
-              }
-            });
-          } else {
-            reject(err);
-          }
+          reject(err);
         } else {
           resolve(data);
         }
@@ -46,13 +24,13 @@ export class VoteModel {
   static async create(voteData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = "INSERT INTO votes (id, voterId, candidateId, electionId, timestamp) VALUES (?, ?, ?, ?, ?)";
+      const query = "INSERT INTO votes (id, voterId, candidateId, electionId, positionId) VALUES (?, ?, ?, ?, ?)";
       const values = [
         voteData.id,
         voteData.voterId,
         voteData.candidateId,
         voteData.electionId,
-        voteData.timestamp
+        voteData.positionId
       ];
       db.query(query, values, (err, data) => {
         db.end();

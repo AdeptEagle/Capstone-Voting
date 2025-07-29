@@ -25,20 +25,18 @@ class PasswordResetService {
       const token = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
       
-      // Store token in database
+      // Store token in database (using only available columns)
       const resetToken = {
         id: crypto.randomUUID(),
-        user_id: user.id,
-        user_type: userType,
+        email: email,
         token: token,
-        expires_at: expiresAt,
-        used: false
+        expires_at: expiresAt
       };
       
       await new Promise((resolve, reject) => {
         db.query(
-          'INSERT INTO password_reset_tokens (id, user_id, user_type, token, expires_at, used) VALUES (?, ?, ?, ?, ?, ?)',
-          [resetToken.id, resetToken.user_id, resetToken.user_type, resetToken.token, resetToken.expires_at, resetToken.used],
+          'INSERT INTO password_reset_tokens (id, email, token, expires_at) VALUES (?, ?, ?, ?)',
+          [resetToken.id, resetToken.email, resetToken.token, resetToken.expires_at],
           (err, result) => {
             if (err) reject(err);
             else resolve(result);
@@ -72,7 +70,7 @@ class PasswordResetService {
     try {
       const result = await new Promise((resolve, reject) => {
         db.query(
-          'SELECT * FROM password_reset_tokens WHERE token = ? AND used = FALSE AND expires_at > NOW()',
+          'SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > NOW()',
           [token],
           (err, results) => {
             if (err) reject(err);
@@ -104,17 +102,23 @@ class PasswordResetService {
       // Hash new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       
-      // Update user password
-      if (resetToken.user_type === 'voter') {
-        await VoterModel.updatePassword(resetToken.user_id, hashedPassword);
-      } else if (resetToken.user_type === 'admin') {
-        await AdminModel.updatePassword(resetToken.user_id, hashedPassword);
+      // Find user by email and update password
+      let user = await VoterModel.getByEmail(resetToken.email);
+      if (user) {
+        await VoterModel.updatePassword(user.id, hashedPassword);
+      } else {
+        user = await AdminModel.getByEmail(resetToken.email);
+        if (user) {
+          await AdminModel.updatePassword(user.id, hashedPassword);
+        } else {
+          throw new Error('User not found');
+        }
       }
       
-      // Mark token as used
+      // Delete the used token
       await new Promise((resolve, reject) => {
         db.query(
-          'UPDATE password_reset_tokens SET used = TRUE WHERE token = ?',
+          'DELETE FROM password_reset_tokens WHERE token = ?',
           [token],
           (err, result) => {
             if (err) reject(err);
@@ -138,7 +142,7 @@ class PasswordResetService {
     try {
       await new Promise((resolve, reject) => {
         db.query(
-          'DELETE FROM password_reset_tokens WHERE expires_at < NOW() OR used = TRUE',
+          'DELETE FROM password_reset_tokens WHERE expires_at < NOW()',
           (err, result) => {
             if (err) reject(err);
             else resolve(result);
