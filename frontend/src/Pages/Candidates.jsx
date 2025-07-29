@@ -241,9 +241,7 @@ const Candidates = () => {
   };
 
   // Helper to get correct candidate photo URL
-  const getCandidatePhotoUrl = (photoUrl) => {
-    return getImageUrl(photoUrl);
-  };
+
 
   // Filter and sort candidates
   const filteredCandidates = candidates
@@ -332,7 +330,7 @@ const Candidates = () => {
                       </div>
                       <div className="candidate-photo-container">
                         {candidate.photoUrl ? (
-                          <img src={getCandidatePhotoUrl(candidate.photoUrl)} alt={candidate.name} className="candidate-photo" />
+                          <img src={getImageUrl(candidate.photoUrl)} alt={candidate.name} className="candidate-photo" />
                         ) : (
                           <div className="candidate-photo-placeholder">
                             <i className="fas fa-user"></i>
@@ -401,7 +399,7 @@ const Candidates = () => {
                   <div className="modal-candidate-info">
                     <div className="modal-candidate-photo-container">
                       {viewCandidate?.photoUrl ? (
-                        <img src={getCandidatePhotoUrl(viewCandidate.photoUrl)} alt={viewCandidate.name} className="modal-candidate-photo" />
+                        <img src={getImageUrl(viewCandidate.photoUrl)} alt={viewCandidate.name} className="modal-candidate-photo" />
                       ) : (
                         <div className="modal-candidate-photo-placeholder">
                           <i className="fas fa-user"></i>
@@ -686,7 +684,7 @@ const Candidates = () => {
                   <td>
                     {candidate.photoUrl ? (
                       <img 
-                        src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                        src={getImageUrl(candidate.photoUrl)} 
                         alt={candidate.name}
                         className="candidate-table-photo"
                         onError={(e) => {
@@ -745,7 +743,7 @@ const Candidates = () => {
                 <div className="modal-candidate-info">
                   <div className="modal-candidate-photo-container">
                     {viewCandidate?.photoUrl ? (
-                      <img src={getCandidatePhotoUrl(viewCandidate.photoUrl)} alt={viewCandidate.name} className="modal-candidate-photo" />
+                      <img src={getImageUrl(viewCandidate.photoUrl)} alt={viewCandidate.name} className="modal-candidate-photo" />
                     ) : (
                       <div className="modal-candidate-photo-placeholder">
                         <i className="fas fa-user"></i>

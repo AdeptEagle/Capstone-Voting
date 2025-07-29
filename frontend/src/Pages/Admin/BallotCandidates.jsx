@@ -35,10 +35,7 @@ const BallotCandidates = () => {
     }
   };
 
-  // Helper to get correct candidate photo URL
-  const getCandidatePhotoUrl = (photoUrl) => {
-    return getImageUrl(photoUrl);
-  };
+
 
 
   if (loading) {
@@ -168,7 +165,7 @@ const BallotCandidates = () => {
                       <div className="candidate-photo-container">
                         {candidate.photoUrl && candidate.photoUrl.trim() !== '' ? (
                           <img 
-                            src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                            src={getImageUrl(candidate.photoUrl)} 
                             alt={candidate.name}
                             className="candidate-photo"
                             onError={(e) => {

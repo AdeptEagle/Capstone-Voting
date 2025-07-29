@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
 import './Vote.css';
-import { getCandidatePhotoUrl, CandidatePhotoPlaceholder } from '../../utils/image.jsx';
+import { getImageUrl } from '../../utils/image';
 
 // Simple UUID generator
 const generateUUID = () => {
@@ -347,7 +347,7 @@ const Vote = () => {
                 <div className="vote-candidate-photo-container">
                   {candidate.photoUrl && !imgError[candidate.id] ? (
                     <img 
-                      src={getCandidatePhotoUrl(candidate.photoUrl)}
+                      src={getImageUrl(candidate.photoUrl)}
                       alt={candidate.name} 
                       className="vote-candidate-photo"
                       onError={e => {
@@ -485,7 +485,7 @@ const Vote = () => {
                             <div className="candidate-avatar-wrapper">
                             {candidate.photoUrl && !imgError[candidate.id] ? (
                               <img 
-                                  src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                                  src={getImageUrl(candidate.photoUrl)} 
                                 alt={candidate.name} 
                                 className="selected-candidate-photo"
                                 onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
@@ -539,7 +539,7 @@ const Vote = () => {
                                 <div className="candidate-avatar-wrapper">
                                 {candidate.photoUrl && !imgError[candidate.id] ? (
                                   <img 
-                                      src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                                      src={getImageUrl(candidate.photoUrl)} 
                                     alt={candidate.name} 
                                     className="confirmation-candidate-photo"
                                     onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
@@ -618,7 +618,7 @@ const Vote = () => {
                                 <div className="candidate-avatar-wrapper">
                                 {candidate.photoUrl && !imgError[candidate.id] ? (
                                   <img 
-                                      src={getCandidatePhotoUrl(candidate.photoUrl)} 
+                                      src={getImageUrl(candidate.photoUrl)} 
                                     alt={candidate.name} 
                                     className="confirmation-candidate-photo"
                                     onError={() => setImgError(prev => ({ ...prev, [candidate.id]: true }))}
