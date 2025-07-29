@@ -1,0 +1,421 @@
+/* Brightness Fix CSS - Reduces excessive brightness for better visibility */
+
+/* Override pure white backgrounds with softer alternatives */
+.bg-white,
+.bg-light,
+.bg-transparent,
+.card,
+.card-body,
+.modal-content,
+.modal-header,
+.modal-footer,
+.form-control,
+.input-group-text,
+.list-group-item,
+.table,
+.table th,
+.table td {
+  background-color: #fafafa !important;
+}
+
+/* Softer white text */
+.text-white,
+.text-light {
+  color: #f1f5f9 !important;
+}
+
+/* Softer borders */
+.border,
+.border-light,
+.border-white,
+.card,
+.modal-content,
+.form-control,
+.input-group-text,
+.list-group-item,
+.table,
+.table th,
+.table td {
+  border-color: #e2e8f0 !important;
+}
+
+/* Softer shadows */
+.shadow,
+.shadow-sm,
+.shadow-lg {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Reduce brightness of form elements */
+.form-control:focus {
+  background-color: #f8fafc !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Softer button backgrounds */
+.btn-light,
+.btn-outline-light {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #374151 !important;
+}
+
+.btn-light:hover,
+.btn-outline-light:hover {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Softer alert backgrounds */
+.alert-light {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #374151 !important;
+}
+
+/* Softer badge backgrounds */
+.badge-light,
+.badge.bg-light {
+  background-color: #f1f5f9 !important;
+  color: #374151 !important;
+}
+
+/* Softer dropdown backgrounds */
+.dropdown-menu {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Softer navbar backgrounds */
+.navbar-light,
+.navbar.bg-light {
+  background-color: #fafafa !important;
+}
+
+/* Softer breadcrumb backgrounds */
+.breadcrumb {
+  background-color: #f8fafc !important;
+}
+
+/* Softer pagination backgrounds */
+.page-link {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+  color: #374151 !important;
+}
+
+.page-link:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.page-item.active .page-link {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Softer progress bar backgrounds */
+.progress {
+  background-color: #f1f5f9 !important;
+}
+
+/* Softer tooltip backgrounds */
+.tooltip-inner {
+  background-color: #374151 !important;
+}
+
+/* Softer popover backgrounds */
+.popover {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Softer toast backgrounds */
+.toast {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Softer offcanvas backgrounds */
+.offcanvas {
+  background-color: #fafafa !important;
+}
+
+/* Softer accordion backgrounds */
+.accordion-item {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+}
+
+.accordion-button {
+  background-color: #f8fafc !important;
+  color: #374151 !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #f1f5f9 !important;
+  color: #1f2937 !important;
+}
+
+/* Softer list group backgrounds */
+.list-group-item {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+  color: #374151 !important;
+}
+
+.list-group-item:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Softer table backgrounds */
+.table {
+  background-color: #fafafa !important;
+}
+
+.table th {
+  background-color: #f8fafc !important;
+  color: #374151 !important;
+}
+
+.table td {
+  background-color: #fafafa !important;
+  color: #374151 !important;
+}
+
+/* Softer modal backgrounds */
+.modal-content {
+  background-color: #fafafa !important;
+}
+
+.modal-header {
+  background-color: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+.modal-footer {
+  background-color: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+/* Softer form backgrounds */
+.form-floating > .form-control {
+  background-color: #fafafa !important;
+}
+
+.form-floating > .form-control:focus {
+  background-color: #f8fafc !important;
+}
+
+/* Softer input group backgrounds */
+.input-group-text {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #374151 !important;
+}
+
+/* Softer select backgrounds */
+.form-select {
+  background-color: #fafafa !important;
+}
+
+.form-select:focus {
+  background-color: #f8fafc !important;
+}
+
+/* Softer textarea backgrounds */
+.form-control,
+textarea {
+  background-color: #fafafa !important;
+}
+
+.form-control:focus,
+textarea:focus {
+  background-color: #f8fafc !important;
+}
+
+/* Softer checkbox and radio backgrounds */
+.form-check-input {
+  background-color: #fafafa !important;
+  border-color: #e2e8f0 !important;
+}
+
+.form-check-input:checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Softer switch backgrounds */
+.form-switch .form-check-input {
+  background-color: #e2e8f0 !important;
+}
+
+.form-switch .form-check-input:checked {
+  background-color: #3b82f6 !important;
+}
+
+/* Softer range input backgrounds */
+.form-range::-webkit-slider-track {
+  background-color: #f1f5f9 !important;
+}
+
+.form-range::-moz-range-track {
+  background-color: #f1f5f9 !important;
+}
+
+/* Softer file input backgrounds */
+.form-control[type="file"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer color input backgrounds */
+.form-control[type="color"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer date input backgrounds */
+.form-control[type="date"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer time input backgrounds */
+.form-control[type="time"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer datetime input backgrounds */
+.form-control[type="datetime-local"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer number input backgrounds */
+.form-control[type="number"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer search input backgrounds */
+.form-control[type="search"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer tel input backgrounds */
+.form-control[type="tel"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer url input backgrounds */
+.form-control[type="url"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer email input backgrounds */
+.form-control[type="email"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer password input backgrounds */
+.form-control[type="password"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer text input backgrounds */
+.form-control[type="text"] {
+  background-color: #fafafa !important;
+}
+
+/* Softer textarea backgrounds */
+textarea.form-control {
+  background-color: #fafafa !important;
+}
+
+/* Softer select backgrounds */
+select.form-control,
+select.form-select {
+  background-color: #fafafa !important;
+}
+
+/* Softer multiple select backgrounds */
+select[multiple].form-control,
+select[multiple].form-select {
+  background-color: #fafafa !important;
+}
+
+/* Softer autocomplete backgrounds */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #fafafa inset !important;
+  -webkit-text-fill-color: #374151 !important;
+}
+
+/* Softer placeholder text */
+::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Softer selection backgrounds */
+::selection {
+  background-color: #dbeafe !important;
+  color: #1f2937 !important;
+}
+
+::-moz-selection {
+  background-color: #dbeafe !important;
+  color: #1f2937 !important;
+}
+
+/* Softer scrollbar backgrounds */
+::-webkit-scrollbar {
+  background-color: #f1f5f9 !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important;
+}
+
+/* Softer focus outlines */
+*:focus {
+  outline-color: #3b82f6 !important;
+}
+
+/* Softer disabled backgrounds */
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: #f8fafc !important;
+  color: #9ca3af !important;
+}
+
+/* Softer invalid backgrounds */
+.form-control.is-invalid {
+  background-color: #fef2f2 !important;
+  border-color: #fca5a5 !important;
+}
+
+/* Softer valid backgrounds */
+.form-control.is-valid {
+  background-color: #f0fdf4 !important;
+  border-color: #86efac !important;
+}
+
+/* Softer warning backgrounds */
+.form-control.is-warning {
+  background-color: #fffbeb !important;
+  border-color: #fcd34d !important;
+}
+
+/* Softer info backgrounds */
+.form-control.is-info {
+  background-color: #eff6ff !important;
+  border-color: #93c5fd !important;
+} 

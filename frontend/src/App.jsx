@@ -26,6 +26,8 @@ import DepartmentManagement from './Pages/DepartmentManagement';
 import { getToken, checkCurrentUser } from './services/auth';
 import { ElectionProvider } from './contexts/ElectionContext';
 import './App.css';
+import './brightness-fix.css';
+import './responsive-fix.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Admin Route Protection (for admin and superadmin)

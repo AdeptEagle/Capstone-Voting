@@ -1,0 +1,615 @@
+/* Responsive Design Fix - Better layout for different screen sizes */
+
+/* Base responsive breakpoints */
+@media (max-width: 1200px) {
+  /* Large laptops and smaller desktops */
+  .sidebar {
+    width: 260px !important;
+  }
+  
+  #sidebar {
+    width: 260px !important;
+  }
+  
+  #content {
+    margin-left: 260px !important;
+  }
+  
+  .app-header {
+    left: 260px !important;
+    width: calc(100% - 260px) !important;
+  }
+  
+  /* Increase icon sizes slightly */
+  .nav-link i,
+  #sidebar .material-icons {
+    font-size: 20px !important;
+  }
+  
+  /* Adjust padding for better spacing */
+  .nav-link {
+    padding: 12px 16px !important;
+  }
+  
+  .section-header {
+    padding: 14px 16px !important;
+  }
+}
+
+@media (max-width: 992px) {
+  /* Medium laptops */
+  .sidebar {
+    width: 240px !important;
+  }
+  
+  #sidebar {
+    width: 240px !important;
+  }
+  
+  #content {
+    margin-left: 240px !important;
+  }
+  
+  .app-header {
+    left: 240px !important;
+    width: calc(100% - 240px) !important;
+  }
+  
+  /* Increase icon sizes more */
+  .nav-link i,
+  #sidebar .material-icons {
+    font-size: 22px !important;
+  }
+  
+  /* Better spacing */
+  .nav-link {
+    padding: 14px 18px !important;
+    gap: 12px !important;
+  }
+  
+  .section-header {
+    padding: 16px 18px !important;
+  }
+  
+  /* Adjust admin avatar for smaller screens */
+  .admin-avatar {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .admin-name {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Tablets and large phones */
+  .sidebar {
+    width: 100% !important;
+    max-width: 320px !important;
+    transform: translateX(-100%) !important;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+  
+  #sidebar {
+    width: 100% !important;
+    max-width: 320px !important;
+    transform: translateX(-100%) !important;
+  }
+  
+  #sidebar.show {
+    transform: translateX(0) !important;
+  }
+  
+  #content {
+    margin-left: 0 !important;
+    padding: 1rem !important;
+  }
+  
+  .app-header {
+    left: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* Larger icons for mobile */
+  .nav-link i,
+  #sidebar .material-icons {
+    font-size: 24px !important;
+  }
+  
+  /* Better mobile spacing */
+  .nav-link {
+    padding: 16px 20px !important;
+    gap: 14px !important;
+  }
+  
+  .section-header {
+    padding: 18px 20px !important;
+  }
+  
+  /* Show hamburger on mobile */
+  .sidebar-toggle-btn {
+    display: block !important;
+  }
+  
+  /* Adjust admin profile for mobile */
+  .admin-avatar {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .admin-name {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Small phones */
+  .sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  #sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  #content {
+    padding: 0.5rem !important;
+  }
+  
+  /* Even larger icons for small screens */
+  .nav-link i,
+  #sidebar .material-icons {
+    font-size: 26px !important;
+  }
+  
+  /* Maximum spacing for small screens */
+  .nav-link {
+    padding: 18px 22px !important;
+    gap: 16px !important;
+  }
+  
+  .section-header {
+    padding: 20px 22px !important;
+  }
+  
+  /* Larger admin avatar */
+  .admin-avatar {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  
+  .admin-name {
+    font-size: 20px !important;
+  }
+}
+
+/* Specific fixes for cramped layouts */
+
+/* Increase spacing between nav items */
+.nav-item {
+  margin-bottom: 8px !important;
+}
+
+.nav-link {
+  margin: 4px 0 !important;
+}
+
+/* Better icon alignment */
+.nav-link i,
+.section-header i {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 24px !important;
+}
+
+/* Improve text readability */
+.nav-link span,
+.section-header span {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+}
+
+/* Better section spacing */
+.nav-section {
+  margin-bottom: 16px !important;
+}
+
+/* Improve sidebar header spacing */
+.sidebar-header {
+  padding: 24px 20px !important;
+}
+
+/* Better footer spacing */
+.sidebar-footer {
+  padding: 20px !important;
+}
+
+/* Improve logout button */
+.logout-button {
+  padding: 14px 20px !important;
+  font-size: 14px !important;
+}
+
+/* Better responsive table handling */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 14px !important;
+  }
+  
+  .table th,
+  .table td {
+    padding: 8px 6px !important;
+  }
+  
+  /* Stack table columns on mobile */
+  .table-responsive .table {
+    display: block !important;
+  }
+  
+  .table-responsive .table thead,
+  .table-responsive .table tbody,
+  .table-responsive .table tr,
+  .table-responsive .table th,
+  .table-responsive .table td {
+    display: block !important;
+  }
+  
+  .table-responsive .table thead tr {
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+  }
+  
+  .table-responsive .table tr {
+    border: 1px solid #e2e8f0 !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .table-responsive .table td {
+    border: none !important;
+    position: relative !important;
+    padding-left: 50% !important;
+  }
+  
+  .table-responsive .table td:before {
+    content: attr(data-label) !important;
+    position: absolute !important;
+    left: 6px !important;
+    width: 45% !important;
+    padding-right: 10px !important;
+    white-space: nowrap !important;
+    font-weight: bold !important;
+  }
+}
+
+/* Better card layouts on smaller screens */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 16px !important;
+  }
+  
+  .card-body {
+    padding: 16px !important;
+  }
+  
+  .card-title {
+    font-size: 18px !important;
+  }
+  
+  .card-text {
+    font-size: 14px !important;
+  }
+}
+
+/* Better form layouts on smaller screens */
+@media (max-width: 768px) {
+  .form-group {
+    margin-bottom: 16px !important;
+  }
+  
+  .form-control {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 12px 16px !important;
+  }
+  
+  .btn {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* Better modal layouts on smaller screens */
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 10px !important;
+  }
+  
+  .modal-content {
+    padding: 16px !important;
+  }
+  
+  .modal-header {
+    padding: 16px !important;
+  }
+  
+  .modal-footer {
+    padding: 16px !important;
+  }
+}
+
+/* Better grid layouts on smaller screens */
+@media (max-width: 768px) {
+  .row {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+  }
+  
+  .col,
+  [class*="col-"] {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+/* Better spacing for buttons and inputs */
+@media (max-width: 768px) {
+  .btn-group .btn {
+    margin-bottom: 8px !important;
+  }
+  
+  .input-group {
+    margin-bottom: 16px !important;
+  }
+  
+  .input-group-text {
+    padding: 12px 16px !important;
+  }
+}
+
+/* Better navigation for smaller screens */
+@media (max-width: 768px) {
+  .navbar-nav {
+    flex-direction: column !important;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 12px 16px !important;
+  }
+  
+  .navbar-toggler {
+    padding: 8px 12px !important;
+  }
+}
+
+/* Better dropdown menus on smaller screens */
+@media (max-width: 768px) {
+  .dropdown-menu {
+    position: static !important;
+    float: none !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+  
+  .dropdown-item {
+    padding: 12px 16px !important;
+  }
+}
+
+/* Better pagination on smaller screens */
+@media (max-width: 768px) {
+  .pagination {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .page-link {
+    padding: 8px 12px !important;
+    margin: 2px !important;
+  }
+}
+
+/* Better alert spacing on smaller screens */
+@media (max-width: 768px) {
+  .alert {
+    padding: 12px 16px !important;
+    margin-bottom: 16px !important;
+  }
+}
+
+/* Better list group on smaller screens */
+@media (max-width: 768px) {
+  .list-group-item {
+    padding: 12px 16px !important;
+  }
+}
+
+/* Better breadcrumb on smaller screens */
+@media (max-width: 768px) {
+  .breadcrumb {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .breadcrumb-item + .breadcrumb-item::before {
+    padding: 0 8px !important;
+  }
+}
+
+/* Better progress bars on smaller screens */
+@media (max-width: 768px) {
+  .progress {
+    height: 20px !important;
+    margin-bottom: 16px !important;
+  }
+}
+
+/* Better tooltips on smaller screens */
+@media (max-width: 768px) {
+  .tooltip {
+    font-size: 12px !important;
+  }
+}
+
+/* Better popovers on smaller screens */
+@media (max-width: 768px) {
+  .popover {
+    max-width: 280px !important;
+  }
+  
+  .popover-body {
+    padding: 12px 16px !important;
+  }
+}
+
+/* Better offcanvas on smaller screens */
+@media (max-width: 768px) {
+  .offcanvas {
+    width: 100% !important;
+  }
+}
+
+/* Better accordion on smaller screens */
+@media (max-width: 768px) {
+  .accordion-button {
+    padding: 16px 20px !important;
+    font-size: 16px !important;
+  }
+  
+  .accordion-body {
+    padding: 16px 20px !important;
+  }
+}
+
+/* Better tabs on smaller screens */
+@media (max-width: 768px) {
+  .nav-tabs .nav-link {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .tab-content {
+    padding: 16px !important;
+  }
+}
+
+/* Better pills on smaller screens */
+@media (max-width: 768px) {
+  .nav-pills .nav-link {
+    padding: 12px 16px !important;
+    margin: 2px !important;
+  }
+}
+
+/* Better badges on smaller screens */
+@media (max-width: 768px) {
+  .badge {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+  }
+}
+
+/* Better spinners on smaller screens */
+@media (max-width: 768px) {
+  .spinner-border,
+  .spinner-grow {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+}
+
+/* Better toasts on smaller screens */
+@media (max-width: 768px) {
+  .toast {
+    margin: 8px !important;
+  }
+  
+  .toast-header {
+    padding: 8px 12px !important;
+  }
+  
+  .toast-body {
+    padding: 12px !important;
+  }
+}
+
+/* Better carousel on smaller screens */
+@media (max-width: 768px) {
+  .carousel-item {
+    height: 200px !important;
+  }
+  
+  .carousel-caption {
+    padding: 8px !important;
+  }
+}
+
+/* Better figure on smaller screens */
+@media (max-width: 768px) {
+  .figure {
+    margin-bottom: 16px !important;
+  }
+  
+  .figure-caption {
+    font-size: 14px !important;
+    padding: 8px !important;
+  }
+}
+
+/* Better code blocks on smaller screens */
+@media (max-width: 768px) {
+  pre {
+    font-size: 12px !important;
+    padding: 12px !important;
+  }
+  
+  code {
+    font-size: 12px !important;
+  }
+}
+
+/* Better blockquotes on smaller screens */
+@media (max-width: 768px) {
+  blockquote {
+    padding: 12px 16px !important;
+    margin: 16px 0 !important;
+  }
+}
+
+/* Better images on smaller screens */
+@media (max-width: 768px) {
+  .img-fluid {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  .img-thumbnail {
+    padding: 4px !important;
+  }
+}
+
+/* Better utilities on smaller screens */
+@media (max-width: 768px) {
+  .text-sm {
+    font-size: 12px !important;
+  }
+  
+  .text-lg {
+    font-size: 18px !important;
+  }
+  
+  .m-sm {
+    margin: 8px !important;
+  }
+  
+  .p-sm {
+    padding: 8px !important;
+  }
+} 
