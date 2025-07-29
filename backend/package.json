@@ -7,7 +7,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node simple-test.js",
     "dev": "nodemon server.js",
     "create-db": "node scripts/create-database.js",
     "lint": "eslint .",
