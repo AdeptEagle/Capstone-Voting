@@ -26,8 +26,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Environment configuration
-const NODE_ENV = 'development';
-const PORT = 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = process.env.PORT || 3000;
 const IS_TEST = false;
 
 const app = express();
@@ -176,27 +176,35 @@ let server;
 
 const startServer = async () => {
   try {
-    // Initialize database
-    await ensureDatabaseAndTables();
-    
-    // Start server
-    server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    // Start server first (for health checks)
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${PORT} in ${NODE_ENV} mode`);
+      console.log(`📊 Health check available at: http://localhost:${PORT}/health`);
     });
 
     // Handle server errors
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use`);
+        console.error(`❌ Port ${PORT} is already in use`);
         process.exit(1);
       } else {
-        console.error('Server error:', error);
+        console.error('❌ Server error:', error);
         process.exit(1);
       }
     });
 
+    // Initialize database after server starts
+    try {
+      console.log('🗄️ Initializing database...');
+      await ensureDatabaseAndTables();
+      console.log('✅ Database initialized successfully');
+    } catch (dbError) {
+      console.error('❌ Database initialization failed:', dbError);
+      // Don't exit - server can still serve health checks
+    }
+
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
