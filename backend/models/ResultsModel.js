@@ -14,10 +14,11 @@ export class ResultsModel {
           c.photoUrl,
           COALESCE(COUNT(v.id), 0) as voteCount
         FROM positions p
+        INNER JOIN election_positions ep ON p.id = ep.positionId
+        INNER JOIN elections e ON ep.electionId = e.id
         LEFT JOIN candidates c ON p.id = c.positionId
-        LEFT JOIN votes v ON c.id = v.candidateId AND v.electionId IN (
-          SELECT id FROM elections WHERE status = 'active'
-        )
+        LEFT JOIN votes v ON c.id = v.candidateId AND v.electionId = e.id
+        WHERE e.status = 'active'
         GROUP BY p.id, p.name, p.voteLimit, c.id, c.name, c.photoUrl
         ORDER BY p.displayOrder, p.name, c.displayOrder, c.name, voteCount DESC
       `;
@@ -142,13 +143,13 @@ export class ResultsModel {
           COALESCE(COUNT(DISTINCT v.voterId), 0) as uniqueVoters,
           COALESCE(COUNT(DISTINCT v.candidateId), 0) as candidatesWithVotes,
           COALESCE(COUNT(DISTINCT p.id), 0) as totalPositions,
-          (SELECT COUNT(*) FROM voters WHERE hasVoted = 1) as votersWhoVoted,
+          (SELECT COUNT(DISTINCT v2.voterId) FROM votes v2 INNER JOIN elections e2 ON v2.electionId = e2.id WHERE e2.status = 'active') as votersWhoVoted,
           (SELECT COUNT(*) FROM voters) as totalVoters
         FROM votes v
         LEFT JOIN candidates c ON v.candidateId = c.id
         LEFT JOIN positions p ON c.positionId = p.id
-        LEFT JOIN elections e ON v.electionId = e.id
-        WHERE e.status = 'active' OR e.status IS NULL
+        INNER JOIN elections e ON v.electionId = e.id
+        WHERE e.status = 'active'
       `;
       
       db.query(query, (err, data) => {
@@ -174,8 +175,8 @@ export class ResultsModel {
           DATE_FORMAT(v.created_at, '%H:00') as hour,
           COUNT(*) as voteCount
         FROM votes v
-        LEFT JOIN elections e ON v.electionId = e.id
-        WHERE (e.status = 'active' OR e.status IS NULL)
+        INNER JOIN elections e ON v.electionId = e.id
+        WHERE e.status = 'active'
         AND v.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
         GROUP BY DATE_FORMAT(v.created_at, '%H:00')
         ORDER BY hour

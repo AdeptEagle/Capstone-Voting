@@ -10,40 +10,25 @@ class IDGenerator {
           else resolve(results[0].count);
         });
       });
-      return `ELEC-${result + 1}`;
+      // Use compact format: E1, E2, E3, etc. (max 20 chars)
+      return `E${result + 1}`;
     } finally {
       db.end();
     }
   }
 
   static async getNextElectionPositionID() {
-    const db = createConnection();
-    try {
-      const result = await new Promise((resolve, reject) => {
-        db.query('SELECT COUNT(*) as count FROM election_positions', (err, results) => {
-          if (err) reject(err);
-          else resolve(results[0].count);
-        });
-      });
-      return `ELEC-POS-${result + 1}`;
-    } finally {
-      db.end();
-    }
+    // Use timestamp to ensure uniqueness
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `EP${timestamp}${random}`;
   }
 
   static async getNextElectionCandidateID() {
-    const db = createConnection();
-    try {
-      const result = await new Promise((resolve, reject) => {
-        db.query('SELECT COUNT(*) as count FROM election_candidates', (err, results) => {
-          if (err) reject(err);
-          else resolve(results[0].count);
-        });
-      });
-      return `ELEC-CAND-${result + 1}`;
-    } finally {
-      db.end();
-    }
+    // Use timestamp to ensure uniqueness
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `EC${timestamp}${random}`;
   }
 
   static async getNextVoteID() {
@@ -55,7 +40,8 @@ class IDGenerator {
           else resolve(results[0].count);
         });
       });
-      return `VOTE-${result + 1}`;
+      // Use compact format: V1, V2, V3, etc. (max 20 chars)
+      return `V${result + 1}`;
     } finally {
       db.end();
     }
@@ -64,10 +50,10 @@ class IDGenerator {
   // Utility method to validate custom ID format
   static isValidCustomID(id, type) {
     const patterns = {
-      'election': /^ELEC-\d+$/,
-      'election-position': /^ELEC-POS-\d+$/,
-      'election-candidate': /^ELEC-CAND-\d+$/,
-      'vote': /^VOTE-\d+$/
+      'election': /^E\d+$/,
+      'election-position': /^EP\d+$/,
+      'election-candidate': /^EC\d+$/,
+      'vote': /^V\d+$/
     };
     
     return patterns[type] && patterns[type].test(id);

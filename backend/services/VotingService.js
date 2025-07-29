@@ -2,9 +2,12 @@ import { ElectionModel } from "../models/ElectionModel.js";
 import { VoteModel } from "../models/VoteModel.js";
 import { VoterModel } from "../models/VoterModel.js";
 import { ResultsModel } from "../models/ResultsModel.js";
+import { createConnection } from "../config/database.js";
 
 export class VotingService {
   static async processVote(voteData) {
+    const db = createConnection();
+    
     try {
       const { voterId, candidateId, id, isLastVote } = voteData;
       
@@ -23,9 +26,6 @@ export class VotingService {
       if (activeElection.status !== 'active') {
         throw new Error("Election is not active");
       }
-      
-      // Get current timestamp for vote recording
-      const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
       
       // Check if voter has already completed voting (hasVoted flag)
       const voter = await VoterModel.getById(voterId);
@@ -53,27 +53,61 @@ export class VotingService {
       const IDGenerator = await import('../utils/idGenerator.js');
       const voteId = await IDGenerator.default.getNextVoteID();
       
-      // Record the vote
-      await VoteModel.create({
-        id: voteId,
-        voterId,
-        candidateId,
-        electionId: activeElection.id,
-        positionId: candidate.positionId
+      // BEGIN TRANSACTION - ACID Atomicity
+      await new Promise((resolve, reject) => {
+        db.beginTransaction((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       });
       
-      console.log(`Vote recorded successfully: ${id}`);
-      
-      // Only set hasVoted = true if this is the last vote
-      if (isLastVote) {
-        await VoterModel.setVotedStatus(voterId, true);
-        console.log(`Voter ${voterId} locked out after completing all votes`);
-        return { message: "All votes recorded and voter locked out" };
-      } else {
-        return { message: "Vote recorded" };
+      try {
+        // Record the vote
+        await new Promise((resolve, reject) => {
+          const query = "INSERT INTO votes (id, voterId, candidateId, electionId, positionId) VALUES (?, ?, ?, ?, ?)";
+          const values = [voteId, voterId, candidateId, activeElection.id, candidate.positionId];
+          db.query(query, values, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        
+        console.log(`Vote recorded successfully: ${id}`);
+        
+        // Only set hasVoted = true if this is the last vote
+        if (isLastVote) {
+          await new Promise((resolve, reject) => {
+            const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
+            db.query(query, [voterId], (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+          console.log(`Voter ${voterId} locked out after completing all votes`);
+        }
+        
+        // COMMIT TRANSACTION - ACID Durability
+        await new Promise((resolve, reject) => {
+          db.commit((err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        
+        return { message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded" };
+        
+      } catch (error) {
+        // ROLLBACK TRANSACTION - ACID Consistency
+        await new Promise((resolve) => {
+          db.rollback(() => resolve());
+        });
+        throw error;
       }
+      
     } catch (error) {
       throw error;
+    } finally {
+      db.end();
     }
   }
 

@@ -318,7 +318,7 @@ export const getElection = async (id) => {
 
 export const getElectionPositions = async (id) => {
   try {
-    const response = await api.get(`/votes/ballot/positions/${id}`);
+    const response = await api.get(`/elections/${id}/positions`);
     return response.data;
   } catch (error) {
     console.error('Error fetching election positions:', error);

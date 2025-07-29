@@ -53,7 +53,6 @@ export class ElectionController {
   static async createElection(req, res) {
     try {
       const { title, description, startTime, endTime, positionIds, candidateIds } = req.body;
-      const electionId = req.body.id;
       const createdBy = req.user.id;
 
       // Validate dates
@@ -62,6 +61,10 @@ export class ElectionController {
       if (start >= end) {
         return res.status(400).json({ error: "End time must be after start time" });
       }
+
+      // Generate election ID using the backend ID generator
+      const IDGenerator = await import('../utils/idGenerator.js');
+      const electionId = await IDGenerator.default.getNextElectionID();
 
       const electionData = {
         id: electionId,

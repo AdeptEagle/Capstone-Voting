@@ -240,31 +240,16 @@ const Results = () => {
       const [
         activeResults,
         stats,
-        timeline,
-        positionsData,
-        candidatesData,
-        votersData,
-        departmentsData,
-        coursesData
+        timeline
       ] = await Promise.all([
         getActiveElectionResults(),
         getRealTimeStats(),
-        getVoteTimeline(),
-        getPositions(),
-        getCandidates(),
-        getVoters(),
-        getDepartments(),
-        getCourses()
+        getVoteTimeline()
       ]);
       
       setResultsData(activeResults);
       setRealTimeStats(stats);
       setVoteTimeline(timeline);
-      setPositions(positionsData);
-      setCandidates(candidatesData);
-      setVoters(votersData);
-      setDepartments(departmentsData);
-      setCourses(coursesData);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching results data:', error);
@@ -303,35 +288,40 @@ const Results = () => {
 
   // Calculate analytics data from real-time stats
   const analyticsData = useMemo(() => {
-    if (!resultsData.length || !voters.length) return {};
+    if (!resultsData.length) return {};
 
     const totalVotes = realTimeStats.totalVotes || 0;
-    const totalVoters = realTimeStats.totalVoters || voters.length;
+    const totalVoters = realTimeStats.totalVoters || 0;
     const voterTurnout = realTimeStats.voterTurnout || 0;
     
-    // Votes per position
-    const votesPerPosition = positions.map(position => {
-      const positionVotes = resultsData.filter(vote => {
-        const candidate = candidates.find(c => c.id === vote.candidateId);
-        return candidate && candidate.positionId === position.id;
-      }).length;
-      return { label: position.name, value: positionVotes };
+    // Group results by position
+    const positionGroups = {};
+    resultsData.forEach(result => {
+      if (!positionGroups[result.positionId]) {
+        positionGroups[result.positionId] = {
+          positionName: result.positionName,
+          candidates: []
+        };
+      }
+      positionGroups[result.positionId].candidates.push({
+        candidateId: result.candidateId,
+        candidateName: result.candidateName,
+        voteCount: result.voteCount
+      });
     });
+
+    // Votes per position
+    const votesPerPosition = Object.values(positionGroups).map(position => ({
+      label: position.positionName,
+      value: position.candidates.reduce((sum, candidate) => sum + candidate.voteCount, 0)
+    }));
 
     // Top candidates
-    const candidateVotes = {};
-    resultsData.forEach(vote => {
-      candidateVotes[vote.candidateId] = (candidateVotes[vote.candidateId] || 0) + 1;
-    });
-
-    const topCandidates = Object.entries(candidateVotes)
-      .map(([candidateId, votes]) => {
-        const candidate = candidates.find(c => c.id === candidateId);
-        return { 
-          label: candidate ? candidate.name : 'Unknown',
-          value: votes
-        };
-      })
+    const topCandidates = resultsData
+      .map(result => ({
+        label: result.candidateName,
+        value: result.voteCount
+      }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
 
@@ -347,12 +337,33 @@ const Results = () => {
       voterTurnout,
       votesPerPosition,
       topCandidates,
-      timelineData
+      timelineData,
+      positionGroups
     };
-  }, [resultsData, voters, positions, candidates, realTimeStats, voteTimeline]);
+  }, [resultsData, realTimeStats, voteTimeline]);
 
   if (!canViewResults) {
     return <ElectionStatusMessage type="results" />;
+  }
+
+  // Check if there's any active election data
+  if (!resultsData.length) {
+    return (
+      <div className="results-container">
+        <div className="results-header">
+          <div className="results-title">
+            <h1>Election Results</h1>
+            <p className="text-muted">No active election found</p>
+          </div>
+        </div>
+        <div className="alert alert-info text-center">
+          <i className="fas fa-info-circle fa-2x mb-3"></i>
+          <h4>No Active Election</h4>
+          <p>There is currently no active election with results to display.</p>
+          <p className="mb-0">Please wait for an election to be started or check back later.</p>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {
@@ -442,7 +453,7 @@ const Results = () => {
         />
         <AnalyticsCard
           title="Positions"
-          value={realTimeStats.totalPositions || positions.length}
+          value={Object.keys(analyticsData.positionGroups || {}).length}
           icon="fas fa-briefcase"
           color="#f39c12"
         />
@@ -509,33 +520,27 @@ const Results = () => {
         {activeTab === 'positions' && (
           <div className="positions-tab">
             <div className="positions-grid">
-              {positions.map((position, index) => {
-                const positionCandidates = candidates.filter(c => c.positionId === position.id);
-                const positionVotes = resultsData.filter(vote => {
-                  const candidate = candidates.find(c => c.id === vote.candidateId);
-                  return candidate && candidate.positionId === position.id;
-                });
+              {Object.values(analyticsData.positionGroups || {}).map((position, index) => {
+                const candidateResults = position.candidates
+                  .sort((a, b) => b.voteCount - a.voteCount);
 
-                const candidateResults = positionCandidates.map(candidate => {
-                  const votes = positionVotes.filter(vote => vote.candidateId === candidate.id).length;
-                  return { ...candidate, votes };
-                }).sort((a, b) => b.votes - a.votes);
+                const totalPositionVotes = position.candidates.reduce((sum, candidate) => sum + candidate.voteCount, 0);
 
                 return (
-                  <div key={position.id} className="position-card">
-                    <h3>{position.name}</h3>
+                  <div key={position.positionName} className="position-card">
+                    <h3>{position.positionName}</h3>
                     <div className="candidate-results">
                       {candidateResults.map((candidate, idx) => (
-                        <div key={candidate.id} className="candidate-result">
+                        <div key={candidate.candidateId} className="candidate-result">
                           <div className="candidate-info">
-                            <span className="candidate-name">{candidate.name}</span>
-                            <span className="candidate-votes">{candidate.votes} votes</span>
+                            <span className="candidate-name">{candidate.candidateName}</span>
+                            <span className="candidate-votes">{candidate.voteCount} votes</span>
                           </div>
                           <div className="candidate-progress">
                             <div 
                               className="candidate-progress-bar"
                               style={{ 
-                                width: `${positionVotes.length > 0 ? (candidate.votes / positionVotes.length) * 100 : 0}%`,
+                                width: `${totalPositionVotes > 0 ? (candidate.voteCount / totalPositionVotes) * 100 : 0}%`,
                                 backgroundColor: getRandomColor(idx)
                               }}
                             />

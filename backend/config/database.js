@@ -13,7 +13,12 @@ const dbConfig = {
   password: "root",
   port: 3306,
   charset: 'utf8mb4',
-  timezone: '+00:00'
+  timezone: '+00:00',
+  // Connection pool settings for better ACID support
+  connectionLimit: 10,
+  queueLimit: 0,
+  // Enable multiple statements for transactions
+  multipleStatements: true
 };
 
 // Create a connection without specifying database to create DB if needed
