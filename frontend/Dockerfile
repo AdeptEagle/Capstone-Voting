@@ -25,8 +25,5 @@ RUN npm prune --production
 # Expose port
 EXPOSE 4173
 
-# Create a wrapper script that uses Railway's PORT
-RUN echo '#!/bin/sh\nPORT=${PORT:-4173}\necho "Starting serve on port: $PORT"\nexec serve -s dist -l $PORT' > start.sh && chmod +x start.sh
-
-# Start the application
-CMD ["./start.sh"] 
+# Start the application with serve using Railway's PORT
+CMD ["sh", "-c", "PORT=${PORT:-4173} && echo 'Starting serve on port: $PORT' && serve -s dist -l $PORT"] 
