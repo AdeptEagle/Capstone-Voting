@@ -157,13 +157,9 @@ const Vote = () => {
           voteCount++;
           const isLastVote = voteCount === totalVotes;
           
-          // Generate a proper UUID for the vote ID
-          const voteId = generateUUID();
-          
           console.log(`Submitting vote: voterId=${voterId}, candidateId=${candidateId}, isLastVote=${isLastVote}`);
           
           await createVote({
-            id: voteId,
             voterId: voterId, // Use the correct voter ID
             candidateId,
             positionId: pos.id, // Add the position ID

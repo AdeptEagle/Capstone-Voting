@@ -49,9 +49,13 @@ export class VotingService {
         throw new Error("Candidate not found");
       }
       
+      // Get next vote ID
+      const IDGenerator = await import('../utils/idGenerator.js');
+      const voteId = await IDGenerator.default.getNextVoteID();
+      
       // Record the vote
       await VoteModel.create({
-        id,
+        id: voteId,
         voterId,
         candidateId,
         electionId: activeElection.id,
@@ -73,9 +77,33 @@ export class VotingService {
     }
   }
 
+  static async getActiveElectionResults() {
+    try {
+      return await ResultsModel.getActiveElectionResults();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async getResults(showAll = false) {
     try {
       return await ResultsModel.getResults(showAll);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getRealTimeStats() {
+    try {
+      return await ResultsModel.getRealTimeStats();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getVoteTimeline() {
+    try {
+      return await ResultsModel.getVoteTimeline();
     } catch (error) {
       throw error;
     }

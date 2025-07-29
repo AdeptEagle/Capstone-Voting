@@ -183,7 +183,7 @@ async function createTables(verbose = true) {
       {
         name: 'elections',
         sql: `CREATE TABLE IF NOT EXISTS elections (
-          id VARCHAR(36) PRIMARY KEY,
+          id VARCHAR(20) PRIMARY KEY,
           title VARCHAR(255) NOT NULL,
           description TEXT,
           startTime DATETIME NOT NULL,
@@ -198,8 +198,8 @@ async function createTables(verbose = true) {
       {
         name: 'election_positions',
         sql: `CREATE TABLE IF NOT EXISTS election_positions (
-          id VARCHAR(36) PRIMARY KEY,
-          electionId VARCHAR(36) NOT NULL,
+          id VARCHAR(20) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
           positionId VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
@@ -209,8 +209,8 @@ async function createTables(verbose = true) {
       {
         name: 'election_candidates',
         sql: `CREATE TABLE IF NOT EXISTS election_candidates (
-          id VARCHAR(36) PRIMARY KEY,
-          electionId VARCHAR(36) NOT NULL,
+          id VARCHAR(20) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
           candidateId VARCHAR(36) NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
@@ -220,8 +220,8 @@ async function createTables(verbose = true) {
       {
         name: 'votes',
         sql: `CREATE TABLE IF NOT EXISTS votes (
-          id VARCHAR(36) PRIMARY KEY,
-          electionId VARCHAR(36) NOT NULL,
+          id VARCHAR(20) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
           positionId VARCHAR(36) NOT NULL,
           candidateId VARCHAR(36) NOT NULL,
           voterId INT NOT NULL,

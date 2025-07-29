@@ -25,8 +25,8 @@ import ResetPassword from './Pages/ResetPassword';
 import DepartmentManagement from './Pages/DepartmentManagement';
 import { getToken, checkCurrentUser } from './services/auth';
 import { ElectionProvider } from './contexts/ElectionContext';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Admin Route Protection (for admin and superadmin)
 function AdminRoute({ children }) {

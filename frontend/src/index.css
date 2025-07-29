@@ -15,7 +15,7 @@
 body {
   margin: 0;
   font-family: var(--font-family-sans-serif);
-  background-color: var(--light-color);
+  background-color: #F1FAEE; /* Use the same background as App.css */
   color: var(--dark-color);
   line-height: 1.6;
 }
@@ -23,6 +23,7 @@ body {
 .App {
   display: flex;
   min-height: 100vh;
+  background-color: #F1FAEE;
 }
 
 /* Sidebar Styles */
@@ -114,7 +115,7 @@ main {
   flex-grow: 1;
   padding: 0 20px 20px 20px; /* Removed top padding */
   transition: margin-left 0.3s ease-in-out;
-  background-color: #f0f2f5;
+  background-color: #F1FAEE; /* Match the App.css background */
 }
 
 /* Overlay for closing sidebar on mobile */

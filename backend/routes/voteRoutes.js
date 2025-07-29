@@ -1,30 +1,28 @@
 import express from "express";
-import { authenticate } from "../middleware/auth.js";
 import { VoteController } from "../controllers/VoteController.js";
-import ElectionAssignmentController from "../controllers/ElectionAssignmentController.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public endpoints for ballot data (no authentication required)
-router.get("/ballot/positions/:electionId", ElectionAssignmentController.getElectionPositions);
-router.get("/ballot/candidates/:electionId", ElectionAssignmentController.getElectionCandidates);
-
-// Apply authentication middleware to all routes
-router.use(authenticate);
+// Create a new vote
+router.post("/", VoteController.createVote);
 
 // Get all votes
-router.get("/", VoteController.getAllVotes);
-
-// Submit a vote
-router.post("/", VoteController.submitVote);
+router.get("/", authenticate, VoteController.getVotes);
 
 // Get voting results
 router.get("/results", VoteController.getResults);
 
-// Debug: Reset voter status (for testing)
-router.post("/debug/reset-voter/:voterId", VoteController.resetVoterStatus);
+// Get active election results only
+router.get("/active-results", VoteController.getActiveElectionResults);
 
-// Debug: Check voter status
-router.get("/debug/voter-status/:voterId", VoteController.getVoterStatus);
+// Get real-time voting statistics
+router.get("/real-time-stats", VoteController.getRealTimeStats);
+
+// Get vote timeline data
+router.get("/vote-timeline", VoteController.getVoteTimeline);
+
+// Reset voter status (admin only)
+router.put("/reset-voter/:voterId", authenticate, VoteController.resetVoterStatus);
 
 export default router; 
