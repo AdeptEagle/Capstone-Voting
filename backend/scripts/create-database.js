@@ -37,8 +37,13 @@ async function createDatabase() {
     await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
     console.log(`✅ Database '${DB_NAME}' created/verified`);
     
-    // Use the database
-    await connection.execute(`USE \`${DB_NAME}\``);
+    // Close the current connection and create a new one with the database selected
+    await connection.end();
+    connection = await mysql.createConnection({
+      ...dbConfig,
+      database: DB_NAME,
+      multipleStatements: true
+    });
     
     // Create all tables
     const tables = [
@@ -443,7 +448,11 @@ async function createDatabase() {
     
   } finally {
     if (connection) {
-      await connection.end();
+      try {
+        await connection.end();
+      } catch (error) {
+        console.log('Warning: Could not close database connection:', error.message);
+      }
     }
   }
 }
