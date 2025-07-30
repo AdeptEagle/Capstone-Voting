@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
 import './Vote.css';
-import { getImageUrl } from '../../utils/image';
+import { getImageUrl, CandidatePhotoPlaceholder } from '../../utils/image';
 
 // Simple UUID generator
 const generateUUID = () => {

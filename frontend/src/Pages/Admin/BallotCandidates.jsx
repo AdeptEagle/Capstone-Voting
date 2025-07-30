@@ -5,7 +5,7 @@ import {
 } from '../../services/api';
 import './BallotCandidates.css';
 import '../Candidates.css';
-import { getImageUrl } from '../../utils/image';
+import { getImageUrl, CandidatePhotoPlaceholder } from '../../utils/image';
 
 const BallotCandidates = () => {
   const { activeElection } = useElection();
