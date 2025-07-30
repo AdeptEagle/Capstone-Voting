@@ -339,7 +339,7 @@ export const getElectionCandidates = async (electionId) => {
 // Position assignment functions
 export const getPositionAssignmentStatus = async (electionId) => {
   try {
-    const response = await api.get(`/elections/${electionId}/position-assignments`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/position-status`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching position assignment status:', error);
@@ -350,7 +350,7 @@ export const getPositionAssignmentStatus = async (electionId) => {
 // Candidate assignment functions
 export const getCandidateAssignmentStatus = async (electionId) => {
   try {
-    const response = await api.get(`/elections/${electionId}/candidate-status`);
+    const response = await api.get(`/election-assignments/elections/${electionId}/candidate-status`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching candidate assignment status:', error);
