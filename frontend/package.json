@@ -26,5 +26,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.4",
     "vite": "^4.5.0"
-  }
+  },
+  "buildTimestamp": "2024-01-27T12:00:00Z"
 }
