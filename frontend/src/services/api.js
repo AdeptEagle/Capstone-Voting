@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Get API base URL from environment or use Railway backend URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend-production-219d.up.railway.app/api';
+const API_BASE_URL = 'https://backend-production-219d.up.railway.app/api';
 
 // Debug: Log the API URL being used
 console.log('🔗 API Base URL:', API_BASE_URL);
