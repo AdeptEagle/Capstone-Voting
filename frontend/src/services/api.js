@@ -333,6 +333,17 @@ export const getElectionCandidates = async (electionId) => {
   }
 };
 
+// Position assignment functions
+export const getPositionAssignmentStatus = async (electionId) => {
+  try {
+    const response = await api.get(`/elections/${electionId}/position-assignments`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching position assignment status:', error);
+    return [];
+  }
+};
+
 // Vote API functions
 export const createVote = async (voteData) => {
   try {
