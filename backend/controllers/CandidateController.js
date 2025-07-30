@@ -14,17 +14,13 @@ export class CandidateController {
 
   static async createCandidate(req, res) {
     try {
-      const { name, positionId, departmentId, courseId, description } = req.body;
+      const { name, positionId, departmentId, courseId, description, photoUrl } = req.body;
       
-      // Debug logging for file upload
-      console.log('📁 File upload debug:');
-      console.log('   - req.file:', req.file);
-      console.log('   - req.files:', req.files);
+      // Debug logging for image handling
+      console.log('📁 Image handling debug:');
       console.log('   - req.body:', req.body);
-      
-      const photoUrl = req.file ? req.file.filename : null;
-      
       console.log('   - photoUrl:', photoUrl);
+      console.log('   - photoBase64 present:', !!req.body.photoBase64);
 
       // Validate required fields
       if (!name || !positionId || !departmentId || !courseId) {
@@ -39,7 +35,7 @@ export class CandidateController {
         positionId,
         departmentId,
         courseId,
-        photoUrl,
+        photoUrl: photoUrl || null,
         description
       };
 
@@ -56,13 +52,13 @@ export class CandidateController {
   static async updateCandidate(req, res) {
     try {
       const candidateId = req.params.id;
-      const { name, positionId, departmentId, courseId, description } = req.body;
+      const { name, positionId, departmentId, courseId, description, photoUrl } = req.body;
       
-      // Debug logging for file upload
-      console.log('📁 File upload debug (update):');
-      console.log('   - req.file:', req.file);
-      console.log('   - req.files:', req.files);
+      // Debug logging for image handling
+      console.log('📁 Image handling debug (update):');
       console.log('   - req.body:', req.body);
+      console.log('   - photoUrl:', photoUrl);
+      console.log('   - photoBase64 present:', !!req.body.photoBase64);
       
       // Validate required fields
       if (!name || !positionId || !departmentId || !courseId) {
@@ -71,20 +67,12 @@ export class CandidateController {
         });
       }
       
-      // If a new photo was uploaded, use it; otherwise keep the existing one
-      let photoUrl = req.body.photoUrl; // Keep existing if no new file
-      if (req.file) {
-        photoUrl = req.file.filename; // Store just the filename
-      }
-      
-      console.log('   - photoUrl:', photoUrl);
-      
       const candidateData = {
         name,
         positionId,
         departmentId,
         courseId,
-        photoUrl,
+        photoUrl: photoUrl || null,
         description
       };
 
