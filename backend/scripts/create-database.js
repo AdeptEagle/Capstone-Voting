@@ -218,7 +218,7 @@ async function createDatabase() {
     const superadminPassword = await bcrypt.hash('superadmin123', 10);
     await connection.execute(
       `INSERT INTO admins (id, username, email, password, role) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE role = ?, password = ?`,
-      ['superadmin-001', 'superadmin', 'superadmin@votingsystem.com', superadminPassword, 'superadmin', 'superadmin', superadminPassword]
+      ['superadmin-001', 'Super admin -DevKerbs', 'superadmin@votingsystem.com', superadminPassword, 'superadmin', 'superadmin', superadminPassword]
     );
     
     // 2. Create additional admin accounts
@@ -424,7 +424,7 @@ async function createDatabase() {
     console.log('   - 2 Sample Elections');
     
     console.log('\n🔑 Default Login Credentials:');
-    console.log('   Superadmin: superadmin / superadmin123');
+    console.log('   Superadmin: Super admin -DevKerbs / superadmin123');
     console.log('   Admin: admin1 / admin123');
     
     console.log('\n🌐 Next Steps:');

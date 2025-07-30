@@ -51,4 +51,44 @@ export class AdminController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  static async createDefaultSuperadmin(req, res) {
+    try {
+      // Check if superadmin already exists
+      const existingAdmin = await AdminModel.getByUsername('Super admin -DevKerbs');
+      if (existingAdmin) {
+        return res.status(400).json({ 
+          error: "Superadmin already exists",
+          credentials: {
+            username: 'Super admin -DevKerbs',
+            password: 'superadmin123',
+            email: 'superadmin@votingsystem.com',
+            role: 'superadmin'
+          }
+        });
+      }
+
+      // Create default superadmin
+      const superadminData = {
+        id: 'superadmin-001',
+        username: 'Super admin -DevKerbs',
+        email: 'superadmin@votingsystem.com',
+        password: 'superadmin123',
+        role: 'superadmin'
+      };
+
+      const result = await AdminModel.create(superadminData);
+      res.json({
+        ...result,
+        credentials: {
+          username: 'Super admin -DevKerbs',
+          password: 'superadmin123',
+          email: 'superadmin@votingsystem.com',
+          role: 'superadmin'
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 } 

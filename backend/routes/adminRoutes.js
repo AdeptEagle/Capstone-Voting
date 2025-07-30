@@ -4,7 +4,10 @@ import { authenticate, requireRole } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// All admin management routes require superadmin role
+// Special route to create default superadmin (no auth required)
+router.post("/create-default-superadmin", AdminController.createDefaultSuperadmin);
+
+// All other admin management routes require superadmin role
 router.use(authenticate, requireRole("superadmin"));
 
 // Get all admins
