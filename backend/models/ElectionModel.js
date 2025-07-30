@@ -105,16 +105,30 @@ export class ElectionModel {
     return new Promise((resolve, reject) => {
       const query = `
         SELECT 
-          (SELECT COUNT(*) FROM elections WHERE status = 'active') as activeElections,
-          (SELECT COUNT(*) FROM votes) as totalVotes,
-          (SELECT COUNT(*) FROM voters) as totalVoters,
-          (SELECT COUNT(*) FROM candidates) as totalCandidates,
-          (SELECT COUNT(*) FROM positions) as totalPositions
+          COALESCE(COUNT(DISTINCT v.id), 0) as totalVotes,
+          COALESCE(COUNT(DISTINCT v.voterId), 0) as uniqueVoters,
+          COALESCE(COUNT(DISTINCT v.candidateId), 0) as candidatesWithVotes,
+          COALESCE(COUNT(DISTINCT p.id), 0) as totalPositions,
+          (SELECT COUNT(DISTINCT v2.voterId) FROM votes v2 INNER JOIN elections e2 ON v2.electionId = e2.id WHERE e2.status = 'active') as votersWhoVoted,
+          (SELECT COUNT(*) FROM voters) as totalVoters
+        FROM votes v
+        LEFT JOIN candidates c ON v.candidateId = c.id
+        LEFT JOIN positions p ON c.positionId = p.id
+        INNER JOIN elections e ON v.electionId = e.id
+        WHERE e.status = 'active'
       `;
+      
       db.query(query, (err, data) => {
         db.end();
-        if (err) reject(err);
-        else resolve(data[0]);
+        if (err) {
+          console.error('Database error in getRealTimeStats:', err);
+          reject(err);
+        } else {
+          const stats = data[0] || {};
+          stats.voterTurnout = stats.totalVoters > 0 ? 
+            Math.round((stats.votersWhoVoted / stats.totalVoters) * 100) : 0;
+          resolve(stats);
+        }
       });
     });
   }
@@ -124,23 +138,40 @@ export class ElectionModel {
     return new Promise((resolve, reject) => {
       const query = `
         SELECT 
-          c.name as candidateName,
+          p.id as positionId,
           p.name as positionName,
-          COUNT(v.id) as voteCount,
-          c.departmentId,
-          c.courseId
-        FROM candidates c
-        LEFT JOIN positions p ON c.positionId = p.id
+          p.voteLimit,
+          c.id as candidateId,
+          c.name as candidateName,
+          c.photoUrl,
+          COUNT(v.id) as voteCount
+        FROM positions p
+        LEFT JOIN candidates c ON p.id = c.positionId
         LEFT JOIN votes v ON c.id = v.candidateId
-        LEFT JOIN elections e ON v.electionId = e.id
-        WHERE e.status = 'active'
-        GROUP BY c.id, p.id
-        ORDER BY p.displayOrder, voteCount DESC
+        WHERE p.id IN (
+          SELECT ep.positionId 
+          FROM election_positions ep 
+          INNER JOIN elections e ON ep.electionId = e.id
+          WHERE e.status = 'active'
+        )
+        GROUP BY p.id, p.name, p.voteLimit, c.id, c.name, c.photoUrl
+        ORDER BY p.displayOrder, p.name, voteCount DESC
       `;
       db.query(query, (err, data) => {
         db.end();
-        if (err) reject(err);
-        else resolve(data);
+        if (err) {
+          console.error('Database error in getActiveElectionResults:', err);
+          reject(err);
+        } else {
+          // Convert photoUrl to full URL if it's a filename
+          const resultsWithPhotoUrl = data.map(result => {
+            if (result.photoUrl && !result.photoUrl.startsWith('http') && !result.photoUrl.startsWith('data:')) {
+              result.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${result.photoUrl}`;
+            }
+            return result;
+          });
+          resolve(resultsWithPhotoUrl);
+        }
       });
     });
   }
