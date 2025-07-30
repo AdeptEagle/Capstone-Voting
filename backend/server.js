@@ -64,8 +64,17 @@ app.get('/health', (req, res) => {
 app.get("/", (req, res) => {
   res.json({
     message: "Voting System API is running!",
-    version: "1.0.0",
+    version: "1.0.1",
     environment: NODE_ENV,
+    timestamp: new Date().toISOString(),
+    deployment: "Latest version with superadmin route"
+  });
+});
+
+// Test endpoint to verify deployment
+app.get("/test-deployment", (req, res) => {
+  res.json({
+    message: "Deployment test successful",
     timestamp: new Date().toISOString()
   });
 });
