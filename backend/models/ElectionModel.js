@@ -194,6 +194,36 @@ export class ElectionModel {
     });
   }
 
+  static async getElectionCandidates(electionId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT c.*, ec.electionId, p.name as positionName
+        FROM candidates c
+        INNER JOIN election_candidates ec ON c.id = ec.candidateId
+        LEFT JOIN positions p ON c.positionId = p.id
+        WHERE ec.electionId = ?
+        ORDER BY p.displayOrder, c.name
+      `;
+      db.query(query, [electionId], (err, data) => {
+        db.end();
+        if (err) {
+          console.error('Database error in getElectionCandidates:', err);
+          reject(err);
+        } else {
+          // Convert photoUrl to full URL if it's a filename
+          const candidatesWithPhotoUrl = data.map(candidate => {
+            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+            }
+            return candidate;
+          });
+          resolve(candidatesWithPhotoUrl);
+        }
+      });
+    });
+  }
+
   static async create(electionData) {
     const db = createConnection();
     

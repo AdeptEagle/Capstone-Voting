@@ -200,4 +200,14 @@ export class ElectionController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  static async getElectionCandidates(req, res) {
+    try {
+      const electionId = req.params.id;
+      const candidates = await ElectionModel.getElectionCandidates(electionId);
+      res.json(candidates);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 } 

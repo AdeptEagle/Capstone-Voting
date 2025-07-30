@@ -281,7 +281,7 @@ const Results = () => {
       };
 
       updateTimeDisplay();
-      const interval = setInterval(updateTimeDisplay, 1000);
+      const interval = setInterval(updateTimeDisplay, 5000);
       return () => clearInterval(interval);
     }
   }, [currentElection]);

@@ -57,8 +57,8 @@ export const ElectionProvider = ({ children }) => {
   useEffect(() => {
     fetchElectionData();
     
-    // Refresh election status every 10 seconds for more responsive updates
-    const interval = setInterval(fetchElectionData, 10000);
+    // Refresh election status every 30 seconds for more responsive updates
+    const interval = setInterval(fetchElectionData, 30000);
     
     return () => clearInterval(interval);
   }, []);
