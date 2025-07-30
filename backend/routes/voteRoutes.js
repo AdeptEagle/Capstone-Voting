@@ -22,6 +22,9 @@ router.get("/real-time-stats", VoteController.getRealTimeStats);
 // Get vote timeline data
 router.get("/vote-timeline", VoteController.getVoteTimeline);
 
+// Get vote timeline (alternative route for frontend)
+router.get("/timeline", VoteController.getVoteTimeline);
+
 // Reset voter status (admin only)
 router.put("/reset-voter/:voterId", authenticate, VoteController.resetVoterStatus);
 

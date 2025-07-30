@@ -7,6 +7,9 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.get('/', DepartmentController.getAll);
 
+// Get courses in a department (public - needed for user registration and candidate creation)
+router.get('/:id/courses', DepartmentController.getCourses);
+
 // Protected routes (require authentication)
 router.use(authenticate);
 router.use(requireRole(['admin', 'superadmin']));
@@ -22,9 +25,6 @@ router.put('/:id', DepartmentController.update);
 
 // Delete a department
 router.delete('/:id', DepartmentController.delete);
-
-// Get courses in a department
-router.get('/:id/courses', DepartmentController.getCourses);
 
 // Get voters in a department
 router.get('/:id/voters', DepartmentController.getVoters);

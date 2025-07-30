@@ -100,6 +100,69 @@ export class ElectionModel {
     });
   }
 
+  static async getRealTimeStats() {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          (SELECT COUNT(*) FROM elections WHERE status = 'active') as activeElections,
+          (SELECT COUNT(*) FROM votes) as totalVotes,
+          (SELECT COUNT(*) FROM voters) as totalVoters,
+          (SELECT COUNT(*) FROM candidates) as totalCandidates,
+          (SELECT COUNT(*) FROM positions) as totalPositions
+      `;
+      db.query(query, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data[0]);
+      });
+    });
+  }
+
+  static async getActiveElectionResults() {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          c.name as candidateName,
+          p.name as positionName,
+          COUNT(v.id) as voteCount,
+          c.departmentId,
+          c.courseId
+        FROM candidates c
+        LEFT JOIN positions p ON c.positionId = p.id
+        LEFT JOIN votes v ON c.id = v.candidateId
+        LEFT JOIN elections e ON v.electionId = e.id
+        WHERE e.status = 'active'
+        GROUP BY c.id, p.id
+        ORDER BY p.displayOrder, voteCount DESC
+      `;
+      db.query(query, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
+  static async getElectionPositions(electionId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT p.*, ep.electionId
+        FROM positions p
+        INNER JOIN election_positions ep ON p.id = ep.positionId
+        WHERE ep.electionId = ?
+        ORDER BY p.displayOrder
+      `;
+      db.query(query, [electionId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
   static async create(electionData) {
     const db = createConnection();
     

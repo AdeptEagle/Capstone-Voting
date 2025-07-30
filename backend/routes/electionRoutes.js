@@ -16,6 +16,12 @@ router.get("/current", ElectionController.getCurrentElection);
 // Get election history
 router.get("/history", ElectionController.getElectionHistory);
 
+// Get real-time stats
+router.get("/stats/realtime", ElectionController.getRealTimeStats);
+
+// Get active election results
+router.get("/active/results", ElectionController.getActiveElectionResults);
+
 // Get election by ID
 router.get("/:id", ElectionController.getElectionById);
 

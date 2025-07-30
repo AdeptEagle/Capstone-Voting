@@ -37,6 +37,24 @@ export class ElectionController {
     }
   }
 
+  static async getRealTimeStats(req, res) {
+    try {
+      const stats = await ElectionModel.getRealTimeStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async getActiveElectionResults(req, res) {
+    try {
+      const results = await ElectionModel.getActiveElectionResults();
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   static async getElectionById(req, res) {
     try {
       const electionId = req.params.id;
@@ -176,7 +194,7 @@ export class ElectionController {
   static async getElectionPositions(req, res) {
     try {
       const electionId = req.params.id;
-      const positions = await ElectionModel.getPositions(electionId);
+      const positions = await ElectionModel.getElectionPositions(electionId);
       res.json(positions);
     } catch (error) {
       res.status(500).json({ error: error.message });
