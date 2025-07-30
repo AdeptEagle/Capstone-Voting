@@ -192,31 +192,27 @@ const Candidates = () => {
     }
     
     try {
-      let dataToSend;
+      let dataToSend = { ...formData };
+      
+      // Handle photo file conversion to base64
       if (photoFile) {
-        dataToSend = new FormData();
-        dataToSend.append('name', formData.name);
-        dataToSend.append('positionId', formData.positionId);
-        dataToSend.append('departmentId', formData.departmentId);
-        dataToSend.append('courseId', formData.courseId);
-        dataToSend.append('description', formData.description);
-        dataToSend.append('photo', photoFile);
-      } else {
-        dataToSend = { ...formData };
+        const base64 = await convertFileToBase64(photoFile);
+        dataToSend.photoBase64 = base64;
+        // Remove photoUrl if we have a new file
+        delete dataToSend.photoUrl;
+      } else if (editingCandidate && !photoFile) {
         // If editing and no new photo selected, preserve the existing photo URL
-        if (editingCandidate && !photoFile) {
-          dataToSend.photoUrl = editingCandidate.photoUrl;
-        }
+        dataToSend.photoUrl = editingCandidate.photoUrl;
       }
       
       console.log('Submitting candidate data:', dataToSend);
       
       if (editingCandidate) {
         console.log('Updating candidate:', editingCandidate.id);
-        await updateCandidate(editingCandidate.id, dataToSend, photoFile ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
+        await updateCandidate(editingCandidate.id, dataToSend);
       } else {
         console.log('Creating new candidate');
-        await createCandidate(dataToSend, photoFile ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
+        await createCandidate(dataToSend);
       }
       
       console.log('Candidate saved successfully, refreshing data...');
@@ -226,6 +222,16 @@ const Candidates = () => {
       console.error('Error saving candidate:', error);
       setError('Failed to save candidate');
     }
+  };
+
+  // Helper function to convert file to base64
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const handleDelete = async (id) => {
