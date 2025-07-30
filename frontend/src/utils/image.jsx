@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Get backend URL from environment or use Railway backend URL
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://your-railway-backend-url.railway.app';
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://backend-production-219d.up.railway.app';
 
 export const getImageUrl = (photoUrl) => {
   if (!photoUrl) return '/default-avatar.png';
