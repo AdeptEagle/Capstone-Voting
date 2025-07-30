@@ -45,4 +45,57 @@ api.interceptors.response.use(
   }
 );
 
+// Election API functions
+export const getElections = async () => {
+  try {
+    const response = await api.get('/elections');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching elections:', error);
+    throw error;
+  }
+};
+
+export const getActiveElection = async () => {
+  try {
+    const response = await api.get('/elections/active');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching active election:', error);
+    return null;
+  }
+};
+
+export const updateElection = async (electionId, updateData) => {
+  try {
+    const response = await api.put(`/elections/${electionId}`, updateData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating election:', error);
+    throw error;
+  }
+};
+
+// Vote API functions
+export const getVotes = async () => {
+  try {
+    const response = await api.get('/votes');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching votes:', error);
+    return [];
+  }
+};
+
+// Voter API functions
+export const getVoters = async () => {
+  try {
+    const response = await api.get('/voters');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching voters:', error);
+    return [];
+  }
+};
+
 export default api; 
