@@ -82,20 +82,32 @@ export class CandidateModel {
   static async create(candidateData) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
+      // Generate UUID if no id provided
+      const id = candidateData.id || 'candidate-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      
       const query = "INSERT INTO candidates (id, name, positionId, departmentId, courseId, photoUrl, description) VALUES (?, ?, ?, ?, ?, ?, ?)";
       const values = [
-        candidateData.id,
+        id,
         candidateData.name,
         candidateData.positionId,
         candidateData.departmentId || null,
         candidateData.courseId || null,
-        candidateData.photoUrl,
+        candidateData.photoUrl || null,
         candidateData.description || null
       ];
+      
       db.query(query, values, (err, data) => {
         db.end();
-        if (err) reject(err);
-        else resolve({ message: "Candidate created successfully!" });
+        if (err) {
+          console.error('Error creating candidate:', err);
+          reject(err);
+        } else {
+          resolve({ 
+            message: "Candidate created successfully!",
+            id: id,
+            candidate: { ...candidateData, id }
+          });
+        }
       });
     });
   }
