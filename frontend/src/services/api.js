@@ -344,6 +344,17 @@ export const getPositionAssignmentStatus = async (electionId) => {
   }
 };
 
+// Candidate assignment functions
+export const getCandidateAssignmentStatus = async (electionId) => {
+  try {
+    const response = await api.get(`/elections/${electionId}/candidate-assignments`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching candidate assignment status:', error);
+    return [];
+  }
+};
+
 // Vote API functions
 export const createVote = async (voteData) => {
   try {
@@ -435,6 +446,67 @@ export const getCourses = async () => {
   } catch (error) {
     console.error('Error fetching courses:', error);
     return [];
+  }
+};
+
+export const createCourse = async (courseData) => {
+  try {
+    const response = await api.post('/courses', courseData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating course:', error);
+    throw error;
+  }
+};
+
+export const updateCourse = async (courseId, updateData) => {
+  try {
+    const response = await api.put(`/courses/${courseId}`, updateData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating course:', error);
+    throw error;
+  }
+};
+
+export const deleteCourse = async (courseId) => {
+  try {
+    const response = await api.delete(`/courses/${courseId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    throw error;
+  }
+};
+
+// Department management functions
+export const createDepartment = async (departmentData) => {
+  try {
+    const response = await api.post('/departments', departmentData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating department:', error);
+    throw error;
+  }
+};
+
+export const updateDepartment = async (departmentId, updateData) => {
+  try {
+    const response = await api.put(`/departments/${departmentId}`, updateData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating department:', error);
+    throw error;
+  }
+};
+
+export const deleteDepartment = async (departmentId) => {
+  try {
+    const response = await api.delete(`/departments/${departmentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting department:', error);
+    throw error;
   }
 };
 
