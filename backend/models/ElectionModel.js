@@ -195,16 +195,20 @@ export class ElectionModel {
   }
 
   static async getElectionCandidates(electionId) {
-    const db = createConnection();
     return new Promise((resolve, reject) => {
+      const db = createConnection();
+      
       const query = `
-        SELECT c.*, ec.electionId, p.name as positionName
+        SELECT 
+          c.*,
+          p.name as positionName,
+          CASE WHEN ec.electionId IS NOT NULL THEN 1 ELSE 0 END as isAssigned
         FROM candidates c
-        INNER JOIN election_candidates ec ON c.id = ec.candidateId
         LEFT JOIN positions p ON c.positionId = p.id
-        WHERE ec.electionId = ?
+        LEFT JOIN election_candidates ec ON c.id = ec.candidateId AND ec.electionId = ?
         ORDER BY p.displayOrder, c.name
       `;
+      
       db.query(query, [electionId], (err, data) => {
         db.end();
         if (err) {

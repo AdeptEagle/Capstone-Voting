@@ -33,25 +33,25 @@ class ElectionAssignmentModel {
   static async getElectionCandidates(electionId) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = `
-        SELECT c.*, ec.id as assignmentId, p.name as positionName
-        FROM candidates c
-        INNER JOIN election_candidates ec ON c.id = ec.candidateId
-        INNER JOIN positions p ON c.positionId = p.id
-        WHERE ec.electionId = ?
-        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
-      `;
+             const query = `
+         SELECT c.*, ec.id as assignmentId, p.name as positionName
+         FROM candidates c
+         INNER JOIN election_candidates ec ON c.id = ec.candidateId
+         INNER JOIN positions p ON c.positionId = p.id
+         WHERE ec.electionId = ?
+         ORDER BY p.displayOrder, p.name, c.name
+       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
         if (err) reject(err);
         else {
           // Format photo URLs for candidates
           const formattedResults = results.map(candidate => {
-            if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
-              if (!candidate.photoUrl.startsWith('http')) {
-                candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
-              }
-            }
+                         if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
+               if (!candidate.photoUrl.startsWith('http')) {
+                 candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+               }
+             }
             return candidate;
           });
           resolve(formattedResults);
@@ -86,28 +86,28 @@ class ElectionAssignmentModel {
   static async getUnassignedCandidates(electionId) {
     const db = createConnection();
     return new Promise((resolve, reject) => {
-      const query = `
-        SELECT c.*, p.name as positionName
-        FROM candidates c
-        INNER JOIN positions p ON c.positionId = p.id
-        WHERE c.id NOT IN (
-          SELECT ec.candidateId 
-          FROM election_candidates ec 
-          WHERE ec.electionId = ?
-        )
-        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
-      `;
+             const query = `
+         SELECT c.*, p.name as positionName
+         FROM candidates c
+         INNER JOIN positions p ON c.positionId = p.id
+         WHERE c.id NOT IN (
+           SELECT ec.candidateId 
+           FROM election_candidates ec 
+           WHERE ec.electionId = ?
+         )
+         ORDER BY p.displayOrder, p.name, c.name
+       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
         if (err) reject(err);
         else {
-          // Format photo URLs for candidates
-          const formattedResults = results.map(candidate => {
-            if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+                     // Format photo URLs for candidates
+           const formattedResults = results.map(candidate => {
+             if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
+               candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+             }
+             return candidate;
+           });
           resolve(formattedResults);
         }
       });
@@ -219,7 +219,7 @@ class ElectionAssignmentModel {
         FROM candidates c
         INNER JOIN positions p ON c.positionId = p.id
         LEFT JOIN election_candidates ec ON c.id = ec.candidateId AND ec.electionId = ?
-        ORDER BY p.displayOrder, p.name, c.displayOrder, c.name
+        ORDER BY p.displayOrder, p.name, c.name
       `;
       db.query(query, [electionId], (err, results) => {
         db.end();
@@ -228,7 +228,7 @@ class ElectionAssignmentModel {
           // Format photo URLs for candidates
           const formattedResults = results.map(candidate => {
             if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
             }
             return candidate;
           });

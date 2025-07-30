@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getDepartments, getElectionCandidates } from '../services/api';
+import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getDepartments } from '../services/api';
 import './Elections.css';
 
 const Elections = () => {
@@ -26,7 +26,6 @@ const Elections = () => {
     startTime: '',
     endTime: '',
     positionIds: [],
-    candidateIds: [], // Add candidate IDs field
     // New fields for dynamic position/candidate creation
     newPositions: [],
     newCandidates: [],
@@ -413,32 +412,18 @@ const Elections = () => {
       });
       setShowEditModal(true);
       
-      // Fetch both positions and candidates for this specific election
-      const [electionPositions, electionCandidates] = await Promise.all([
-        getElectionPositions(election.id),
-        getElectionCandidates(election.id)
-      ]);
-      
+      // Fetch the positions for this specific election
+      const electionPositions = await getElectionPositions(election.id);
       const positionIds = electionPositions.map(pos => pos.id);
-      const candidateIds = electionCandidates.map(candidate => candidate.id);
       
-      console.log('📊 Election data loaded:', {
-        electionId: election.id,
-        positions: electionPositions.length,
-        candidates: electionCandidates.length,
-        positionIds,
-        candidateIds
-      });
-      
-      // Update form data with fetched positions and candidates
+      // Update form data with fetched positions
       setFormData(prev => ({
         ...prev,
-        positionIds: positionIds,
-        candidateIds: candidateIds
+        positionIds: positionIds
       }));
     } catch (error) {
-      console.error('Error fetching election data:', error);
-      setError('Failed to load election data. Please try again.');
+      console.error('Error fetching election positions:', error);
+      setError('Failed to load election positions. Please try again.');
       // Don't close the modal, let user see the error
     } finally {
       setLoadingPositions(false);
@@ -460,7 +445,6 @@ const Elections = () => {
       startTime: '',
       endTime: '',
       positionIds: [],
-      candidateIds: [], // Add candidate IDs field
       // New fields for dynamic position/candidate creation
       newPositions: [],
       newCandidates: [],

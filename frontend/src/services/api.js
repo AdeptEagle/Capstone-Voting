@@ -350,11 +350,24 @@ export const getPositionAssignmentStatus = async (electionId) => {
 // Candidate assignment functions
 export const getCandidateAssignmentStatus = async (electionId) => {
   try {
-    const response = await api.get(`/elections/${electionId}/candidate-assignments`);
+    const response = await api.get(`/elections/${electionId}/candidate-status`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching candidate assignment status:', error);
     return [];
+  }
+};
+
+export const assignCandidateToElection = async (electionId, candidateId) => {
+  try {
+    const response = await api.post('/election-assignments/elections/assign-candidate', {
+      electionId,
+      candidateId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error assigning candidate to election:', error);
+    throw error;
   }
 };
 

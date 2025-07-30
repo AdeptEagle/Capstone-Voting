@@ -191,7 +191,6 @@ async function createTables(verbose = true) {
           courseId VARCHAR(36),
           photoUrl TEXT,
           description TEXT,
-          displayOrder INT NOT NULL DEFAULT 0,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
