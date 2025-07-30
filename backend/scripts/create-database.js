@@ -433,6 +433,8 @@ async function createDatabase() {
     console.log('   3. Access the application at http://localhost:5173');
     console.log('\n💡 To add additional departments and courses:');
     console.log('   npm run seed-data');
+    console.log('\n💡 To ensure SuperAdmin account exists:');
+    console.log('   npm run seed-superadmin');
     
   } catch (error) {
     console.error('\n❌ Database creation failed:', error.message);

@@ -15,7 +15,7 @@ A complete role-based voting system with backend API and frontend interface buil
 
 **Seeded Data Includes:**
 - **👑 Admin Accounts**: 1 SuperAdmin + 3 Admin accounts
-- **🏢 Departments**: 12 comprehensive departments (CS, IT, Engineering, Business, Arts & Sciences)
+- **🏢 Departments**: 16 comprehensive departments (including 4 College departments)
 - **📚 Courses**: 15 courses across all departments
 - **🏛️ Positions**: 15 positions (President, VP, Secretary, Treasurer, etc.)
 - **👥 Candidates**: 18 realistic candidates with detailed descriptions

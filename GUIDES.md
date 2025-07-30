@@ -45,7 +45,10 @@ npm run create-db
 # Add specific departments and courses
 npm run seed-data
 
-# Run both in sequence (recommended)
+# Ensure SuperAdmin account exists
+npm run seed-superadmin
+
+# Run all in sequence (recommended)
 npm run setup-db
 ```
 
@@ -63,6 +66,11 @@ npm run setup-db
 **Additional Data (via seed-data):**
 - 4 College departments
 - 13 specific courses
+
+**Permanent SuperAdmin (via seed-superadmin):**
+- SuperAdmin account with full system access
+- Username: Super admin -DevKerbs
+- Password: superadmin123
 
 #### Data Persistence Features
 
@@ -111,6 +119,7 @@ To add your own departments and courses:
 |--------|---------|---------|
 | `create-database.js` | Complete database setup | `npm run create-db` |
 | `seed-departments-courses.js` | Add departments/courses | `npm run seed-data` |
+| `seed-superadmin.js` | Ensure SuperAdmin exists | `npm run seed-superadmin` |
 | `add-superadmin.js` | Add admin accounts | `node scripts/add-superadmin.js` |
 
 ### 2. Database Setup
