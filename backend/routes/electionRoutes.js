@@ -31,6 +31,9 @@ router.get("/:id/positions", ElectionController.getElectionPositions);
 // Get candidate assignments for election
 router.get("/:id/candidate-assignments", ElectionController.getElectionCandidates);
 
+// Get position assignments for election
+router.get("/:id/position-assignments", ElectionController.getElectionPositions);
+
 // Create new election (requires authentication)
 router.post("/", authenticate, requireRole(["admin", "superadmin"]), ElectionController.createElection);
 

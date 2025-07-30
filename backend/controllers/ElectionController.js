@@ -107,6 +107,9 @@ export class ElectionController {
       const electionId = req.params.id;
       const { title, description, startTime, endTime, status, positionIds, candidateIds } = req.body;
 
+      console.log('🔄 Updating election:', electionId);
+      console.log('📝 Update data:', { title, description, startTime, endTime, status, positionIds, candidateIds });
+
       // Validate dates
       const start = new Date(startTime);
       const end = new Date(endTime);
@@ -125,8 +128,10 @@ export class ElectionController {
       };
 
       const result = await ElectionModel.update(electionId, electionData);
+      console.log('✅ Election updated successfully:', result);
       res.json(result);
     } catch (error) {
+      console.error('❌ Error updating election:', error);
       res.status(500).json({ error: error.message });
     }
   }

@@ -328,9 +328,13 @@ export class ElectionModel {
     try {
       const { title, description, startTime, endTime, status, positionIds, candidateIds } = electionData;
 
+      console.log('🔄 ElectionModel.update called with:', { id, electionData });
+
       // Convert dates to MySQL datetime format
       const mysqlStartTime = new Date(startTime).toISOString().slice(0, 19).replace('T', ' ');
       const mysqlEndTime = new Date(endTime).toISOString().slice(0, 19).replace('T', ' ');
+
+      console.log('📅 Converted dates:', { mysqlStartTime, mysqlEndTime });
 
       // BEGIN TRANSACTION - ACID Atomicity
       await new Promise((resolve, reject) => {
@@ -345,18 +349,29 @@ export class ElectionModel {
         await new Promise((resolve, reject) => {
           db.query("UPDATE elections SET title = ?, description = ?, startTime = ?, endTime = ?, status = ? WHERE id = ?",
             [title, description, mysqlStartTime, mysqlEndTime, status, id], (err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error('❌ Error updating election:', err);
+              reject(err);
+            } else {
+              console.log('✅ Election updated successfully');
+              resolve();
+            }
           });
         });
 
         // Update positions if provided
         if (positionIds !== undefined) {
+          console.log('🔄 Updating positions:', positionIds);
           // Remove existing positions
           await new Promise((resolve, reject) => {
             db.query("DELETE FROM election_positions WHERE electionId = ?", [id], (err) => {
-              if (err) reject(err);
-              else resolve();
+              if (err) {
+                console.error('❌ Error deleting positions:', err);
+                reject(err);
+              } else {
+                console.log('✅ Existing positions deleted');
+                resolve();
+              }
             });
           });
 
@@ -374,8 +389,13 @@ export class ElectionModel {
             await new Promise((resolve, reject) => {
               const positionQuery = "INSERT INTO election_positions (id, electionId, positionId) VALUES ?";
               db.query(positionQuery, [positionValues], (err) => {
-                if (err) reject(err);
-                else resolve();
+                if (err) {
+                  console.error('❌ Error inserting positions:', err);
+                  reject(err);
+                } else {
+                  console.log('✅ New positions inserted');
+                  resolve();
+                }
               });
             });
           }
@@ -383,11 +403,17 @@ export class ElectionModel {
 
         // Update candidates if provided
         if (candidateIds !== undefined) {
+          console.log('🔄 Updating candidates:', candidateIds);
           // Remove existing candidates
           await new Promise((resolve, reject) => {
             db.query("DELETE FROM election_candidates WHERE electionId = ?", [id], (err) => {
-              if (err) reject(err);
-              else resolve();
+              if (err) {
+                console.error('❌ Error deleting candidates:', err);
+                reject(err);
+              } else {
+                console.log('✅ Existing candidates deleted');
+                resolve();
+              }
             });
           });
 
@@ -405,8 +431,13 @@ export class ElectionModel {
             await new Promise((resolve, reject) => {
               const candidateQuery = "INSERT INTO election_candidates (id, electionId, candidateId) VALUES ?";
               db.query(candidateQuery, [candidateValues], (err) => {
-                if (err) reject(err);
-                else resolve();
+                if (err) {
+                  console.error('❌ Error inserting candidates:', err);
+                  reject(err);
+                } else {
+                  console.log('✅ New candidates inserted');
+                  resolve();
+                }
               });
             });
           }
@@ -415,14 +446,20 @@ export class ElectionModel {
         // COMMIT TRANSACTION - ACID Durability
         await new Promise((resolve, reject) => {
           db.commit((err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error('❌ Error committing transaction:', err);
+              reject(err);
+            } else {
+              console.log('✅ Transaction committed successfully');
+              resolve();
+            }
           });
         });
 
         return { message: "Election updated successfully!" };
 
       } catch (error) {
+        console.error('❌ Error in transaction, rolling back:', error);
         // ROLLBACK TRANSACTION - ACID Consistency
         await new Promise((resolve) => {
           db.rollback(() => resolve());
@@ -431,6 +468,7 @@ export class ElectionModel {
       }
 
     } catch (error) {
+      console.error('❌ Error in ElectionModel.update:', error);
       throw error;
     } finally {
       db.end();
