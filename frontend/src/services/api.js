@@ -59,7 +59,7 @@ export const getElections = async () => {
 export const getActiveElection = async () => {
   try {
     const response = await api.get('/elections/active');
-    return response.data;
+    return response.data || null;
   } catch (error) {
     console.error('Error fetching active election:', error);
     return null;

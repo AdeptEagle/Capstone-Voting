@@ -25,13 +25,14 @@ export const ElectionProvider = ({ children }) => {
       
       // Fetch all elections to check for ended ones
       const allElectionsResponse = await api.get('/elections');
-      setAllElections(allElectionsResponse.data || []);
+      const electionsData = Array.isArray(allElectionsResponse.data) ? allElectionsResponse.data : [];
+      setAllElections(electionsData);
       
       // Fetch current election (for admin monitoring, includes paused/stopped elections)
       try {
         const currentResponse = await api.get('/elections/current');
         console.log('Current election response:', currentResponse.data);
-        setActiveElection(currentResponse.data);
+        setActiveElection(currentResponse.data || null);
       } catch (currentError) {
         // No current election found, which is fine
         console.log('No current election found:', currentError.message);
@@ -73,7 +74,7 @@ export const ElectionProvider = ({ children }) => {
     activeElection: !!activeElection,
     activeElectionStatus: activeElection?.status,
     hasAnyElection: allElections.length > 0,
-    allElectionsStatuses: allElections.map(e => e.status)
+    allElectionsStatuses: Array.isArray(allElections) ? allElections.map(e => e.status) : []
   });
 
   const value = {
