@@ -7,6 +7,7 @@ const API_BASE_URL = 'https://backend-production-219d.up.railway.app/api';
 console.log('🔗 API Base URL:', API_BASE_URL);
 console.log('🌍 Environment:', import.meta.env.MODE);
 console.log('🔧 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('🚀 Frontend will make requests to:', API_BASE_URL);
 
 // Create axios instance with default config
 const api = axios.create({
