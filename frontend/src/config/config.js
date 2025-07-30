@@ -2,7 +2,7 @@
 const config = {
   // API Configuration
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://backend-production-219d.up.railway.app/api',
     version: import.meta.env.VITE_API_VERSION || 'v1',
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000
   },
@@ -62,7 +62,7 @@ const config = {
 
   // Real-time Configuration
   realtime: {
-    websocketUrl: import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:3000',
+    websocketUrl: import.meta.env.VITE_WEBSOCKET_URL || 'wss://backend-production-219d.up.railway.app',
     enabled: import.meta.env.VITE_WEBSOCKET_ENABLED === 'true'
   },
 
