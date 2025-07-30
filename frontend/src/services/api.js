@@ -266,10 +266,12 @@ export const deleteElection = async (electionId) => {
 
 export const startElection = async (electionId) => {
   try {
+    console.log('🚀 Starting election with POST request:', electionId);
     const response = await api.post(`/elections/${electionId}/start`);
+    console.log('✅ Election start response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error starting election:', error);
+    console.error('❌ Error starting election:', error);
     throw error;
   }
 };
