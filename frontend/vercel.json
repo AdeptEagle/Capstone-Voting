@@ -2,6 +2,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "git": {
+    "deploymentEnabled": {
+      "main": false,
+      "deployment": true
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",
