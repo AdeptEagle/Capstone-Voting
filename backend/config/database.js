@@ -429,6 +429,9 @@ async function ensureDatabaseAndTables() {
       await createTables(false);
     }
 
+    // Always seed with default data (this will update existing data if needed)
+    await insertDefaultData(isFreshSetup);
+
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
     throw error;
