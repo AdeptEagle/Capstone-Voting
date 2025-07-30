@@ -318,7 +318,7 @@ export const endElection = async (electionId) => {
 
 export const getElectionPositions = async (electionId) => {
   try {
-    const response = await api.get(`/election-assignments/elections/${electionId}/positions`);
+    const response = await api.get(`/elections/${electionId}/positions`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching election positions:', error);
@@ -328,7 +328,7 @@ export const getElectionPositions = async (electionId) => {
 
 export const getElectionCandidates = async (electionId) => {
   try {
-    const response = await api.get(`/election-assignments/elections/${electionId}/candidates`);
+    const response = await api.get(`/elections/${electionId}/candidate-assignments`);
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching election candidates:', error);
