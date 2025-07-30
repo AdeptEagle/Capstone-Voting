@@ -266,7 +266,7 @@ export const deleteElection = async (electionId) => {
 
 export const startElection = async (electionId) => {
   try {
-    const response = await api.put(`/elections/${electionId}/start`);
+    const response = await api.post(`/elections/${electionId}/start`);
     return response.data;
   } catch (error) {
     console.error('Error starting election:', error);
@@ -276,7 +276,7 @@ export const startElection = async (electionId) => {
 
 export const pauseElection = async (electionId) => {
   try {
-    const response = await api.put(`/elections/${electionId}/pause`);
+    const response = await api.post(`/elections/${electionId}/pause`);
     return response.data;
   } catch (error) {
     console.error('Error pausing election:', error);
@@ -286,7 +286,7 @@ export const pauseElection = async (electionId) => {
 
 export const stopElection = async (electionId) => {
   try {
-    const response = await api.put(`/elections/${electionId}/stop`);
+    const response = await api.post(`/elections/${electionId}/stop`);
     return response.data;
   } catch (error) {
     console.error('Error stopping election:', error);
@@ -296,7 +296,7 @@ export const stopElection = async (electionId) => {
 
 export const resumeElection = async (electionId) => {
   try {
-    const response = await api.put(`/elections/${electionId}/resume`);
+    const response = await api.post(`/elections/${electionId}/resume`);
     return response.data;
   } catch (error) {
     console.error('Error resuming election:', error);
@@ -306,7 +306,7 @@ export const resumeElection = async (electionId) => {
 
 export const endElection = async (electionId) => {
   try {
-    const response = await api.put(`/elections/${electionId}/end`);
+    const response = await api.post(`/elections/${electionId}/end`);
     return response.data;
   } catch (error) {
     console.error('Error ending election:', error);
