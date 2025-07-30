@@ -117,7 +117,7 @@ class DepartmentModel {
         LEFT JOIN voters v ON c.id = v.courseId
         WHERE c.departmentId = ?
         GROUP BY c.id
-        ORDER BY c.displayOrder, c.name
+        ORDER BY c.name
       `;
       db.query(query, [departmentId], (err, results) => {
         db.end();
