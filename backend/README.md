@@ -29,10 +29,22 @@ npm install
 
 ### 2. Database Setup
 
-#### Option A: Automatic Setup (Recommended)
+#### Option A: Complete Setup (Recommended)
+```bash
+# Create database with all tables and sample data
+npm run create-db
+
+# Add additional departments and courses
+npm run seed-data
+
+# Or run both in sequence
+npm run setup-db
+```
+
+#### Option B: Automatic Setup
 The server will automatically create the database and tables on first run.
 
-#### Option B: Manual Setup
+#### Option C: Manual Setup
 ```sql
 -- Connect to MySQL and run:
 CREATE DATABASE voting_system;

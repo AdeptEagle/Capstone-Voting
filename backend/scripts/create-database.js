@@ -431,6 +431,8 @@ async function createDatabase() {
     console.log('   1. Start the backend: npm start');
     console.log('   2. Start the frontend: cd ../frontend && npm run dev');
     console.log('   3. Access the application at http://localhost:5173');
+    console.log('\n💡 To add additional departments and courses:');
+    console.log('   npm run seed-data');
     
   } catch (error) {
     console.error('\n❌ Database creation failed:', error.message);
