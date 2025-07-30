@@ -37,6 +37,8 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:4173',
+    'https://capstone-voting.vercel.app',
+    'https://capstone-voting.vercel.app/*',
     'https://*.vercel.app',
     'https://*.vercel.app/*'
   ],
@@ -47,6 +49,22 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
+
+// Additional CORS headers for all routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://capstone-voting.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
