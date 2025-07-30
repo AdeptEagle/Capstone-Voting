@@ -35,7 +35,7 @@ export class CandidateModel {
           // Convert photoUrl to full URL if it's a filename
           const candidatesWithPhotoUrl = data.map(candidate => {
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http')) {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
             }
             return candidate;
           });
@@ -69,7 +69,7 @@ export class CandidateModel {
           // Convert photoUrl to full URL if it's a filename
           const candidatesWithPhotoUrl = data.map(candidate => {
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http')) {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
             }
             return candidate;
           });
@@ -165,7 +165,7 @@ export class CandidateModel {
           else {
             const candidate = data[0];
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http')) {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
             }
             resolve(candidate);
           }
@@ -194,7 +194,7 @@ export class CandidateModel {
           // Convert photoUrl to full URL if it's a filename
           const candidatesWithPhotoUrl = data.map(candidate => {
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http')) {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
             }
             return candidate;
           });
@@ -224,7 +224,7 @@ export class CandidateModel {
           // Convert photoUrl to full URL if it's a filename
           const candidatesWithPhotoUrl = data.map(candidate => {
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http')) {
-              candidate.photoUrl = `http://localhost:3000/uploads/${candidate.photoUrl}`;
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
             }
             return candidate;
           });
