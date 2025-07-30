@@ -49,10 +49,10 @@ api.interceptors.response.use(
 export const getElections = async () => {
   try {
     const response = await api.get('/elections');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching elections:', error);
-    throw error;
+    return [];
   }
 };
 
@@ -80,7 +80,7 @@ export const updateElection = async (electionId, updateData) => {
 export const getVotes = async () => {
   try {
     const response = await api.get('/votes');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching votes:', error);
     return [];
@@ -91,7 +91,7 @@ export const getVotes = async () => {
 export const getVoters = async () => {
   try {
     const response = await api.get('/voters');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching voters:', error);
     return [];
@@ -102,7 +102,7 @@ export const getVoters = async () => {
 export const getPositions = async () => {
   try {
     const response = await api.get('/positions');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching positions:', error);
     return [];
@@ -143,7 +143,7 @@ export const deletePosition = async (positionId) => {
 export const getCandidates = async () => {
   try {
     const response = await api.get('/candidates');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching candidates:', error);
     return [];
@@ -184,7 +184,7 @@ export const deleteCandidate = async (candidateId) => {
 export const getDepartments = async () => {
   try {
     const response = await api.get('/departments');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching departments:', error);
     return [];
@@ -194,7 +194,7 @@ export const getDepartments = async () => {
 export const getCoursesByDepartment = async (departmentId) => {
   try {
     const response = await api.get(`/departments/${departmentId}/courses`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching courses by department:', error);
     return [];
@@ -205,7 +205,7 @@ export const getCoursesByDepartment = async (departmentId) => {
 export const getAdmins = async () => {
   try {
     const response = await api.get('/admins');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching admins:', error);
     return [];
@@ -316,7 +316,7 @@ export const endElection = async (electionId) => {
 export const getElectionPositions = async (electionId) => {
   try {
     const response = await api.get(`/elections/${electionId}/positions`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching election positions:', error);
     return [];
@@ -326,7 +326,7 @@ export const getElectionPositions = async (electionId) => {
 export const getElectionCandidates = async (electionId) => {
   try {
     const response = await api.get(`/elections/${electionId}/candidates`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching election candidates:', error);
     return [];
@@ -337,7 +337,7 @@ export const getElectionCandidates = async (electionId) => {
 export const getPositionAssignmentStatus = async (electionId) => {
   try {
     const response = await api.get(`/elections/${electionId}/position-assignments`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching position assignment status:', error);
     return [];
@@ -348,7 +348,7 @@ export const getPositionAssignmentStatus = async (electionId) => {
 export const getCandidateAssignmentStatus = async (electionId) => {
   try {
     const response = await api.get(`/elections/${electionId}/candidate-assignments`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching candidate assignment status:', error);
     return [];
@@ -421,7 +421,7 @@ export const getRealTimeStats = async () => {
 export const getVoteTimeline = async () => {
   try {
     const response = await api.get('/votes/timeline');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching vote timeline:', error);
     return [];
@@ -431,7 +431,7 @@ export const getVoteTimeline = async () => {
 export const getElectionHistory = async () => {
   try {
     const response = await api.get('/elections/history');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching election history:', error);
     return [];
@@ -442,7 +442,7 @@ export const getElectionHistory = async () => {
 export const getCourses = async () => {
   try {
     const response = await api.get('/courses');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching courses:', error);
     return [];
