@@ -1,58 +1,68 @@
 #!/usr/bin/env node
-
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 
-console.log('👑 Adding Superadmin Account to Database');
-console.log('=========================================\n');
+console.log('🚀 Adding Superadmin Account to Existing Database');
+console.log('================================================\n');
 
-// Database configuration - update these values for your Railway database
+// Database configuration
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'root',
-  port: process.env.DB_PORT || 3306,
-  database: process.env.DB_NAME || 'voting_system',
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  port: 3306,
   charset: 'utf8mb4',
   timezone: '+00:00'
 };
+
+const DB_NAME = 'voting_system';
 
 async function addSuperadmin() {
   let connection;
   
   try {
-    console.log('🔍 Connecting to database...');
-    connection = await mysql.createConnection(dbConfig);
-    console.log('✅ Database connection successful\n');
+    console.log('🔍 Testing MySQL connection...');
+    connection = await mysql.createConnection({
+      ...dbConfig,
+      database: DB_NAME
+    });
+    console.log('✅ MySQL connection successful\n');
     
-    console.log('👑 Creating superadmin account...');
-    const superadminPassword = await bcrypt.hash('superadmin123', 10);
+    console.log('👑 Adding superadmin account...');
+    
+    // Hash the password
+    const superadminPassword = await bcrypt.hash('devEagle123', 10);
     
     // Check if superadmin already exists
     const [existingAdmin] = await connection.execute(
       'SELECT id FROM admins WHERE username = ?',
-      ['Super admin -DevKerbs']
+      ['DevEagle']
     );
     
     if (existingAdmin.length > 0) {
       console.log('⚠️  Superadmin account already exists!');
-      console.log('   Username: Super admin -DevKerbs');
-      console.log('   Password: superadmin123');
+      console.log('\n🔑 Existing Credentials:');
+      console.log('   Username: DevEagle');
+      console.log('   Password: devEagle123');
+      console.log('   Email: devEagle@votingsystem.com');
+      console.log('   Role: superadmin');
       return;
     }
     
-    // Insert superadmin
+    // Insert the superadmin
     await connection.execute(
       `INSERT INTO admins (id, username, email, password, role) VALUES (?, ?, ?, ?, ?)`,
-      ['superadmin-001', 'Super admin -DevKerbs', 'superadmin@votingsystem.com', superadminPassword, 'superadmin']
+      ['superadmin-001', 'DevEagle', 'devEagle@votingsystem.com', superadminPassword, 'superadmin']
     );
     
     console.log('✅ Superadmin account created successfully!');
-    console.log('\n🔑 Superadmin Login Credentials:');
-    console.log('   Username: Super admin -DevKerbs');
-    console.log('   Password: superadmin123');
-    console.log('   Email: superadmin@votingsystem.com');
+    console.log('\n🔑 Login Credentials:');
+    console.log('   Username: DevEagle');
+    console.log('   Password: devEagle123');
+    console.log('   Email: devEagle@votingsystem.com');
     console.log('   Role: superadmin');
+    
+    console.log('\n🌐 You can now login to the voting system with these credentials.');
     
   } catch (error) {
     console.error('\n❌ Failed to add superadmin:', error.message);
@@ -60,10 +70,11 @@ async function addSuperadmin() {
     if (error.code === 'ECONNREFUSED') {
       console.log('\n💡 Troubleshooting:');
       console.log('   - Make sure MySQL server is running');
-      console.log('   - Check database connection settings');
+      console.log('   - Check if MySQL is installed and started');
+      console.log('   - Verify the database credentials');
     } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
       console.log('\n💡 Troubleshooting:');
-      console.log('   - Check database credentials');
+      console.log('   - Check MySQL username and password');
       console.log('   - Update the dbConfig in this script');
     } else if (error.code === 'ER_BAD_DB_ERROR') {
       console.log('\n💡 Troubleshooting:');
@@ -75,7 +86,6 @@ async function addSuperadmin() {
     if (connection) {
       try {
         await connection.end();
-        console.log('\n✅ Database connection closed');
       } catch (error) {
         console.log('Warning: Could not close database connection:', error.message);
       }
@@ -83,5 +93,4 @@ async function addSuperadmin() {
   }
 }
 
-// Run the superadmin creation
 addSuperadmin(); 
