@@ -33,4 +33,4 @@ MYSQL_URL = "${{ MySQL.MYSQL_URL }}"
 
 [services.voting-system-frontend.envs]
 NODE_ENV = "production"
-VITE_API_BASE_URL = "https://voting-system-backend-production.up.railway.app/api" 
+VITE_API_BASE_URL = "https://backend-production-219d.up.railway.app/api" 
