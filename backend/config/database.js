@@ -7,20 +7,43 @@ const IS_TEST = false;
 
 // Database configuration - use Railway MySQL plugin variables directly
 const DB_NAME = process.env.MYSQLDATABASE || process.env.DB_NAME || (IS_TEST ? "voting_system_test" : "voting_system");
-const dbConfig = {
-  host: process.env.MYSQLHOST || process.env.DB_HOST || "localhost",
-  user: process.env.MYSQLUSER || process.env.DB_USER || "root",
-  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || "root",
-  port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
-  charset: process.env.DB_CHARSET || 'utf8mb4',
-  timezone: process.env.DB_TIMEZONE || '+00:00',
-  // Connection pool settings for better ACID support
-  connectionLimit: 10,
-  acquireTimeout: 60000,
-  timeout: 60000,
-  reconnect: true,
-  multipleStatements: true
-};
+
+// Parse MYSQL_URL if available, otherwise use individual variables
+let dbConfig;
+if (process.env.MYSQL_URL) {
+  // Parse MySQL URL (mysql://user:password@host:port/database)
+  const url = new URL(process.env.MYSQL_URL);
+  dbConfig = {
+    host: url.hostname,
+    user: url.username,
+    password: url.password,
+    port: parseInt(url.port) || 3306,
+    charset: process.env.DB_CHARSET || 'utf8mb4',
+    timezone: process.env.DB_TIMEZONE || '+00:00',
+    // Connection pool settings for better ACID support
+    connectionLimit: 10,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    reconnect: true,
+    multipleStatements: true
+  };
+} else {
+  // Fallback to individual environment variables
+  dbConfig = {
+    host: process.env.MYSQLHOST || process.env.DB_HOST || "localhost",
+    user: process.env.MYSQLUSER || process.env.DB_USER || "root",
+    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || "root",
+    port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
+    charset: process.env.DB_CHARSET || 'utf8mb4',
+    timezone: process.env.DB_TIMEZONE || '+00:00',
+    // Connection pool settings for better ACID support
+    connectionLimit: 10,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    reconnect: true,
+    multipleStatements: true
+  };
+}
 
 // Create a connection without specifying database to create DB if needed
 const dbRoot = mysql.createConnection({

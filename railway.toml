@@ -29,6 +29,7 @@ healthcheckPath = "/"
 [services.voting-system-backend.envs]
 NODE_ENV = "production"
 PORT = "3000"
+MYSQL_URL = "${{ MySQL.MYSQL_URL }}"
 
 [services.voting-system-frontend.envs]
 NODE_ENV = "production"
