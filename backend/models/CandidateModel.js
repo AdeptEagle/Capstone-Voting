@@ -32,7 +32,7 @@ export class CandidateModel {
         db.end();
         if (err) reject(err);
         else {
-          // Convert photoUrl to full URL if it's a filename (not base64)
+          // Convert photoUrl to full URL if it's a filename (not already a URL)
           const candidatesWithPhotoUrl = data.map(candidate => {
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
               candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
@@ -66,7 +66,7 @@ export class CandidateModel {
         db.end();
         if (err) reject(err);
         else {
-          // Convert photoUrl to full URL if it's a filename (not base64)
+          // Convert photoUrl to full URL if it's a filename (not already a URL)
           const candidatesWithPhotoUrl = data.map(candidate => {
             if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
               candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;

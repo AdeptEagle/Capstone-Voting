@@ -1,7 +1,7 @@
 import express from "express";
 import { authenticate } from "../middleware/auth.js";
 import { CandidateController } from "../controllers/CandidateController.js";
-import { upload, handleBase64Image } from "../middleware/upload.js";
+import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -14,11 +14,11 @@ router.get("/", CandidateController.getAllCandidates);
 // Get candidate by ID
 router.get("/:id", CandidateController.getCandidateById);
 
-// Create new candidate (with base64 image handling)
-router.post("/", handleBase64Image, CandidateController.createCandidate);
+// Create new candidate (with file upload)
+router.post("/", upload.single('photo'), CandidateController.createCandidate);
 
-// Update candidate (with base64 image handling)
-router.put("/:id", handleBase64Image, CandidateController.updateCandidate);
+// Update candidate (with optional file upload)
+router.put("/:id", upload.single('photo'), CandidateController.updateCandidate);
 
 // Delete candidate
 router.delete("/:id", CandidateController.deleteCandidate);

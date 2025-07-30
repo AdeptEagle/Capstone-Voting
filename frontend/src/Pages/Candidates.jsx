@@ -4,6 +4,7 @@ import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPo
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
+import { uploadImageToBlob } from '../services/blobUpload';
 import './Candidates.css';
 import { getImageUrl } from '../utils/image';
 
@@ -196,10 +197,10 @@ const Candidates = () => {
       
       // Handle photo file conversion to base64
       if (photoFile) {
-        const base64 = await convertFileToBase64(photoFile);
-        dataToSend.photoBase64 = base64;
-        // Remove photoUrl if we have a new file
-        delete dataToSend.photoUrl;
+        const photoUrl = await uploadImageToBlob(photoFile);
+        dataToSend.photoUrl = photoUrl;
+        // Remove photoBase64 if we have a new file
+        delete dataToSend.photoBase64;
       } else if (editingCandidate && !photoFile) {
         // If editing and no new photo selected, preserve the existing photo URL
         dataToSend.photoUrl = editingCandidate.photoUrl;
@@ -222,16 +223,6 @@ const Candidates = () => {
       console.error('Error saving candidate:', error);
       setError('Failed to save candidate');
     }
-  };
-
-  // Helper function to convert file to base64
-  const convertFileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
   };
 
   const handleDelete = async (id) => {

@@ -16,11 +16,11 @@ export class CandidateController {
     try {
       const { name, positionId, departmentId, courseId, description, photoUrl } = req.body;
       
-      // Debug logging for image handling
-      console.log('📁 Image handling debug:');
+      // Debug logging for file upload
+      console.log('📁 File upload debug:');
+      console.log('   - req.file:', req.file);
       console.log('   - req.body:', req.body);
       console.log('   - photoUrl:', photoUrl);
-      console.log('   - photoBase64 present:', !!req.body.photoBase64);
 
       // Validate required fields
       if (!name || !positionId || !departmentId || !courseId) {
@@ -29,13 +29,16 @@ export class CandidateController {
         });
       }
 
+      // Use uploaded file URL or provided photoUrl
+      const finalPhotoUrl = photoUrl || (req.file ? req.file.filename : null);
+
       const candidateData = {
         id: req.body.id,
         name,
         positionId,
         departmentId,
         courseId,
-        photoUrl: photoUrl || null,
+        photoUrl: finalPhotoUrl,
         description
       };
 
@@ -54,11 +57,11 @@ export class CandidateController {
       const candidateId = req.params.id;
       const { name, positionId, departmentId, courseId, description, photoUrl } = req.body;
       
-      // Debug logging for image handling
-      console.log('📁 Image handling debug (update):');
+      // Debug logging for file upload
+      console.log('📁 File upload debug (update):');
+      console.log('   - req.file:', req.file);
       console.log('   - req.body:', req.body);
       console.log('   - photoUrl:', photoUrl);
-      console.log('   - photoBase64 present:', !!req.body.photoBase64);
       
       // Validate required fields
       if (!name || !positionId || !departmentId || !courseId) {
@@ -67,12 +70,20 @@ export class CandidateController {
         });
       }
       
+      // Use uploaded file URL or provided photoUrl
+      let finalPhotoUrl = photoUrl;
+      if (req.file) {
+        finalPhotoUrl = req.file.filename;
+      }
+      
+      console.log('   - finalPhotoUrl:', finalPhotoUrl);
+      
       const candidateData = {
         name,
         positionId,
         departmentId,
         courseId,
-        photoUrl: photoUrl || null,
+        photoUrl: finalPhotoUrl,
         description
       };
 
