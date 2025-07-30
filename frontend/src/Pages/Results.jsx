@@ -155,7 +155,8 @@ const LineChart = ({ data, title, height = 200 }) => {
 
   const maxValue = Math.max(...data.map(item => item.value));
   const points = data.map((item, index) => {
-    const x = (index / (data.length - 1)) * 100;
+    // Fix division by zero when data.length is 1
+    const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
     const y = maxValue > 0 ? 100 - (item.value / maxValue) * 100 : 100;
     return `${x}%,${y}%`;
   }).join(' ');
@@ -172,7 +173,8 @@ const LineChart = ({ data, title, height = 200 }) => {
             strokeWidth="2"
           />
           {data.map((item, index) => {
-            const x = (index / (data.length - 1)) * 100;
+            // Fix division by zero when data.length is 1
+            const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
             const y = maxValue > 0 ? 100 - (item.value / maxValue) * 100 : 100;
             return (
               <circle
