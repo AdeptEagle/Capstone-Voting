@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { VoterModel } from '../models/VoterModel.js';
 import { AdminModel } from '../models/AdminModel.js';
+import EmailService from './EmailService.js';
 
 class PasswordResetService {
   static async generateResetToken(email, userType) {
@@ -48,18 +49,15 @@ class PasswordResetService {
         );
       });
       
-      // For testing: log the reset link
-      const resetLink = `http://localhost:5174/reset-password?token=${token}&type=${userType}`;
-      console.log('🔐 PASSWORD RESET LINK (FOR TESTING):');
-      console.log('=====================================');
-      console.log(`Email: ${email}`);
-      console.log(`User Type: ${userType}`);
-      console.log(`Reset Link: ${resetLink}`);
-      console.log(`Token: ${token}`);
-      console.log(`Expires: ${expiresAt}`);
-      console.log('=====================================');
+      // Send password reset email
+      const userName = user.name || user.username;
+      const emailResult = await EmailService.sendPasswordResetEmail(email, token, userType, userName);
       
-      return { success: true, message: 'Password reset link generated successfully' };
+      return { 
+        success: true, 
+        message: 'Password reset email sent successfully',
+        previewUrl: emailResult.previewUrl
+      };
       
     } catch (error) {
       throw error;

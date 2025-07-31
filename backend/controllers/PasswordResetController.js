@@ -21,7 +21,8 @@ export class PasswordResetController {
       
       res.status(200).json({
         success: true,
-        message: 'Password reset link has been generated. Check the console for the reset link (for testing purposes).'
+        message: 'Password reset email sent successfully. Please check your email for the reset link.',
+        previewUrl: result.previewUrl // Only in test mode
       });
       
     } catch (error) {
