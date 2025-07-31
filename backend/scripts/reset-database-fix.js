@@ -46,12 +46,12 @@ async function resetDatabaseFix() {
     
     // Create departments with correct IDs
     console.log('🏢 Creating departments with correct IDs...');
-         const departments = [
-       { id: 'CoE', name: 'College of Engineering', created_by: superadminId },
-       { id: 'CBM', name: 'College of Business and Management', created_by: superadminId },
-       { id: 'CCS', name: 'College of Computer Studies', created_by: superadminId },
-       { id: 'CEA', name: 'College of Education and Arts', created_by: superadminId }
-     ];
+    const departments = [
+      { id: 'COE', name: 'College of Engineering', created_by: superadminId },
+      { id: 'CBM', name: 'College of Business and Management', created_by: superadminId },
+      { id: 'CCS', name: 'College of Computer Studies', created_by: superadminId },
+      { id: 'CEA', name: 'College of Education and Arts', created_by: superadminId }
+    ];
 
     for (const dept of departments) {
       await connection.execute(
@@ -64,11 +64,11 @@ async function resetDatabaseFix() {
     // Create courses with correct department assignments
     console.log('\n📚 Creating courses with correct department assignments...');
     const courses = [
-             // College of Engineering
-       { id: 'BSEE', name: 'BS in Electrical Engineering', departmentId: 'CoE', created_by: superadminId },
-       { id: 'BSCE', name: 'BS in Civil Engineering', departmentId: 'CoE', created_by: superadminId },
-       { id: 'BSME', name: 'BS in Mechanical Engineering', departmentId: 'CoE', created_by: superadminId },
-       { id: 'BSIE', name: 'BS in Industrial Engineering', departmentId: 'CoE', created_by: superadminId },
+      // College of Engineering
+      { id: 'BSEE', name: 'BS in Electrical Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'BSCE', name: 'BS in Civil Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'BSME', name: 'BS in Mechanical Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'BSIE', name: 'BS in Industrial Engineering', departmentId: 'COE', created_by: superadminId },
       
       // College of Business and Management
       { id: 'BSHM', name: 'BS in Hospitality Management', departmentId: 'CBM', created_by: superadminId },
@@ -97,9 +97,9 @@ async function resetDatabaseFix() {
     
     // Verify the structure
     console.log('\n🔍 Verifying final structure:');
-         const [finalDepartments] = await connection.execute(
-       'SELECT id, name FROM departments WHERE id IN ("CoE", "CBM", "CCS", "CEA") ORDER BY name'
-     );
+    const [finalDepartments] = await connection.execute(
+      'SELECT id, name FROM departments WHERE id IN ("COE", "CBM", "CCS", "CEA") ORDER BY name'
+    );
     
     for (const dept of finalDepartments) {
       console.log(`\n   ${dept.name} (${dept.id}):`);
