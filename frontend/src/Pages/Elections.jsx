@@ -1,38 +1,41 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getDepartments } from '../services/api';
+import { getElections, getPositions, getCandidates, getDepartments } from '../services/api';
 import './Elections.css';
 
-// Import new components
-import ElectionCard from '../components/Elections/ElectionCard';
+// Import new components and hooks
 import ElectionForm from '../components/Elections/ElectionForm';
 import DeleteConfirmationModal from '../components/Elections/DeleteConfirmationModal';
 import MultiStepForm from '../components/Elections/MultiStepForm';
+import ElectionsList from '../components/Elections/ElectionsList';
+import ElectionHeader from '../components/Elections/ElectionHeader';
+import ElectionMessages from '../components/Elections/ElectionMessages';
+
 import { useElectionForm } from '../hooks/useElectionForm';
-import { getStatusColor, getStatusIcon, formatDateTime, getStatusActions } from '../utils/electionUtils';
+import { useElectionActions } from '../hooks/useElectionActions';
+import { useElectionModals } from '../hooks/useElectionModals';
+import { createInitialElectionState, clearMessages } from '../utils/electionStateUtils';
 
 const Elections = () => {
-  const [elections, setElections] = useState([]);
-  const [positions, setPositions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deletingElection, setDeletingElection] = useState(null);
-  const [deleteConfirmation, setDeleteConfirmation] = useState('');
-  const [editingElection, setEditingElection] = useState(null);
-  const [updatingElection, setUpdatingElection] = useState(null);
-  const [loadingPositions, setLoadingPositions] = useState(false);
+  // Initialize state
+  const initialState = createInitialElectionState();
+  const [elections, setElections] = useState(initialState.elections);
+  const [positions, setPositions] = useState(initialState.positions);
+  const [existingCandidates, setExistingCandidates] = useState(initialState.existingCandidates);
+  const [departments, setDepartments] = useState(initialState.departments);
+  const [loading, setLoading] = useState(initialState.loading);
+  const [loadingPositions, setLoadingPositions] = useState(initialState.loadingPositions);
+  const [loadingCandidates, setLoadingCandidates] = useState(initialState.loadingCandidates);
+  const [error, setError] = useState(initialState.error);
+  const [success, setSuccess] = useState(initialState.success);
+  
   const navigate = useNavigate();
 
-  // Use custom hook for form management
+  // Use custom hooks
   const {
     formData,
     setFormData,
     currentStep,
-    setCurrentStep,
     tempPositions,
     setTempPositions,
     tempCandidates,
@@ -53,9 +56,36 @@ const Elections = () => {
     prevStep
   } = useElectionForm();
 
-  const [existingCandidates, setExistingCandidates] = useState([]);
-  const [loadingCandidates, setLoadingCandidates] = useState(false);
-  const [departments, setDepartments] = useState([]);
+  const {
+    updatingElection,
+    loading: actionsLoading,
+    handleStartElection,
+    handlePauseElection,
+    handleStopElection,
+    handleResumeElection,
+    handleEndElection,
+    handleDeleteElection,
+    handleCreateElection,
+    handleUpdateElection,
+    handleEditClick
+  } = useElectionActions();
+
+  const {
+    showCreateModal,
+    showEditModal,
+    showDeleteModal,
+    deletingElection,
+    deleteConfirmation,
+    editingElection,
+    setDeleteConfirmation,
+    openCreateModal,
+    closeCreateModal,
+    openEditModal,
+    closeEditModal,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete
+  } = useElectionModals();
 
   useEffect(() => {
     fetchElectionsData();
@@ -64,15 +94,14 @@ const Elections = () => {
   const fetchElectionsData = async () => {
     try {
       setLoading(true);
-      const [elections, positions, departmentsData] = await Promise.all([
+      const [electionsData, positionsData, departmentsData] = await Promise.all([
         getElections(),
         getPositions(),
         getDepartments()
       ]);
 
-      console.log('Fetched elections:', elections); // Debug log
-      setElections(elections || []);
-      setPositions(positions || []);
+      setElections(electionsData || []);
+      setPositions(positionsData || []);
       setDepartments(departmentsData || []);
     } catch (error) {
       console.error('Error fetching elections data:', error);
@@ -82,262 +111,58 @@ const Elections = () => {
     }
   };
 
-  // Use the resetForm from our custom hook, but extend it for this component's needs
+  // Enhanced reset form
   const resetForm = () => {
     resetFormHook();
     setExistingCandidates([]);
   };
 
-  const handleCreateElection = async (e) => {
+  const onCreateElection = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
-
-      // First, create any new positions
-      const createdPositions = [];
-      for (const position of tempPositions) {
-        if (position.isNew) {
-          try {
-            // Validate required fields
-            if (!position.id || !position.name) {
-              throw new Error(`Position ${position.id || 'Unknown'} is missing required fields (ID and Name)`);
-            }
-            
-            const newPosition = await createPosition({
-              id: position.id,
-              name: position.name,
-              voteLimit: position.voteLimit,
-              displayOrder: position.displayOrder
-            });
-            createdPositions.push(newPosition);
-          } catch (error) {
-            console.error('Error creating position:', error);
-            // Use the specific error message from the backend if available
-            const errorMessage = error.response?.data?.error || error.message || `Failed to create position: ${position.name}`;
-            throw new Error(errorMessage);
-          }
-        }
-      }
-
-      // Then create any new candidates
-      const createdCandidates = [];
-      for (const candidate of tempCandidates) {
-        if (candidate.isNew) {
-          try {
-            const candidateData = new FormData();
-            candidateData.append('name', candidate.name);
-            candidateData.append('positionId', candidate.positionId);
-            candidateData.append('departmentId', candidate.departmentId);
-            candidateData.append('platform', candidate.platform || '');
-            
-            if (candidate.photo) {
-              candidateData.append('photo', candidate.photo);
-            }
-
-            const newCandidate = await createCandidate(candidateData);
-            createdCandidates.push(newCandidate);
-          } catch (error) {
-            console.error('Error creating candidate:', error);
-            const errorMessage = error.response?.data?.error || error.message || `Failed to create candidate: ${candidate.name}`;
-            throw new Error(errorMessage);
-          }
-        }
-      }
-
-      // Get all position IDs (existing + newly created)
-      const allPositionIds = [
-        ...formData.positionIds,
-        ...createdPositions.map(p => p.id)
-      ];
-
-      // Create the election
-      const electionData = {
-        title: formData.title,
-        description: formData.description,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        positionIds: allPositionIds,
-        candidateIds: [
-          ...formData.selectedCandidateIds,
-          ...createdCandidates.map(c => c.id)
-        ]
-      };
-
-      const newElection = await createElection(electionData);
-      
-      setElections([...elections, newElection]);
-      setSuccess('Election created successfully!');
-      setShowCreateModal(false);
-      resetForm();
-      
-      // Refresh data to get updated positions and candidates
-      await fetchElectionsData();
+      await handleCreateElection(formData, tempPositions, tempCandidates, elections, setElections, setSuccess, setError);
+      closeCreateModal(resetForm);
+      await fetchElectionsData(); // Refresh data
     } catch (error) {
-      console.error('Error creating election:', error);
-      setError(error.message || 'Failed to create election');
-    } finally {
-      setLoading(false);
+      // Error handled in hook
     }
   };
 
-  const handleEditElection = async (e) => {
+  const onEditElection = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError('');
-      setSuccess('');
-
-      const updatedElection = await updateElection(editingElection.id, {
-        title: formData.title,
-        description: formData.description,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        positionIds: formData.positionIds
-      });
-
-      setElections(elections.map(election => 
-        election.id === editingElection.id ? updatedElection : election
-      ));
-      setSuccess('Election updated successfully!');
-      setShowEditModal(false);
-      setEditingElection(null);
-      resetForm();
+      await handleUpdateElection(editingElection, formData, elections, setElections, setSuccess, setError);
+      closeEditModal(resetForm);
     } catch (error) {
-      console.error('Error updating election:', error);
-      setError('Failed to update election');
-    } finally {
-      setLoading(false);
+      // Error handled in hook
     }
   };
 
-  const handleStartElection = async (electionId) => {
-    try {
-      setUpdatingElection(electionId);
-      setError('');
-      setSuccess('');
-
-      const updatedElection = await startElection(electionId);
-      setElections(elections.map(election => 
-        election.id === electionId ? updatedElection : election
-      ));
-      setSuccess('Election started successfully!');
-    } catch (error) {
-      console.error('Error starting election:', error);
-      setError('Failed to start election');
-    } finally {
-      setUpdatingElection(null);
-    }
-  };
-
-  const handlePauseElection = async (electionId) => {
-    try {
-      setUpdatingElection(electionId);
-      setError('');
-      setSuccess('');
-
-      const updatedElection = await pauseElection(electionId);
-      setElections(elections.map(election => 
-        election.id === electionId ? updatedElection : election
-      ));
-      setSuccess('Election paused successfully!');
-    } catch (error) {
-      console.error('Error pausing election:', error);
-      setError('Failed to pause election');
-    } finally {
-      setUpdatingElection(null);
-    }
-  };
-
-  const handleStopElection = async (electionId) => {
-    try {
-      setUpdatingElection(electionId);
-      setError('');
-      setSuccess('');
-
-      const updatedElection = await stopElection(electionId);
-      setElections(elections.map(election => 
-        election.id === electionId ? updatedElection : election
-      ));
-      setSuccess('Election stopped successfully!');
-    } catch (error) {
-      console.error('Error stopping election:', error);
-      setError('Failed to stop election');
-    } finally {
-      setUpdatingElection(null);
-    }
-  };
-
-  const handleResumeElection = async (electionId) => {
-    try {
-      setUpdatingElection(electionId);
-      setError('');
-      setSuccess('');
-
-      const updatedElection = await resumeElection(electionId);
-      setElections(elections.map(election => 
-        election.id === electionId ? updatedElection : election
-      ));
-      setSuccess('Election resumed successfully!');
-    } catch (error) {
-      console.error('Error resuming election:', error);
-      setError('Failed to resume election');
-    } finally {
-      setUpdatingElection(null);
-    }
-  };
-
-  const handleEndElection = async (electionId) => {
-    try {
-      setUpdatingElection(electionId);
-      setError('');
-      setSuccess('');
-
-      const updatedElection = await endElection(electionId);
-      setElections(elections.map(election => 
-        election.id === electionId ? updatedElection : election
-      ));
-      setSuccess('Election ended and saved to history successfully!');
-    } catch (error) {
-      console.error('Error ending election:', error);
-      setError('Failed to end election');
-    } finally {
-      setUpdatingElection(null);
-    }
-  };
-
-  const handleDeleteElection = async (electionId) => {
-    const election = elections.find(e => e.id === electionId);
-    setDeletingElection(election);
-    setDeleteConfirmation('');
-    setShowDeleteModal(true);
-  };
-
+  // Wrapper functions for election actions
+  const onStartElection = (electionId) => 
+    handleStartElection(electionId, elections, setElections, setSuccess, setError);
+  
+  const onPauseElection = (electionId) => 
+    handlePauseElection(electionId, elections, setElections, setSuccess, setError);
+  
+  const onStopElection = (electionId) => 
+    handleStopElection(electionId, elections, setElections, setSuccess, setError);
+  
+  const onResumeElection = (electionId) => 
+    handleResumeElection(electionId, elections, setElections, setSuccess, setError);
+  
+  const onEndElection = (electionId) => 
+    handleEndElection(electionId, elections, setElections, setSuccess, setError);
+  
+  const onDeleteElection = (election) => openDeleteModal(election);
+  
   const confirmDeleteElection = async () => {
-    try {
-      setUpdatingElection(deletingElection.id);
-      setError('');
-      setSuccess('');
-
-      await deleteElection(deletingElection.id);
-      setElections(elections.filter(election => election.id !== deletingElection.id));
-      setSuccess('Election deleted successfully!');
-      setShowDeleteModal(false);
-      setDeletingElection(null);
-      setDeleteConfirmation('');
-    } catch (error) {
-      console.error('Error deleting election:', error);
-      setError('Failed to delete election');
-    } finally {
-      setUpdatingElection(null);
+    if (confirmDelete(async () => {
+      await handleDeleteElection(deletingElection.id, elections, setElections, setSuccess, setError);
+      closeDeleteModal();
+    })) {
+      // Deletion confirmed and executed
     }
-  };
-
-  const cancelDeleteElection = () => {
-    setShowDeleteModal(false);
-    setDeletingElection(null);
-    setDeleteConfirmation('');
   };
 
   const handleStatusChange = async (electionId, newStatus) => {
@@ -390,49 +215,6 @@ const Elections = () => {
     } finally {
       setUpdatingElection(null);
     }
-  };
-
-  const openEditModal = async (election) => {
-    try {
-      setLoadingPositions(true);
-      setEditingElection(election);
-      
-      // Pre-populate form with election data
-      setFormData({
-        title: election.title,
-        description: election.description,
-        startTime: election.startTime,
-        endTime: election.endTime,
-        positionIds: [],
-        newPositions: [],
-        newCandidates: [],
-        selectedCandidateIds: []
-      });
-
-      // Fetch and set the positions for this election
-      const electionPositions = await getElectionPositions(election.id);
-      const positionIds = electionPositions.map(pos => pos.id);
-      
-      setFormData(prev => ({
-        ...prev,
-        positionIds: positionIds
-      }));
-
-      setShowEditModal(true);
-    } catch (error) {
-      console.error('Error loading election positions:', error);
-      setError('Failed to load election positions');
-    } finally {
-      setLoadingPositions(false);
-    }
-  };
-
-  const openCreateModal = async () => {
-    setCurrentStep(1);
-    resetForm();
-    setShowCreateModal(true);
-    // Fetch existing candidates for selection
-    await fetchExistingCandidates();
   };
 
   const fetchExistingCandidates = async () => {
@@ -575,10 +357,7 @@ const Elections = () => {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    resetForm();
-                  }}
+                  onClick={() => closeCreateModal(resetForm)}
                 ></button>
               </div>
               
@@ -615,7 +394,7 @@ const Elections = () => {
                   getFilteredCandidates={getFilteredCandidates}
                   onNextStep={nextStep}
                   onPrevStep={prevStep}
-                  onSubmit={handleCreateElection}
+                  onSubmit={onCreateElection}
                   loading={loading}
                 />
               </div>
@@ -634,14 +413,10 @@ const Elections = () => {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingElection(null);
-                    resetForm();
-                  }}
+                                      onClick={() => closeEditModal(resetForm)}
                 ></button>
               </div>
-              <form onSubmit={handleEditElection}>
+              <form onSubmit={onEditElection}>
                 <div className="modal-body">
                   <ElectionForm
                     formData={formData}
@@ -655,11 +430,7 @@ const Elections = () => {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => {
-                      setShowEditModal(false);
-                      setEditingElection(null);
-                      resetForm();
-                    }}
+                    onClick={() => closeEditModal(resetForm)}
                   >
                     Cancel
                   </button>
@@ -689,7 +460,7 @@ const Elections = () => {
         deleteConfirmation={deleteConfirmation}
         setDeleteConfirmation={setDeleteConfirmation}
         onConfirm={confirmDeleteElection}
-        onCancel={cancelDeleteElection}
+        onCancel={closeDeleteModal}
         isDeleting={updatingElection === deletingElection?.id}
       />
     </div>
