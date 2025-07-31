@@ -245,18 +245,33 @@ const Voters = () => {
     }
   };
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingVoter, setDeletingVoter] = useState(null);
+
   const handleDelete = async (id) => {
-    // TODO: Replace with proper delete modal
-    if (window.confirm('Are you sure you want to delete this voter? This action cannot be undone.')) {
-      try {
-        await deleteVoter(id);
-        fetchVoters();
-        setSuccess('Voter deleted successfully!');
-      } catch (error) {
-        console.error('Error deleting voter:', error);
-        setError('Failed to delete voter');
-      }
+    const voter = voters.find(v => v.id === id);
+    setDeletingVoter(voter);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingVoter) return;
+    
+    try {
+      await deleteVoter(deletingVoter.id);
+      fetchVoters();
+      setSuccess('Voter deleted successfully!');
+      setShowDeleteModal(false);
+      setDeletingVoter(null);
+    } catch (error) {
+      console.error('Error deleting voter:', error);
+      setError('Failed to delete voter');
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingVoter(null);
   };
 
   const handleMultipleDelete = () => {
@@ -693,6 +708,42 @@ const Voters = () => {
         isDeleting={isBulkDeleting}
         getItemDisplayName={(voter) => `${voter.name} (${voter.email})`}
       />
+
+      {/* Individual Delete Modal */}
+      {showDeleteModal && deletingVoter && (
+        <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
+          <div className="modal-backdrop fade show"></div>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  <i className="fas fa-exclamation-triangle text-danger me-2"></i>
+                  Confirm Delete Voter
+                </h5>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to delete this voter?</p>
+                <div className="bg-light p-3 rounded">
+                  <strong>{deletingVoter.name}</strong><br/>
+                  <small className="text-muted">{deletingVoter.email}</small>
+                </div>
+                <div className="alert alert-warning mt-3">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  This action cannot be undone.
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={cancelDelete}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-danger" onClick={confirmDelete}>
+                  Delete Voter
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

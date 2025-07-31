@@ -259,16 +259,16 @@ const Elections = () => {
   return (
     <div className="elections-container">
       {/* Unified Professional Header */}
-      <div className="elections-header">
-        <div className="header-content">
-          <div className="header-text">
-            <h1 className="page-title">
+      <div className="dashboard-header-pro">
+        <div className="dashboard-header-row">
+          <div>
+            <h1 className="dashboard-title-pro">
               <i className="fas fa-vote-yea me-3"></i>
               Election Management
             </h1>
-            <p className="page-subtitle">Create, manage, and monitor election ballots</p>
+            <p className="dashboard-subtitle-pro">Create, manage, and monitor election ballots</p>
           </div>
-          <div className="header-actions">
+          <div className="dashboard-actions-pro">
             <button
               className="btn btn-success btn-lg"
               onClick={() => openCreateModal(resetForm)}

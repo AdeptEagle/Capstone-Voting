@@ -322,17 +322,17 @@ const MultiStepForm = ({
         Add Candidates
       </h5>
 
-      {tempPositions.length === 0 ? (
+      {(formData.positionIds.length === 0 && tempPositions.length === 0) ? (
         <div className="alert alert-warning">
           <i className="fas fa-exclamation-triangle me-2"></i>
-          Please add positions in the previous step before adding candidates.
+          Please select existing positions or add new positions in Step 2 before adding candidates.
         </div>
       ) : (
         <div>
           {/* Existing Candidates Selection */}
           <div className="mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h6 className="mb-0">Select Existing Candidates</h6>
+              <h6 className="mb-0">👥 Select Existing Candidates (Recommended)</h6>
               <div className="btn-group" role="group">
                 <button
                   type="button"
@@ -361,7 +361,8 @@ const MultiStepForm = ({
           {/* New Candidates Creation */}
           <div className="mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h6 className="mb-0">Create New Candidates</h6>
+              <h6 className="mb-0">🆕 Create New Candidates (Optional)</h6>
+              <small className="text-muted">💡 Tip: Select existing candidates above instead of creating new ones</small>
             </div>
 
             {tempPositions.map((position) => (

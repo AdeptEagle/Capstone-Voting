@@ -68,7 +68,7 @@ const Candidates = () => {
     const filtered = filterCandidates(candidates, searchTerm);
     const sorted = applySorting(filtered);
     setFilteredCandidates(sorted);
-  }, [candidates, searchTerm, applySorting]);
+  }, [candidates, searchTerm]);
 
   useEffect(() => {
     // Update selectAll state when filtered data or selection changes
