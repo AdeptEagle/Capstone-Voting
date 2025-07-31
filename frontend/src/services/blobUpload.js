@@ -1,8 +1,19 @@
 import { put } from '@vercel/blob';
 
-export const uploadToBlob = async (file) => {
+export const uploadImageToBlob = async (file) => {
   try {
     console.log('📁 Uploading file to Vercel Blob:', file.name);
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Only image files are allowed');
+    }
+    
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      throw new Error('File size must be less than 5MB');
+    }
     
     // Check if token is available
     const token = import.meta.env.VITE_BLOB_READ_WRITE_TOKEN;
@@ -29,17 +40,17 @@ export const uploadToBlob = async (file) => {
   }
 };
 
-export const uploadImageToBlob = async (file) => {
-  // Validate file type
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Only image files are allowed');
-  }
+// Fallback function for environments without Vercel Blob
+export const uploadImageFallback = async (file) => {
+  console.warn('🔄 Vercel Blob not available, using data URL fallback');
   
-  // Validate file size (5MB limit)
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    throw new Error('File size must be less than 5MB');
-  }
-  
-  return await uploadToBlob(file);
-}; 
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+};
+
+// Alternative export names for compatibility
+export const uploadToBlob = uploadImageToBlob;

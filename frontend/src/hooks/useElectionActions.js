@@ -155,11 +155,23 @@ export const useElectionActions = () => {
         }
       }
 
+      // Combine existing and new positions
+      const allPositionIds = [
+        ...formData.positionIds, // existing positions
+        ...createdPositions      // newly created positions
+      ];
+
+      // Combine existing and new candidates
+      const allCandidateIds = [
+        ...formData.selectedCandidateIds, // existing candidates
+        ...candidateIds                   // newly created candidates
+      ];
+
       // Create the election
       const electionData = {
         ...formData,
-        positionIds: createdPositions,
-        candidateIds: candidateIds
+        positionIds: allPositionIds,
+        candidateIds: allCandidateIds
       };
 
       const newElection = await createElection(electionData);

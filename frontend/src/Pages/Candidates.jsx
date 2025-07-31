@@ -12,7 +12,9 @@ import CandidateCard from '../components/Candidates/CandidateCard';
 import CandidateForm from '../components/Candidates/CandidateForm';
 import CandidateViewModal from '../components/Candidates/CandidateViewModal';
 import { useCandidateForm } from '../hooks/useCandidateForm';
+import { usePersistentSort } from '../hooks/usePersistentSort';
 import { filterAndSortCandidates, groupCandidatesByPosition, formatCandidateData } from '../utils/candidateUtils';
+import BulkDeleteModal from '../components/Common/BulkDeleteModal';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
