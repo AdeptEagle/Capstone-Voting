@@ -41,10 +41,10 @@ async function seedDepartmentsAndCourses() {
     // 1. Create the new departments
     console.log('🏢 Creating departments...');
     const departments = [
-      { id: 'dept-cbm', name: 'College of Business and Management', created_by: superadminId },
-      { id: 'dept-ccs', name: 'College of Computer Studies', created_by: superadminId },
-      { id: 'dept-cea', name: 'College of Education and Arts', created_by: superadminId },
-      { id: 'dept-ce', name: 'College of Engineering', created_by: superadminId }
+      { id: 'CBM', name: 'College of Business and Management', created_by: superadminId },
+      { id: 'CCS', name: 'College of Computer Studies', created_by: superadminId },
+      { id: 'CEA', name: 'College of Education and Arts', created_by: superadminId },
+      { id: 'COE', name: 'College of Engineering', created_by: superadminId }
     ];
 
     for (const dept of departments) {
@@ -59,25 +59,25 @@ async function seedDepartmentsAndCourses() {
     console.log('\n📚 Creating courses...');
     const courses = [
       // College of Business and Management
-      { id: 'course-hm', name: 'BS in Hospitality Management', departmentId: 'dept-cbm', created_by: superadminId },
-      { id: 'course-acc', name: 'BS in Accountancy', departmentId: 'dept-cbm', created_by: superadminId },
-      { id: 'course-mkt', name: 'BS in Business Administration Major in Marketing Management', departmentId: 'dept-cbm', created_by: superadminId },
-      { id: 'course-hrd', name: 'BS in Business Administration Major in Human Resource Development Management', departmentId: 'dept-cbm', created_by: superadminId },
+      { id: 'course-hm', name: 'BS in Hospitality Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'course-acc', name: 'BS in Accountancy', departmentId: 'CBM', created_by: superadminId },
+      { id: 'course-mkt', name: 'BS in Business Administration Major in Marketing Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'course-hrd', name: 'BS in Business Administration Major in Human Resource Development Management', departmentId: 'CBM', created_by: superadminId },
       
       // College of Computer Studies
-      { id: 'course-it', name: 'BS in Information Technology', departmentId: 'dept-ccs', created_by: superadminId },
+      { id: 'course-it', name: 'BS in Information Technology', departmentId: 'CCS', created_by: superadminId },
       
       // College of Education and Arts
-      { id: 'course-elem', name: 'Bachelor in Elementary Education', departmentId: 'dept-cea', created_by: superadminId },
-      { id: 'course-gen', name: 'General Education', departmentId: 'dept-cea', created_by: superadminId },
-      { id: 'course-sec-eng', name: 'Bachelor in Secondary Education Major in English', departmentId: 'dept-cea', created_by: superadminId },
-      { id: 'course-mass', name: 'Bachelor in Mass Communications', departmentId: 'dept-cea', created_by: superadminId },
+      { id: 'course-elem', name: 'Bachelor in Elementary Education', departmentId: 'CEA', created_by: superadminId },
+      { id: 'course-gen', name: 'General Education', departmentId: 'CEA', created_by: superadminId },
+      { id: 'course-sec-eng', name: 'Bachelor in Secondary Education Major in English', departmentId: 'CEA', created_by: superadminId },
+      { id: 'course-mass', name: 'Bachelor in Mass Communications', departmentId: 'CEA', created_by: superadminId },
       
       // College of Engineering
-      { id: 'course-ee', name: 'BS in Electrical Engineering', departmentId: 'dept-ce', created_by: superadminId },
-      { id: 'course-ce', name: 'BS in Civil Engineering', departmentId: 'dept-ce', created_by: superadminId },
-      { id: 'course-me', name: 'BS in Mechanical Engineering', departmentId: 'dept-ce', created_by: superadminId },
-      { id: 'course-ie', name: 'BS in Industrial Engineering', departmentId: 'dept-ce', created_by: superadminId }
+      { id: 'course-ee', name: 'BS in Electrical Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'course-ce', name: 'BS in Civil Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'course-me', name: 'BS in Mechanical Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'course-ie', name: 'BS in Industrial Engineering', departmentId: 'COE', created_by: superadminId }
     ];
 
     for (const course of courses) {
