@@ -35,7 +35,7 @@ async function fixDepartmentCase() {
     if (engineeringResult.affectedRows > 0) {
       console.log(`✅ Updated ${engineeringResult.affectedRows} engineering courses from 'CoE' to 'COE'`);
     } else {
-      console.log('ℹ️  No engineering courses found with 'CoE' department ID');
+      console.log('ℹ️  No engineering courses found with CoE department ID');
     }
     
     // Check if there are any other case mismatches
