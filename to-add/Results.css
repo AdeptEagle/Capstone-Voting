@@ -1,0 +1,730 @@
+/* CSS Variables */
+:root {
+  --primary-navy: #1d3557;
+  --accent-steel: #457b9d;
+  --text-white: #ffffff;
+  --background-off-white: #f8f9fa;
+  --light-gray: #e9ecef;
+  --text-muted: #6c757d;
+  --success-green: #28a745;
+  --warning-orange: #ffc107;
+  --danger-red: #dc3545;
+  --info-blue: #17a2b8;
+}
+
+/* Container */
+.results-container {
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: var(--background-off-white);
+}
+
+/* Header */
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px solid var(--accent-steel);
+  box-shadow: 0 4px 16px rgba(29, 53, 87, 0.12);
+}
+
+.results-title h1 {
+  color: var(--primary-navy);
+  font-weight: 800;
+  margin: 0;
+  font-size: 2rem;
+}
+
+.results-title p {
+  margin: 0.5rem 0 0 0;
+  color: var(--text-muted);
+}
+
+.results-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary {
+  background: transparent;
+  border: 2px solid var(--accent-steel);
+  color: var(--accent-steel);
+}
+
+.btn-outline-primary:hover {
+  background: var(--accent-steel);
+  color: white;
+}
+
+.last-update {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Election Status */
+.election-status {
+  margin-bottom: 2rem;
+}
+
+.status-card {
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-steel) 100%);
+  color: var(--text-white);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(29, 53, 87, 0.15);
+}
+
+.status-card h3 {
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.status-text {
+  margin: 0 0 0.5rem 0;
+}
+
+.status-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.status-badge.active {
+  background: rgba(46, 204, 113, 0.3);
+}
+
+.time-remaining {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.countdown {
+  font-weight: 700;
+  color: #f39c12;
+}
+
+/* Analytics Grid */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(29, 53, 87, 0.1);
+  transition: transform 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.analytics-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29, 53, 87, 0.15);
+}
+
+.card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.card-content h3 {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary-navy);
+  margin-bottom: 0.5rem;
+}
+
+.card-change {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.card-change.positive {
+  color: var(--success-green);
+}
+
+.card-change.negative {
+  color: var(--danger-red);
+}
+
+/* Tabs */
+.results-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(29, 53, 87, 0.1);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: var(--text-muted);
+}
+
+.tab-button:hover {
+  background: rgba(69, 123, 157, 0.1);
+  color: var(--accent-steel);
+}
+
+.tab-button.active {
+  background: var(--accent-steel);
+  color: white;
+}
+
+.tab-button i {
+  margin-right: 0.5rem;
+}
+
+/* Tab Content */
+.tab-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(29, 53, 87, 0.1);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.chart-card h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+/* Progress Bars */
+.progress-section h3 {
+  margin-bottom: 1.5rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.progress-item {
+  margin-bottom: 1.5rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-label {
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.progress-value {
+  font-weight: 700;
+  color: var(--accent-steel);
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Positions Grid */
+.positions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.position-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.position-card h3 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.candidate-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.candidate-result {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.candidate-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-name {
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.candidate-votes {
+  font-weight: 700;
+  color: var(--accent-steel);
+}
+
+.candidate-progress {
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.candidate-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Charts */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Department/Course Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stats-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(29, 53, 87, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.stats-card h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.stats-item:last-child {
+  border-bottom: none;
+}
+
+.stats-label {
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.stats-value {
+  font-weight: 700;
+  color: var(--accent-steel);
+}
+
+/* Timeline */
+.timeline-tab {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.timeline-chart {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.timeline-stats {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.timeline-stats h3 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.timeline-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.timeline-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.timeline-time {
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.timeline-votes {
+  font-weight: 700;
+  color: var(--accent-steel);
+}
+
+/* Chart Components */
+.bar-chart {
+  height: 100%;
+}
+
+.bar-chart h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+
+.bar {
+  width: 100%;
+  min-height: 20px;
+  border-radius: 4px;
+  transition: height 0.3s ease;
+  position: relative;
+}
+
+.bar-label {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-align: center;
+  word-break: break-word;
+}
+
+.bar-value {
+  font-weight: 700;
+  color: var(--primary-navy);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.line-chart {
+  height: 100%;
+}
+
+.line-chart h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.chart-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.donut-chart {
+  text-align: center;
+}
+
+.donut-chart h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.chart-legend {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-label {
+  flex: 1;
+  color: var(--primary-navy);
+}
+
+.legend-value {
+  font-weight: 700;
+  color: var(--accent-steel);
+}
+
+/* Loading and Error States */
+.results-loading, .results-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  min-height: 400px;
+}
+
+.results-loading p, .results-error p {
+  margin-top: 1rem;
+  color: var(--text-muted);
+}
+
+/* Alert Styles */
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.fa-2x {
+  font-size: 2em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .results-container {
+    padding: 1rem;
+  }
+
+  .results-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .positions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-tabs {
+    flex-direction: column;
+  }
+
+  .tab-button {
+    text-align: center;
+  }
+
+  .timeline-tab {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bootstrap-like utilities */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text-primary {
+  color: var(--accent-steel) !important;
+}
+
+.btn-primary {
+  background-color: var(--accent-steel);
+  border-color: var(--accent-steel);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-navy);
+  border-color: var(--primary-navy);
+} 

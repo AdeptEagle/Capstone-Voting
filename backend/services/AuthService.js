@@ -89,8 +89,8 @@ export class AuthService {
       }
       
       // Validate that the course belongs to the selected department
-      if (course.departmentId !== departmentId) {
-        throw new Error("Selected course does not belong to the selected department");
+      if (String(course.departmentId) !== String(departmentId)) {
+        throw new Error(`Selected course (${course.name}) does not belong to the selected department. Course department: ${course.departmentId}, Selected department: ${departmentId}`);
       }
       
       // Create voter account (password is already hashed in VoterModel.create)

@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Results Dashboard - Improved</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-navy: #1d3557;
+            --accent-steel: #457b9d;
+            --text-white: #ffffff;
+            --background-off-white: #f8f9fa;
+            --light-gray: #e9ecef;
+            --text-muted: #6c757d;
+            --success-green: #28a745;
+            --warning-orange: #ffc107;
+            --danger-red: #dc3545;
+            --info-blue: #17a2b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-off-white);
+            color: var(--primary-navy);
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .results-container {
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid var(--accent-steel);
+            box-shadow: 0 4px 16px rgba(29, 53, 87, 0.12);
+        }
+
+        .results-title h1 {
+            color: var(--primary-navy);
+            font-weight: 800;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .results-title p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-muted);
+        }
+
+        .results-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid var(--accent-steel);
+            color: var(--accent-steel);
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--accent-steel);
+            color: white;
+        }
+
+        .last-update {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Election Status */
+        .election-status {
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-steel) 100%);
+            color: var(--text-white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(29, 53, 87, 0.15);
+        }
+
+        .status-card h3 {
+            margin: 0 0 1rem 0;
+            font-weight: 700;
+        }
+
+        .status-text {
+            margin: 0 0 0.5rem 0;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .status-badge.active {
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        .time-remaining {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .countdown {
+            font-weight: 700;
+            color: #f39c12;
+        }
+
+        /* Analytics Grid */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(29, 53, 87, 0.1);
+            transition: transform 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(29, 53, 87, 0.15);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .card-content h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-navy);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tabs */
+        .results-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(29, 53, 87, 0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        .tab-button:hover {
+            background: rgba(69, 123, 157, 0.1);
+            color: var(--accent-steel);
+        }
+
+        .tab-button.active {
+            background: var(--accent-steel);
+            color: white;
+        }
+
+        .tab-button i {
+            margin-right: 0.5rem;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(29, 53, 87, 0.1);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .chart-card h4 {
+            margin-bottom: 1rem;
+            color: var(--primary-navy);
+            font-weight: 700;
+        }
+
+        /* Progress Bars */
+        .progress-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary-navy);
+            font-weight: 700;
+        }
+
+        .progress-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-label {
+            font-weight: 600;
+            color: var(--primary-navy);
+        }
+
+        .progress-value {
+            font-weight: 700;
+            color: var(--accent-steel);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Positions Grid */
+        .positions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .position-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .position-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-navy);
+            font-weight: 700;
+        }
+
+        .candidate-results {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .candidate-result {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .candidate-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .candidate-name {
+            font-weight: 600;
+            color: var(--primary-navy);
+        }
+
+        .candidate-votes {
+            font-weight: 700;
+            color: var(--accent-steel);
+        }
+
+        .candidate-progress {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .candidate-progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Department/Course Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(29, 53, 87, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .stats-card h4 {
+            margin-bottom: 1rem;
+            color: var(--primary-navy);
+            font-weight: 700;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stats-item:last-child {
+            border-bottom: none;
+        }
+
+        .stats-label {
+            font-weight: 600;
+            color: var(--primary-navy);
+        }
+
+        .stats-value {
+            font-weight: 700;
+            color: var(--accent-steel);
+        }
+
+        /* Timeline */
+        .timeline-tab {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .timeline-chart {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .timeline-stats {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .timeline-stats h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-navy);
+            font-weight: 700;
+        }
+
+        .timeline-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .timeline-time {
+            font-weight: 600;
+            color: var(--primary-navy);
+        }
+
+        .timeline-votes {
+            font-weight: 700;
+            color: var(--accent-steel);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .results-container {
+                padding: 1rem;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .positions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                text-align: center;
+            }
+
+            .timeline-tab {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading and Error States */
+        .results-loading, .results-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .results-loading p, .results-error p {
+            margin-top: 1rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <!-- Header -->
+        <div class="results-header">
+            <div class="results-title">
+                <h1>Live Election Results</h1>
+                <p class="text-muted">Real-time voting statistics and analytics</p>
+            </div>
+            <div class="results-actions">
+                <button class="btn btn-outline-primary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+                <div class="last-update" id="lastUpdate">
+                    Last updated: <span id="lastUpdateTime"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Election Status -->
+        <div class="election-status">
+            <div class="status-card">
+                <h3 id="electionTitle">Student Council Election 2024</h3>
+                <p class="status-text">
+                    Status: <span class="status-badge active" id="electionStatus">ACTIVE</span>
+                </p>
+                <p class="time-remaining" id="timeRemaining">
+                    Time Remaining: <span class="countdown" id="countdown">02:45:30</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Real-time Analytics Cards -->
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <div class="card-icon" style="background-color: #3498db;">
+                    <i class="fas fa-vote-yea"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Votes</h3>
+                    <div class="card-value" id="totalVotes">0</div>
+                </div>
+            </div>
+            <div class="analytics-card">
+                <div class="card-icon" style="background-color: #2ecc71;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Voter Turnout</h3>
+                    <div class="card-value" id="voterTurnout">0%</div>
+                </div>
+            </div>
+            <div class="analytics-card">
+                <div class="card-icon" style="background-color: #e74c3c;">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Active Voters</h3>
+                    <div class="card-value" id="activeVoters">0</div>
+                </div>
+            </div>
+            <div class="analytics-card">
+                <div class="card-icon" style="background-color: #f39c12;">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Positions</h3>
+                    <div class="card-value" id="totalPositions">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department & Course Statistics -->
+        <div class="stats-grid">
+            <div class="stats-card">
+                <h4><i class="fas fa-graduation-cap"></i> Voters by Department</h4>
+                <div id="departmentStats">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="stats-card">
+                <h4><i class="fas fa-book"></i> Voters by Course</h4>
+                <div id="courseStats">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="results-tabs">
+            <button class="tab-button active" onclick="switchTab('overview')">
+                <i class="fas fa-chart-pie"></i>
+                Overview
+            </button>
+            <button class="tab-button" onclick="switchTab('positions')">
+                <i class="fas fa-briefcase"></i>
+                By Position
+            </button>
+            <button class="tab-button" onclick="switchTab('timeline')">
+                <i class="fas fa-clock"></i>
+                Timeline
+            </button>
+            <button class="tab-button" onclick="switchTab('users')">
+                <i class="fas fa-users"></i>
+                User Stats
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-panel active">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h4>Leading Votes per Position</h4>
+                        <div class="chart-container" id="leadingVotesChart">
+                            <!-- Chart will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h4>Top Candidates</h4>
+                        <div class="chart-container" id="topCandidatesChart">
+                            <!-- Chart will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-section">
+                    <h3>Voting Progress by Position</h3>
+                    <div id="votingProgress">
+                        <!-- Progress bars will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Positions Tab -->
+            <div id="positions-tab" class="tab-panel">
+                <div class="positions-grid" id="positionsGrid">
+                    <!-- Position cards will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div id="timeline-tab" class="tab-panel">
+                <div class="timeline-tab">
+                    <div class="timeline-chart">
+                        <h4>Voting Activity (Last 24 Hours)</h4>
+                        <div class="chart-container" id="timelineChart">
+                            <!-- Timeline chart will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="timeline-stats">
+                        <h3>Voting Timeline</h3>
+                        <div class="timeline-items" id="timelineItems">
+                            <!-- Timeline items will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users-tab" class="tab-panel">
+                <div class="stats-grid">
+                    <div class="stats-card">
+                        <h4><i class="fas fa-user-friends"></i> User Statistics</h4>
+                        <div id="userStats">
+                            <!-- User stats will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <h4><i class="fas fa-chart-line"></i> Voting Activity</h4>
+                        <div id="votingActivity">
+                            <!-- Voting activity will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        // --- MOCK DATA (Replace with your API calls in production) ---
+        const mockData = {
+            election: {
+                title: "Student Council Election 2024",
+                status: "active",
+                endTime: Date.now() + 2 * 60 * 60 * 1000 + 45 * 60 * 1000 + 30 * 1000 // 2h 45m 30s from now
+            },
+            stats: {
+                totalVotes: 1234,
+                voterTurnout: 67.8,
+                activeVoters: 1100,
+                totalPositions: 5
+            },
+            departments: [
+                { label: "CCS", value: 400 },
+                { label: "CEA", value: 300 },
+                { label: "COE", value: 250 },
+                { label: "CAS", value: 180 },
+                { label: "CBA", value: 104 }
+            ],
+            courses: [
+                { label: "BSIT", value: 220 },
+                { label: "BEEd", value: 180 },
+                { label: "BSCE", value: 150 },
+                { label: "BSA", value: 120 },
+                { label: "BSBA", value: 90 }
+            ],
+            leadingVotes: [
+                { label: "President", value: 350 },
+                { label: "Vice President", value: 300 },
+                { label: "Secretary", value: 250 },
+                { label: "Treasurer", value: 200 },
+                { label: "Auditor", value: 134 }
+            ],
+            topCandidates: [
+                { label: "Juan Dela Cruz", value: 200 },
+                { label: "Maria Santos", value: 180 },
+                { label: "Jose Rizal", value: 170 },
+                { label: "Ana Reyes", value: 160 },
+                { label: "Pedro Gomez", value: 150 }
+            ],
+            votingProgress: [
+                { label: "President", value: 350, max: 400 },
+                { label: "Vice President", value: 300, max: 400 },
+                { label: "Secretary", value: 250, max: 400 },
+                { label: "Treasurer", value: 200, max: 400 },
+                { label: "Auditor", value: 134, max: 400 }
+            ],
+            positions: [
+                {
+                    name: "President",
+                    candidates: [
+                        { name: "Juan Dela Cruz", votes: 200 },
+                        { name: "Maria Santos", votes: 150 },
+                        { name: "Jose Rizal", votes: 100 }
+                    ]
+                },
+                {
+                    name: "Vice President",
+                    candidates: [
+                        { name: "Ana Reyes", votes: 180 },
+                        { name: "Pedro Gomez", votes: 120 }
+                    ]
+                },
+                {
+                    name: "Secretary",
+                    candidates: [
+                        { name: "Liza Soberano", votes: 140 },
+                        { name: "Enrique Gil", votes: 110 }
+                    ]
+                }
+            ],
+            timeline: [
+                { label: "8 AM", value: 10 },
+                { label: "9 AM", value: 30 },
+                { label: "10 AM", value: 50 },
+                { label: "11 AM", value: 80 },
+                { label: "12 PM", value: 120 },
+                { label: "1 PM", value: 200 },
+                { label: "2 PM", value: 300 },
+                { label: "3 PM", value: 350 }
+            ],
+            userStats: {
+                totalUsers: 1500,
+                registeredVoters: 1400,
+                voted: 1100,
+                notVoted: 300
+            },
+            votingActivity: [
+                { label: "Registered", value: 1400 },
+                { label: "Voted", value: 1100 },
+                { label: "Not Voted", value: 300 }
+            ]
+        };
+
+        // --- Utility Functions ---
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function getRandomColor(index) {
+            const colors = [
+                "#3498db", "#2ecc71", "#e74c3c", "#f39c12", "#9b59b6",
+                "#1abc9c", "#34495e", "#e67e22", "#16a085", "#2980b9"
+            ];
+            return colors[index % colors.length];
+        }
+
+        // --- Render Functions ---
+        function renderStats() {
+            // Department
+            const deptDiv = document.getElementById('departmentStats');
+            deptDiv.innerHTML = mockData.departments.map(d =>
+                `<div class="stats-item"><span class="stats-label">${d.label}</span><span class="stats-value">${d.value}</span></div>`
+            ).join('');
+            // Course
+            const courseDiv = document.getElementById('courseStats');
+            courseDiv.innerHTML = mockData.courses.map(c =>
+                `<div class="stats-item"><span class="stats-label">${c.label}</span><span class="stats-value">${c.value}</span></div>`
+            ).join('');
+        }
+
+        function renderAnalytics() {
+            document.getElementById('totalVotes').textContent = mockData.stats.totalVotes;
+            document.getElementById('voterTurnout').textContent = mockData.stats.voterTurnout + "%";
+            document.getElementById('activeVoters').textContent = mockData.stats.activeVoters;
+            document.getElementById('totalPositions').textContent = mockData.stats.totalPositions;
+        }
+
+        function renderVotingProgress() {
+            const container = document.getElementById('votingProgress');
+            container.innerHTML = mockData.votingProgress.map((p, i) => {
+                const percent = p.max ? (p.value / p.max) * 100 : 0;
+                return `
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span class="progress-label">${p.label}</span>
+                            <span class="progress-value">${p.value} / ${p.max}</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width:${percent}%;background:${getRandomColor(i)}"></div>
+                        </div>
+                        <div class="progress-stats">
+                            <span>${percent.toFixed(1)}% voted</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLeadingVotesChart() {
+            const data = mockData.leadingVotes;
+            const max = Math.max(...data.map(d => d.value));
+            const container = document.getElementById('leadingVotesChart');
+            // Calculate dynamic bar width and spacing
+            const chartWidth = 500;
+            const barWidth = 60;
+            const barSpacing = 40;
+            const totalBars = data.length;
+            const totalWidth = totalBars * barWidth + (totalBars - 1) * barSpacing;
+            const startX = (chartWidth - totalWidth) / 2 + barWidth / 2;
+
+            container.innerHTML = `
+                <svg width="100%" height="100%" viewBox="0 0 500 220">
+                    ${data.map((d, i) => {
+                        const x = startX + i * (barWidth + barSpacing);
+                        const barHeight = (d.value / max) * 150;
+                        return `
+                            <rect x="${x - barWidth / 2}" y="${180 - barHeight}" width="${barWidth}" height="${barHeight}" rx="8" fill="${getRandomColor(i)}"/>
+                            <text x="${x}" y="${180 - barHeight - 10}" text-anchor="middle" font-size="18" fill="#222" font-weight="bold">${d.value}</text>
+                            <foreignObject x="${x - barWidth / 2}" y="185" width="${barWidth}" height="40">
+                                <div style="width:${barWidth}px;text-align:center;font-size:15px;line-height:1.1;word-break:break-word;">
+                                    ${d.label}
+                                </div>
+                            </foreignObject>
+                        `;
+                    }).join('')}
+                </svg>
+            `;
+        }
+
+        function renderTopCandidatesChart() {
+            const data = mockData.topCandidates;
+            const max = Math.max(...data.map(d => d.value));
+            const container = document.getElementById('topCandidatesChart');
+            // Calculate dynamic bar width and spacing
+            const chartWidth = 500;
+            const barWidth = 60;
+            const barSpacing = 40;
+            const totalBars = data.length;
+            const totalWidth = totalBars * barWidth + (totalBars - 1) * barSpacing;
+            const startX = (chartWidth - totalWidth) / 2 + barWidth / 2;
+
+            container.innerHTML = `
+                <svg width="100%" height="100%" viewBox="0 0 500 220">
+                    ${data.map((d, i) => {
+                        const x = startX + i * (barWidth + barSpacing);
+                        const barHeight = (d.value / max) * 150;
+                        return `
+                            <rect x="${x - barWidth / 2}" y="${180 - barHeight}" width="${barWidth}" height="${barHeight}" rx="8" fill="${getRandomColor(i)}"/>
+                            <text x="${x}" y="${180 - barHeight - 10}" text-anchor="middle" font-size="18" fill="#222" font-weight="bold">${d.value}</text>
+                            <foreignObject x="${x - barWidth / 2}" y="185" width="${barWidth}" height="40">
+                                <div style="width:${barWidth}px;text-align:center;font-size:15px;line-height:1.1;word-break:break-word;">
+                                    ${d.label}
+                                </div>
+                            </foreignObject>
+                        `;
+                    }).join('')}
+                </svg>
+            `;
+        }
+
+        function renderPositionsGrid() {
+            const grid = document.getElementById('positionsGrid');
+            grid.innerHTML = mockData.positions.map(pos => `
+                <div class="position-card">
+                    <h3>${pos.name}</h3>
+                    <div class="candidate-results">
+                        ${pos.candidates.map((c, i) => {
+                            const maxVotes = Math.max(...pos.candidates.map(c2 => c2.votes));
+                            const percent = maxVotes ? (c.votes / maxVotes) * 100 : 0;
+                            return `
+                                <div class="candidate-result">
+                                    <div class="candidate-info">
+                                        <span class="candidate-name">${c.name}</span>
+                                        <span class="candidate-votes">${c.votes} votes</span>
+                                    </div>
+                                    <div class="candidate-progress">
+                                        <div class="candidate-progress-bar" style="width:${percent}%;background:${getRandomColor(i)}"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTimelineChart() {
+            const data = mockData.timeline;
+            const max = Math.max(...data.map(d => d.value));
+            const container = document.getElementById('timelineChart');
+            container.innerHTML = `
+                <svg width="100%" height="100%" viewBox="0 0 500 220">
+                    <polyline
+                        fill="none"
+                        stroke="#3498db"
+                        stroke-width="3"
+                        points="${data.map((d, i) => `${i * 60 + 50},${180 - (d.value / max) * 150}`).join(' ')}"
+                    />
+                    ${data.map((d, i) => `
+                        <circle cx="${i * 60 + 50}" cy="${180 - (d.value / max) * 150}" r="7" fill="#3498db"/>
+                        <text x="${i * 60 + 50}" y="195" text-anchor="middle" font-size="14">${d.label}</text>
+                        <text x="${i * 60 + 50}" y="${180 - (d.value / max) * 150 - 15}" text-anchor="middle" font-size="14" fill="#333">${d.value}</text>
+                    `).join('')}
+                </svg>
+            `;
+            // Timeline items
+            document.getElementById('timelineItems').innerHTML = data.map(d =>
+                `<div class="timeline-item"><span class="timeline-time">${d.label}</span><span class="timeline-votes">${d.value} votes</span></div>`
+            ).join('');
+        }
+
+        function renderUserStats() {
+            const stats = mockData.userStats;
+            document.getElementById('userStats').innerHTML = `
+                <div class="stats-item"><span class="stats-label">Total Users</span><span class="stats-value">${stats.totalUsers}</span></div>
+                <div class="stats-item"><span class="stats-label">Registered Voters</span><span class="stats-value">${stats.registeredVoters}</span></div>
+                <div class="stats-item"><span class="stats-label">Voted</span><span class="stats-value">${stats.voted}</span></div>
+                <div class="stats-item"><span class="stats-label">Not Voted</span><span class="stats-value">${stats.notVoted}</span></div>
+            `;
+        }
+
+        function renderVotingActivity() {
+            const data = mockData.votingActivity;
+            const max = Math.max(...data.map(d => d.value));
+            document.getElementById('votingActivity').innerHTML = `
+                <svg width="100%" height="100%" viewBox="0 0 500 220">
+                    ${data.map((d, i) => {
+                        const barHeight = (d.value / max) * 150;
+                        return `
+                            <rect x="${i * 120 + 90}" y="${180 - barHeight}" width="80" height="${barHeight}" rx="8" fill="${getRandomColor(i)}"/>
+                            <text x="${i * 120 + 130}" y="195" text-anchor="middle" font-size="16">${d.label}</text>
+                            <text x="${i * 120 + 130}" y="${180 - barHeight - 10}" text-anchor="middle" font-size="16" fill="#333">${d.value}</text>
+                        `;
+                    }).join('')}
+                </svg>
+            `;
+        }
+
+        // --- Tab Switching ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelector(`.tab-button[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        // --- Refresh Data ---
+        function refreshData() {
+            // In production, fetch new data from API here
+            renderAll();
+            document.getElementById('lastUpdateTime').textContent = new Date().toLocaleTimeString();
+        }
+
+        // --- Countdown Timer ---
+        function updateCountdown() {
+            const endTime = mockData.election.endTime;
+            const now = Date.now();
+            const seconds = Math.max(0, Math.floor((endTime - now) / 1000));
+            document.getElementById('countdown').textContent = formatTime(seconds);
+        }
+
+        // --- Render All ---
+        function renderAll() {
+            document.getElementById('electionTitle').textContent = mockData.election.title;
+            document.getElementById('electionStatus').textContent = mockData.election.status.toUpperCase();
+            document.getElementById('electionStatus').className = 'status-badge ' + mockData.election.status;
+            renderStats();
+            renderAnalytics();
+            renderVotingProgress();
+            renderLeadingVotesChart();
+            renderTopCandidatesChart();
+            renderPositionsGrid();
+            renderTimelineChart();
+            renderUserStats();
+            renderVotingActivity();
+            updateCountdown();
+            document.getElementById('lastUpdateTime').textContent = new Date().toLocaleTimeString();
+        }
+
+        // --- Initial Render ---
+        renderAll();
+        setInterval(updateCountdown, 1000);
+
+    </script>
+</body>
+</html> 
