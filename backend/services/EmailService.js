@@ -9,8 +9,13 @@ class EmailService {
   async initializeTransporter() {
     if (this.transporter) return this.transporter;
 
-    if (this.isTestMode) {
-      // Use Ethereal for testing
+    // Check for Gmail credentials (try both variable names)
+    const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
+    const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
+    const hasGmailCredentials = gmailUser && gmailPass;
+
+    if (this.isTestMode || !hasGmailCredentials) {
+      // Use Ethereal for testing or when Gmail credentials are missing
       const testAccount = await nodemailer.createTestAccount();
       
       this.transporter = nodemailer.createTransport({
@@ -23,6 +28,10 @@ class EmailService {
         },
       });
 
+      if (!hasGmailCredentials && process.env.NODE_ENV === 'production') {
+        console.log('⚠️  Gmail credentials not found, using Ethereal for testing');
+        console.log('   Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables for production email');
+      }
       console.log('📧 Email Service: Using Ethereal for testing');
       console.log(`   Test Account: ${testAccount.user}`);
       console.log(`   Preview URL: https://ethereal.email`);
@@ -31,12 +40,13 @@ class EmailService {
       this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
+          user: gmailUser,
+          pass: gmailPass,
         },
       });
 
       console.log('📧 Email Service: Using Gmail for production');
+      console.log(`   Gmail User: ${gmailUser}`);
     }
 
     return this.transporter;
@@ -50,8 +60,11 @@ class EmailService {
       
       const emailTemplate = this.createPasswordResetTemplate(userName, resetUrl, userType);
       
+      const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
+      const isUsingEthereal = this.isTestMode || !gmailUser;
+      
       const mailOptions = {
-        from: this.isTestMode ? '"Voting System Test" <test@ethereal.email>' : `"Voting System" <${process.env.GMAIL_USER}>`,
+        from: isUsingEthereal ? '"Voting System Test" <test@ethereal.email>' : `"Voting System" <${gmailUser}>`,
         to: email,
         subject: 'Password Reset Request - Voting System',
         html: emailTemplate,
@@ -60,20 +73,27 @@ class EmailService {
 
       const info = await transporter.sendMail(mailOptions);
 
-      if (this.isTestMode) {
-        console.log('📧 TEST EMAIL SENT:');
-        console.log('===================');
+      if (isUsingEthereal) {
+        console.log('📧 EMAIL SENT VIA ETHEREAL:');
+        console.log('===========================');
         console.log(`To: ${email}`);
         console.log(`Subject: ${mailOptions.subject}`);
         console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
         console.log(`Reset URL: ${resetUrl}`);
-        console.log('===================');
+        if (process.env.NODE_ENV === 'production') {
+          console.log('⚠️  Using Ethereal in production - set Gmail credentials for real email delivery');
+        }
+        console.log('===========================');
+      } else {
+        console.log('📧 EMAIL SENT VIA GMAIL:');
+        console.log(`To: ${email}`);
+        console.log(`Subject: ${mailOptions.subject}`);
       }
 
       return {
         success: true,
         messageId: info.messageId,
-        previewUrl: this.isTestMode ? nodemailer.getTestMessageUrl(info) : null
+        previewUrl: isUsingEthereal ? nodemailer.getTestMessageUrl(info) : null
       };
 
     } catch (error) {
