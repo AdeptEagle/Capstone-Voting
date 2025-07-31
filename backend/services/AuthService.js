@@ -88,8 +88,8 @@ export class AuthService {
         throw new Error("Course not found");
       }
       
-      // Validate that the course belongs to the selected department
-      if (String(course.departmentId) !== String(departmentId)) {
+      // Validate that the course belongs to the selected department (case-insensitive)
+      if (String(course.departmentId).toUpperCase() !== String(departmentId).toUpperCase()) {
         throw new Error(`Selected course (${course.name}) does not belong to the selected department. Course department: ${course.departmentId}, Selected department: ${departmentId}`);
       }
       
