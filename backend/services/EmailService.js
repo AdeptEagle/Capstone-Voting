@@ -56,7 +56,7 @@ class EmailService {
     try {
       const transporter = await this.initializeTransporter();
       
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}&type=${userType}`;
+      const resetUrl = `${process.env.FRONTEND_URL || 'https://capstone-voting.vercel.app'}/reset-password?token=${resetToken}&type=${userType}`;
       
       const emailTemplate = this.createPasswordResetTemplate(userName, resetUrl, userType);
       
