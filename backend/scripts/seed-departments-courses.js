@@ -59,25 +59,24 @@ async function seedDepartmentsAndCourses() {
     console.log('\n📚 Creating courses...');
     const courses = [
       // College of Business and Management
-      { id: 'course-hm', name: 'BS in Hospitality Management', departmentId: 'CBM', created_by: superadminId },
-      { id: 'course-acc', name: 'BS in Accountancy', departmentId: 'CBM', created_by: superadminId },
-      { id: 'course-mkt', name: 'BS in Business Administration Major in Marketing Management', departmentId: 'CBM', created_by: superadminId },
-      { id: 'course-hrd', name: 'BS in Business Administration Major in Human Resource Development Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSHM', name: 'BS in Hospitality Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSA', name: 'BS in Accountancy', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSBA-MM', name: 'BS in Business Administration Major in Marketing Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSBA-HRDM', name: 'BS in Business Administration Major in Human Resource Development Management', departmentId: 'CBM', created_by: superadminId },
       
       // College of Computer Studies
-      { id: 'course-it', name: 'BS in Information Technology', departmentId: 'CCS', created_by: superadminId },
+      { id: 'BSIT', name: 'BS in Information Technology', departmentId: 'CCS', created_by: superadminId },
       
       // College of Education and Arts
-      { id: 'course-elem', name: 'Bachelor in Elementary Education', departmentId: 'CEA', created_by: superadminId },
-      { id: 'course-gen', name: 'General Education', departmentId: 'CEA', created_by: superadminId },
-      { id: 'course-sec-eng', name: 'Bachelor in Secondary Education Major in English', departmentId: 'CEA', created_by: superadminId },
-      { id: 'course-mass', name: 'Bachelor in Mass Communications', departmentId: 'CEA', created_by: superadminId },
+      { id: 'BEED', name: 'Bachelor in Elementary Education - General Education', departmentId: 'CEA', created_by: superadminId },
+      { id: 'BMC', name: 'Bachelor in Mass Communications', departmentId: 'CEA', created_by: superadminId },
+      { id: 'BSED-ENGLISH', name: 'Bachelor in Secondary Education Major in English', departmentId: 'CEA', created_by: superadminId },
       
       // College of Engineering
-      { id: 'course-ee', name: 'BS in Electrical Engineering', departmentId: 'COE', created_by: superadminId },
-      { id: 'course-ce', name: 'BS in Civil Engineering', departmentId: 'COE', created_by: superadminId },
-      { id: 'course-me', name: 'BS in Mechanical Engineering', departmentId: 'COE', created_by: superadminId },
-      { id: 'course-ie', name: 'BS in Industrial Engineering', departmentId: 'COE', created_by: superadminId }
+      { id: 'BSEE', name: 'BS in Electrical Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'BSCE', name: 'BS in Civil Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'BSME', name: 'BS in Mechanical Engineering', departmentId: 'COE', created_by: superadminId },
+      { id: 'BSIE', name: 'BS in Industrial Engineering', departmentId: 'COE', created_by: superadminId }
     ];
 
     for (const course of courses) {
