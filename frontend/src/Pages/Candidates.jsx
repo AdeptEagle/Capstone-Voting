@@ -10,6 +10,7 @@ import { getImageUrl } from '../utils/image';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
+  const [filteredCandidates, setFilteredCandidates] = useState([]);
   const [positions, setPositions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -44,6 +45,59 @@ const Candidates = () => {
     
     fetchData();
   }, []);
+
+  useEffect(() => {
+    filterAndSortCandidates();
+  }, [candidates, searchTerm, sortField, sortOrder, positions]);
+
+  useEffect(() => {
+    // Update selectAll state when filtered data or selection changes
+    if (filteredCandidates.length === 0) {
+      setSelectAll(false);
+    } else {
+      const allFilteredSelected = filteredCandidates.every(candidate => selectedCandidates.includes(candidate.id));
+      setSelectAll(allFilteredSelected && selectedCandidates.length > 0);
+    }
+  }, [filteredCandidates, selectedCandidates]);
+
+  const filterAndSortCandidates = () => {
+    let filtered = candidates;
+
+    // Apply search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = candidates.filter(candidate => 
+        candidate.name?.toLowerCase().includes(term) ||
+        candidate.positionName?.toLowerCase().includes(term) ||
+        candidate.departmentId?.toLowerCase().includes(term) ||
+        candidate.courseId?.toLowerCase().includes(term)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      if (sortField === 'positionName') {
+        // Sort by position displayOrder (or ID if no displayOrder)
+        const aPos = positions.find(p => p.id === a.positionId);
+        const bPos = positions.find(p => p.id === b.positionId);
+        const aOrder = aPos?.displayOrder ?? aPos?.id ?? '';
+        const bOrder = bPos?.displayOrder ?? bPos?.id ?? '';
+        if (aOrder < bOrder) return sortOrder === 'asc' ? -1 : 1;
+        if (aOrder > bOrder) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      } else {
+        let aValue = a[sortField] || '';
+        let bValue = b[sortField] || '';
+        aValue = typeof aValue === 'string' ? aValue.toLowerCase() : aValue;
+        bValue = typeof bValue === 'string' ? bValue.toLowerCase() : bValue;
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      }
+    });
+
+    setFilteredCandidates(filtered);
+  };
 
   const fetchData = async () => {
     try {
@@ -276,40 +330,19 @@ const Candidates = () => {
     }
   };
 
+  const handleSort = (field) => {
+    let order = 'asc';
+    if (sortField === field && sortOrder === 'asc') {
+      order = 'desc';
+    }
+    setSortField(field);
+    setSortOrder(order);
+  };
+
   // Helper to get correct candidate photo URL
 
 
-  // Filter and sort candidates
-  const filteredCandidates = candidates
-    .filter(candidate => {
-      const term = searchTerm.toLowerCase();
-      return (
-        candidate.name?.toLowerCase().includes(term) ||
-        candidate.positionName?.toLowerCase().includes(term) ||
-        candidate.departmentId?.toLowerCase().includes(term) ||
-        candidate.courseId?.toLowerCase().includes(term)
-      );
-    })
-    .sort((a, b) => {
-      if (sortField === 'positionName') {
-        // Sort by position displayOrder (or ID if no displayOrder)
-        const aPos = positions.find(p => p.id === a.positionId);
-        const bPos = positions.find(p => p.id === b.positionId);
-        const aOrder = aPos?.displayOrder ?? aPos?.id ?? '';
-        const bOrder = bPos?.displayOrder ?? bPos?.id ?? '';
-        if (aOrder < bOrder) return sortOrder === 'asc' ? -1 : 1;
-        if (aOrder > bOrder) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
-      } else {
-        let aValue = a[sortField] || '';
-        let bValue = b[sortField] || '';
-        aValue = typeof aValue === 'string' ? aValue.toLowerCase() : aValue;
-        bValue = typeof bValue === 'string' ? bValue.toLowerCase() : bValue;
-        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
-      }
-    });
+
 
   // Helper to render sort icon
   const renderSortIcon = (field) => {
@@ -709,28 +742,28 @@ const Candidates = () => {
               <th
                 className={sortField === 'name' ? 'sortable active-sort' : 'sortable'}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSortField('name') || setSortOrder(sortField === 'name' && sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => handleSort('name')}
               >
                 Name {renderSortIcon('name')}
               </th>
               <th
                 className={sortField === 'positionName' ? 'sortable active-sort' : 'sortable'}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSortField('positionName') || setSortOrder(sortField === 'positionName' && sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => handleSort('positionName')}
               >
                 Position {renderSortIcon('positionName')}
               </th>
               <th
                 className={sortField === 'departmentId' ? 'sortable active-sort' : 'sortable'}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSortField('departmentId') || setSortOrder(sortField === 'departmentId' && sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => handleSort('departmentId')}
               >
                 Department {renderSortIcon('departmentId')}
               </th>
               <th
                 className={sortField === 'courseId' ? 'sortable active-sort' : 'sortable'}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSortField('courseId') || setSortOrder(sortField === 'courseId' && sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => handleSort('courseId')}
               >
                 Course {renderSortIcon('courseId')}
               </th>

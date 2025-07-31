@@ -34,6 +34,16 @@ const Voters = () => {
     filterAndSortVoters();
   }, [voters, searchTerm, sortConfig]);
 
+  useEffect(() => {
+    // Update selectAll state when filtered data or selection changes
+    if (filteredVoters.length === 0) {
+      setSelectAll(false);
+    } else {
+      const allFilteredSelected = filteredVoters.every(voter => selectedVoters.includes(voter.id));
+      setSelectAll(allFilteredSelected && selectedVoters.length > 0);
+    }
+  }, [filteredVoters, selectedVoters]);
+
   const filterAndSortVoters = () => {
     let filtered = voters;
 

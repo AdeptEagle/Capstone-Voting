@@ -21,6 +21,16 @@ const Positions = () => {
     filterAndSortPositions();
   }, [positions, searchTerm, sortConfig]);
 
+  useEffect(() => {
+    // Update selectAll state when filtered data or selection changes
+    if (filteredPositions.length === 0) {
+      setSelectAll(false);
+    } else {
+      const allFilteredSelected = filteredPositions.every(position => selectedPositions.includes(position.id));
+      setSelectAll(allFilteredSelected && selectedPositions.length > 0);
+    }
+  }, [filteredPositions, selectedPositions]);
+
   const filterAndSortPositions = () => {
     let filtered = positions;
 
