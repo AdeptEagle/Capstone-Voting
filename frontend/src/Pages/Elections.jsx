@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { getElections, getPositions, getCandidates, createElection, updateElection, deleteElection, startElection, pauseElection, stopElection, resumeElection, endElection, getElectionPositions, createPosition, createCandidate, getDepartments } from '../services/api';
 import './Elections.css';
 
+// Import new components
+import ElectionCard from '../components/Elections/ElectionCard';
+import ElectionForm from '../components/Elections/ElectionForm';
+import DeleteConfirmationModal from '../components/Elections/DeleteConfirmationModal';
+import MultiStepForm from '../components/Elections/MultiStepForm';
+import { useElectionForm } from '../hooks/useElectionForm';
+import { getStatusColor, getStatusIcon, formatDateTime, getStatusActions } from '../utils/electionUtils';
+
 const Elections = () => {
   const [elections, setElections] = useState([]);
   const [positions, setPositions] = useState([]);
@@ -19,24 +27,32 @@ const Elections = () => {
   const [loadingPositions, setLoadingPositions] = useState(false);
   const navigate = useNavigate();
 
-  // Enhanced form state for creating elections with positions and candidates
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    startTime: '',
-    endTime: '',
-    positionIds: [],
-    // New fields for dynamic position/candidate creation
-    newPositions: [],
-    newCandidates: [],
-    // Existing candidates selection
-    selectedCandidateIds: []
-  });
+  // Use custom hook for form management
+  const {
+    formData,
+    setFormData,
+    currentStep,
+    setCurrentStep,
+    tempPositions,
+    setTempPositions,
+    tempCandidates,
+    setTempCandidates,
+    resetForm: resetFormHook,
+    addNewPosition,
+    updateTempPosition,
+    removeTempPosition,
+    addCandidateToPosition,
+    updateTempCandidate,
+    removeTempCandidate,
+    handlePhotoChange,
+    handleCandidateSelection,
+    addAllCandidates,
+    removeAllCandidates,
+    getCandidatesForPosition,
+    nextStep,
+    prevStep
+  } = useElectionForm();
 
-  // Multi-step form state
-  const [currentStep, setCurrentStep] = useState(1);
-  const [tempPositions, setTempPositions] = useState([]);
-  const [tempCandidates, setTempCandidates] = useState([]);
   const [existingCandidates, setExistingCandidates] = useState([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -438,22 +454,9 @@ const Elections = () => {
     await fetchExistingCandidates();
   };
 
+  // Use the resetForm from our custom hook, but extend it for this component's needs
   const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      startTime: '',
-      endTime: '',
-      positionIds: [],
-      // New fields for dynamic position/candidate creation
-      newPositions: [],
-      newCandidates: [],
-      // Existing candidates selection
-      selectedCandidateIds: []
-    });
-    setCurrentStep(1);
-    setTempPositions([]);
-    setTempCandidates([]);
+    resetFormHook();
     setExistingCandidates([]);
   };
 
@@ -1568,99 +1571,13 @@ const Elections = () => {
               </div>
               <form onSubmit={handleEditElection}>
                 <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label">Election Title</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Description</label>
-                    <textarea
-                      className="form-control"
-                      rows="3"
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">Start Time</label>
-                        <input
-                          type="datetime-local"
-                          className="form-control"
-                          value={formData.startTime}
-                          onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="form-label">End Time</label>
-                        <input
-                          type="datetime-local"
-                          className="form-control"
-                          value={formData.endTime}
-                          onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Positions to Include</label>
-                    {loadingPositions ? (
-                      <div className="text-center py-3">
-                        <div className="spinner-border spinner-border-sm text-primary me-2" role="status">
-                          <span className="visually-hidden">Loading...</span>
-                        </div>
-                        <span className="text-muted">Loading election positions...</span>
-                      </div>
-                    ) : (
-                      <div className="position-checkboxes">
-                        {positions.length > 0 ? (
-                          positions.map(position => (
-                            <div key={position.id} className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id={`edit-position-${position.id}`}
-                                checked={formData.positionIds.includes(position.id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setFormData({
-                                      ...formData,
-                                      positionIds: [...formData.positionIds, position.id]
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      positionIds: formData.positionIds.filter(id => id !== position.id)
-                                    });
-                                  }
-                                }}
-                              />
-                              <label className="form-check-label" htmlFor={`edit-position-${position.id}`}>
-                                {position.name}
-                              </label>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted">No positions available. Please create positions first.</p>
-                        )}
-                      </div>
-                    )}
-                    {!loadingPositions && formData.positionIds.length === 0 && (
-                      <small className="text-danger">Please select at least one position</small>
-                    )}
-                  </div>
+                  <ElectionForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    positions={positions}
+                    loadingPositions={loadingPositions}
+                    isEditing={true}
+                  />
                 </div>
                 <div className="modal-footer">
                   <button
@@ -1694,90 +1611,15 @@ const Elections = () => {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && deletingElection && (
-        <div className="modal fade show" style={{ display: 'block' }} tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header bg-danger text-white">
-                <h5 className="modal-title">
-                  <i className="fas fa-exclamation-triangle me-2"></i>
-                  Delete Ballot
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={cancelDeleteElection}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="alert alert-danger">
-                  <h6 className="alert-heading">
-                    <i className="fas fa-exclamation-triangle me-2"></i>
-                    Warning: This action cannot be undone!
-                  </h6>
-                  <p className="mb-0">
-                    You are about to permanently delete the ballot <strong>"{deletingElection.title}"</strong>.
-                  </p>
-                </div>
-                
-                <p>This will permanently remove:</p>
-                <ul className="text-danger">
-                  <li>All election data</li>
-                  <li>All votes cast by voters</li>
-                  <li>All candidate assignments</li>
-                  <li>All position assignments</li>
-                </ul>
-                
-                <div className="mb-3">
-                  <label className="form-label">
-                    Type <strong>"{deletingElection.title}"</strong> to confirm deletion:
-                  </label>
-                  <input
-                    type="text"
-                    className={`form-control ${deleteConfirmation && deleteConfirmation !== deletingElection.title ? 'is-invalid' : ''}`}
-                    value={deleteConfirmation}
-                    onChange={(e) => setDeleteConfirmation(e.target.value)}
-                    placeholder={`Type "${deletingElection.title}" to confirm`}
-                    autoFocus
-                  />
-                  {deleteConfirmation && deleteConfirmation !== deletingElection.title && (
-                    <div className="invalid-feedback">
-                      Confirmation text does not match the ballot name.
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={cancelDeleteElection}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={confirmDeleteElection}
-                  disabled={deleteConfirmation !== deletingElection.title || updatingElection === deletingElection.id}
-                >
-                  {updatingElection === deletingElection.id ? (
-                    <i className="fas fa-spinner fa-spin me-1"></i>
-                  ) : (
-                    <i className="fas fa-trash me-1"></i>
-                  )}
-                  Delete Ballot
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Backdrop */}
-      {showDeleteModal && (
-        <div className="modal-backdrop fade show"></div>
-      )}
+      <DeleteConfirmationModal
+        show={showDeleteModal}
+        election={deletingElection}
+        deleteConfirmation={deleteConfirmation}
+        setDeleteConfirmation={setDeleteConfirmation}
+        onConfirm={confirmDeleteElection}
+        onCancel={cancelDeleteElection}
+        isDeleting={updatingElection === deletingElection?.id}
+      />
     </div>
   );
 }
