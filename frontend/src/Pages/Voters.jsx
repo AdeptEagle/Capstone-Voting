@@ -43,7 +43,7 @@ const Voters = () => {
         voter.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         voter.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         voter.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (voter.departmentName && voter.departmentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (voter.departmentId && voter.departmentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (voter.courseId && voter.courseId.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
@@ -55,9 +55,9 @@ const Voters = () => {
         let bValue = b[sortConfig.key];
 
         // Handle nested properties
-        if (sortConfig.key === 'departmentName') {
-          aValue = a.departmentName || '';
-          bValue = b.departmentName || '';
+        if (sortConfig.key === 'departmentId') {
+          aValue = a.departmentId || '';
+          bValue = b.departmentId || '';
         } else if (sortConfig.key === 'courseId') {
           aValue = a.courseId || '';
           bValue = b.courseId || '';
@@ -412,10 +412,10 @@ const Voters = () => {
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
-                    onClick={() => handleSort('departmentName')}
+                    onClick={() => handleSort('departmentId')}
                     className="sortable-header"
                   >
-                    Department {getSortIcon('departmentName')}
+                    Department {getSortIcon('departmentId')}
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
@@ -451,9 +451,9 @@ const Voters = () => {
                       <td>{voter.email}</td>
                       <td>{voter.studentId}</td>
                       <td>
-                        {voter.departmentName ? (
+                        {voter.departmentId ? (
                           <span className="badge bg-primary">
-                            {voter.departmentName}
+                            {voter.departmentId}
                           </span>
                         ) : (
                           <span className="text-muted">No department</span>

@@ -286,7 +286,7 @@ const Candidates = () => {
       return (
         candidate.name?.toLowerCase().includes(term) ||
         candidate.positionName?.toLowerCase().includes(term) ||
-        candidate.departmentName?.toLowerCase().includes(term) ||
+        candidate.departmentId?.toLowerCase().includes(term) ||
         candidate.courseId?.toLowerCase().includes(term)
       );
     })
@@ -381,10 +381,10 @@ const Candidates = () => {
                           <span className="verified"><i className="fas fa-check-circle"></i></span>
                         </h3>
                         <p className="candidate-position">{candidate.positionName}</p>
-                        {(candidate.departmentName || candidate.courseName) && (
+                        {(candidate.departmentId || candidate.courseName) && (
                           <p className="candidate-department">
                             <i className="fas fa-university me-1"></i>
-                            {candidate.departmentName}
+                            {candidate.departmentId}
                             {candidate.courseId && (
                               <span className="candidate-course">
                                 <i className="fas fa-graduation-cap me-1"></i>
@@ -525,10 +525,10 @@ const Candidates = () => {
                               <i className="fas fa-user"></i>
                               <span><strong>Name:</strong> {viewCandidate?.name}</span>
                             </div>
-                            {(viewCandidate?.departmentName || viewCandidate?.courseName) && (
+                            {(viewCandidate?.departmentId || viewCandidate?.courseName) && (
                               <div className="detail-item">
                                 <i className="fas fa-university"></i>
-                                <span><strong>Department:</strong> {viewCandidate?.departmentName || 'Not specified'}</span>
+                                <span><strong>Department:</strong> {viewCandidate?.departmentId || 'Not specified'}</span>
                               </div>
                             )}
                             {viewCandidate?.courseId && (
@@ -721,11 +721,11 @@ const Candidates = () => {
                 Position {renderSortIcon('positionName')}
               </th>
               <th
-                className={sortField === 'departmentName' ? 'sortable active-sort' : 'sortable'}
+                className={sortField === 'departmentId' ? 'sortable active-sort' : 'sortable'}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSortField('departmentName') || setSortOrder(sortField === 'departmentName' && sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => setSortField('departmentId') || setSortOrder(sortField === 'departmentId' && sortOrder === 'asc' ? 'desc' : 'asc')}
               >
-                Department {renderSortIcon('departmentName')}
+                Department {renderSortIcon('departmentId')}
               </th>
               <th
                 className={sortField === 'courseId' ? 'sortable active-sort' : 'sortable'}
@@ -770,7 +770,7 @@ const Candidates = () => {
                   </td>
                   <td>{candidate.name}</td>
                   <td>{candidate.positionName}</td>
-                  <td>{candidate.departmentName || '-'}</td>
+                  <td>{candidate.departmentId || '-'}</td>
                   <td>{candidate.courseId || '-'}</td>
                   <td>{candidate.description || '-'}</td>
                   <td>
@@ -906,10 +906,10 @@ const Candidates = () => {
                             <i className="fas fa-user"></i>
                             <span><strong>Name:</strong> {viewCandidate?.name}</span>
                           </div>
-                          {(viewCandidate?.departmentName || viewCandidate?.courseName) && (
+                          {(viewCandidate?.departmentId || viewCandidate?.courseName) && (
                             <div className="detail-item">
                               <i className="fas fa-university"></i>
-                              <span><strong>Department:</strong> {viewCandidate?.departmentName || 'Not specified'}</span>
+                              <span><strong>Department:</strong> {viewCandidate?.departmentId || 'Not specified'}</span>
                             </div>
                           )}
                           {viewCandidate?.courseId && (
