@@ -49,6 +49,15 @@ export const useCandidateForm = () => {
     }
   }, []);
 
+  const handleRemovePhoto = useCallback(() => {
+    setPhotoFile(null);
+    setPhotoPreview('');
+    setFormData(prev => ({
+      ...prev,
+      photoUrl: ''
+    }));
+  }, []);
+
   const validateForm = useCallback(() => {
     const validation = validateCandidateForm(formData);
     setErrors(validation.errors);
@@ -72,6 +81,7 @@ export const useCandidateForm = () => {
     populateForm,
     handleChange,
     handlePhotoChange,
+    handleRemovePhoto,
     validateForm,
     clearCourseSelection
   };

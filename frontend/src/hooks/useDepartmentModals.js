@@ -34,18 +34,22 @@ export const useDepartmentModals = () => {
     setSelectedDepartment(department);
     if (course) {
       setEditingCourse(course);
-      setCourseFormData({
-        id: course.id,
-        name: course.name,
-        departmentId: department.id
-      });
+      if (setCourseFormData) {
+        setCourseFormData({
+          id: course.id,
+          name: course.name,
+          departmentId: course.departmentId || department.id
+        });
+      }
     } else {
       setEditingCourse(null);
-      setCourseFormData({
-        id: '',
-        name: '',
-        departmentId: department.id
-      });
+      if (setCourseFormData) {
+        setCourseFormData({
+          id: '',
+          name: '',
+          departmentId: department.id
+        });
+      }
     }
     setShowCourseModal(true);
   };

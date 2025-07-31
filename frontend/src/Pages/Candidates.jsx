@@ -44,6 +44,7 @@ const Candidates = () => {
     populateForm,
     handleChange,
     handlePhotoChange,
+    handleRemovePhoto,
     validateForm
   } = useCandidateForm();
 
@@ -150,7 +151,16 @@ const Candidates = () => {
 
       let photoUrl = formData.photoUrl;
       if (photoFile) {
-        photoUrl = await uploadImageToBlob(photoFile);
+        try {
+          console.log('🖼️ Uploading photo:', photoFile.name);
+          photoUrl = await uploadImageToBlob(photoFile);
+          console.log('✅ Photo uploaded successfully:', photoUrl);
+        } catch (uploadError) {
+          console.error('❌ Photo upload failed:', uploadError);
+          setError(`Photo upload failed: ${uploadError.message}. Candidate will be saved without photo.`);
+          // Continue without photo
+          photoUrl = '';
+        }
       }
 
       const candidateData = formatCandidateData(formData, photoUrl);
@@ -495,6 +505,8 @@ const Candidates = () => {
                     formData={formData}
                     onChange={handleChange}
                     onPhotoChange={handlePhotoChange}
+                    onRemovePhoto={handleRemovePhoto}
+                    photoFile={photoFile}
                     positions={positions}
                     departments={departments}
                     courses={courses}

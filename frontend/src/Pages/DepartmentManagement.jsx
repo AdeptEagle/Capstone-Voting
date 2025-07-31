@@ -136,6 +136,8 @@ const DepartmentManagement = () => {
     try {
       await handleCreateCourse(courseFormData, courses, setCourses, setSuccess, setError);
       closeCourseModal();
+      // Force a re-render by updating departments state to trigger course list refresh
+      setDepartments([...departments]);
     } catch (error) {
       // Error handled in hook
     }
@@ -146,6 +148,8 @@ const DepartmentManagement = () => {
     try {
       await handleUpdateCourse(editingCourse.id, courseFormData, courses, setCourses, setSuccess, setError);
       closeCourseModal();
+      // Force a re-render by updating departments state to trigger course list refresh
+      setDepartments([...departments]);
     } catch (error) {
       // Error handled in hook
     }

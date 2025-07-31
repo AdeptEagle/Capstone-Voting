@@ -271,7 +271,7 @@ const Elections = () => {
           <div className="header-actions">
             <button
               className="btn btn-success btn-lg"
-              onClick={openCreateModal}
+              onClick={() => openCreateModal(resetForm)}
             >
               <i className="fas fa-plus me-2"></i>
               Create New Ballot
@@ -307,7 +307,7 @@ const Elections = () => {
               <p className="text-muted mb-4">Get started by creating your first election ballot</p>
               <button
                 className="btn btn-primary btn-lg"
-                onClick={openCreateModal}
+                onClick={() => openCreateModal(resetForm)}
               >
                 <i className="fas fa-plus me-2"></i>
                 Create Your First Ballot
@@ -320,8 +320,8 @@ const Elections = () => {
               <div key={election.id} className="col-lg-6 col-xl-4 mb-4">
                 <ElectionCard
                   election={election}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteElection}
+                  onEdit={onEditClick}
+                  onDelete={onDeleteElection}
                   onStatusChange={handleStatusChange}
                   isUpdating={updatingElection === election.id}
                 />
@@ -335,7 +335,7 @@ const Elections = () => {
           <div className="floating-create-btn">
             <button
               className="btn btn-success btn-lg rounded-circle"
-              onClick={openCreateModal}
+              onClick={() => openCreateModal(resetForm)}
               title="Create New Ballot"
             >
               <i className="fas fa-plus me-2"></i>

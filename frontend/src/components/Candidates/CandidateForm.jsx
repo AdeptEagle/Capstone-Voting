@@ -1,9 +1,12 @@
 import React from 'react';
+import PhotoUpload from './PhotoUpload';
 
 const CandidateForm = ({
   formData,
   onChange,
   onPhotoChange,
+  onRemovePhoto,
+  photoFile,
   positions = [],
   departments = [],
   courses = [],
@@ -94,30 +97,12 @@ const CandidateForm = ({
         </small>
       </div>
 
-      <div className="mb-3">
-        <label className="form-label">Photo (profile picture)</label>
-        <input
-          type="file"
-          className="form-control"
-          accept="image/*"
-          onChange={onPhotoChange}
-        />
-        {photoPreview && (
-          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-            <img
-              src={photoPreview}
-              alt="Preview"
-              style={{ 
-                width: 100, 
-                height: 100, 
-                borderRadius: '50%', 
-                objectFit: 'cover', 
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)' 
-              }}
-            />
-          </div>
-        )}
-      </div>
+      <PhotoUpload
+        photoFile={photoFile}
+        photoPreview={photoPreview}
+        onPhotoChange={onPhotoChange}
+        onRemovePhoto={onRemovePhoto}
+      />
 
       <div className="mb-3">
         <label className="form-label">Description (optional)</label>
