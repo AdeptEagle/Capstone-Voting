@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getVoters, createVoter, updateVoter, deleteVoter, deleteMultipleVoters, getDepartments, getCoursesByDepartment } from '../services/api';
+import BulkDeleteModal from '../components/Common/BulkDeleteModal';
+import { usePersistentSort } from '../hooks/usePersistentSort';
 
 const Voters = () => {
   const [voters, setVoters] = useState([]);
@@ -13,7 +15,16 @@ const Voters = () => {
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  
+  // Use persistent sorting
+  const {
+    sortConfig,
+    handleSort,
+    getSortIcon,
+    applySorting
+  } = usePersistentSort('voters-sort', { key: 'name', direction: 'asc' });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -92,22 +103,7 @@ const Voters = () => {
     setFilteredVoters(filtered);
   };
 
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const getSortIcon = (key) => {
-    if (sortConfig.key !== key) {
-      return <i className="fas fa-sort text-muted"></i>;
-    }
-    return sortConfig.direction === 'asc' 
-      ? <i className="fas fa-sort-up text-primary"></i>
-      : <i className="fas fa-sort-down text-primary"></i>;
-  };
+  // handleSort and getSortIcon are now provided by usePersistentSort hook
 
   const fetchDepartments = async () => {
     try {
@@ -262,24 +258,53 @@ const Voters = () => {
     }
   };
 
-  const handleMultipleDelete = async () => {
+  const handleMultipleDelete = () => {
     if (selectedVoters.length === 0) {
-      alert('Please select voters to delete');
+      setError('Please select voters to delete');
       return;
     }
-    
-    if (window.confirm(`Are you sure you want to delete ${selectedVoters.length} voter(s)?`)) {
-      try {
-        await deleteMultipleVoters(selectedVoters);
-        setSelectedVoters([]);
-        setSelectAll(false);
-        fetchVoters();
-        setSuccess(`${selectedVoters.length} voter(s) deleted successfully!`);
-      } catch (error) {
-        console.error('Error deleting multiple voters:', error);
-        setError('Failed to delete voters');
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      setIsBulkDeleting(true);
+      setError('');
+      
+      const votersToDelete = voters.filter(voter => selectedVoters.includes(voter.id));
+      const deleteCount = selectedVoters.length;
+      
+      await deleteMultipleVoters(selectedVoters);
+      
+      setSelectedVoters([]);
+      setSelectAll(false);
+      setShowBulkDeleteModal(false);
+      
+      await fetchVoters();
+      setSuccess(`${deleteCount} voter(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting multiple voters:', error);
+      
+      let errorMessage = 'Failed to delete voters';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 403) {
+        errorMessage = 'You do not have permission to delete these voters';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Some voters cannot be deleted - they may have voted in active elections';
+      } else if (!navigator.onLine) {
+        errorMessage = 'No internet connection. Please check your connection and try again';
       }
+      
+      setError(`${errorMessage}. ${selectedVoters.length} voter(s) were selected for deletion.`);
+    } finally {
+      setIsBulkDeleting(false);
     }
+  };
+
+  const cancelBulkDelete = () => {
+    setShowBulkDeleteModal(false);
   };
 
   const handleSelectVoter = (id) => {
@@ -404,42 +429,42 @@ const Voters = () => {
                     onClick={() => handleSort('name')}
                     className="sortable-header"
                   >
-                    Name {getSortIcon('name')}
+                    Name <i className={getSortIcon('name')}></i>
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('email')}
                     className="sortable-header"
                   >
-                    Email {getSortIcon('email')}
+                    Email <i className={getSortIcon('email')}></i>
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('studentId')}
                     className="sortable-header"
                   >
-                    Student ID {getSortIcon('studentId')}
+                    Student ID <i className={getSortIcon('studentId')}></i>
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('departmentId')}
                     className="sortable-header"
                   >
-                    Department {getSortIcon('departmentId')}
+                    Department <i className={getSortIcon('departmentId')}></i>
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('courseId')}
                     className="sortable-header"
                   >
-                    Course {getSortIcon('courseId')}
+                    Course <i className={getSortIcon('courseId')}></i>
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('hasVoted')}
                     className="sortable-header"
                   >
-                    Voting Status {getSortIcon('hasVoted')}
+                    Voting Status <i className={getSortIcon('hasVoted')}></i>
                   </th>
                   <th>Actions</th>
                 </tr>
@@ -656,6 +681,17 @@ const Voters = () => {
           </div>
         </div>
       )}
+
+      {/* Enhanced Bulk Delete Modal */}
+      <BulkDeleteModal
+        show={showBulkDeleteModal}
+        items={voters.filter(voter => selectedVoters.includes(voter.id))}
+        itemType="voter"
+        onConfirm={confirmBulkDelete}
+        onCancel={cancelBulkDelete}
+        isDeleting={isBulkDeleting}
+        getItemDisplayName={(voter) => `${voter.name} (${voter.email})`}
+      />
     </div>
   );
 };
