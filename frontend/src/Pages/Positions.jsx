@@ -256,7 +256,11 @@ const Positions = () => {
             <p className="dashboard-subtitle-pro">Create and manage election positions.</p>
           </div>
           <div className="dashboard-header-actions">
-            <button className="btn btn-custom-blue" onClick={handleAddPosition}>
+            <button className="btn btn-custom-blue" onClick={() => {
+              setFormData({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
+              setEditingPosition(null);
+              setShowModal(true);
+            }}>
               Add Position
             </button>
           </div>

@@ -133,14 +133,18 @@ const MultiStepForm = ({
           onClick={onAddNewPosition}
         >
           <i className="fas fa-plus me-1"></i>
-          Add Position
+          Add New Position
         </button>
       </div>
 
       {tempPositions.length === 0 ? (
         <div className="text-center py-4">
           <i className="fas fa-list fa-3x text-muted mb-3"></i>
-          <p className="text-muted">No positions added yet. Click "Add Position" to get started.</p>
+          <p className="text-muted">No new positions added yet. Click "Add New Position" to create positions for this election.</p>
+          <div className="alert alert-info mt-3">
+            <i className="fas fa-lightbulb me-2"></i>
+            <strong>Tip:</strong> You can reuse existing positions by selecting them from the Elections page when editing elections. For now, create the positions you need for this ballot.
+          </div>
         </div>
       ) : (
         <div className="position-list">

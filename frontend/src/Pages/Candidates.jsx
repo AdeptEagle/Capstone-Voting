@@ -27,10 +27,18 @@ const Candidates = () => {
   const [error, setError] = useState('');
   const [viewCandidate, setViewCandidate] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('name');
-  const [sortOrder, setSortOrder] = useState('asc');
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  
+  // Use persistent sorting
+  const {
+    sortConfig,
+    handleSort,
+    getSortIcon,
+    applySorting
+  } = usePersistentSort('candidates-sort', { key: 'name', direction: 'asc' });
 
   const role = checkCurrentUser().role;
   const { canViewCandidates, hasActiveElection, triggerImmediateRefresh } = useElection();
@@ -55,9 +63,10 @@ const Candidates = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = filterAndSortCandidates(candidates, searchTerm, sortField, sortOrder, positions);
-    setFilteredCandidates(filtered);
-  }, [candidates, searchTerm, sortField, sortOrder, positions]);
+    const filtered = filterCandidates(candidates, searchTerm, positions);
+    const sorted = applySorting(filtered);
+    setFilteredCandidates(sorted);
+  }, [candidates, searchTerm, positions, applySorting]);
 
   useEffect(() => {
     // Update selectAll state when filtered data or selection changes
@@ -204,7 +213,7 @@ const Candidates = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this candidate?')) {
+    if (confirm('Are you sure you want to delete this candidate? This action cannot be undone.')) {
       try {
         await deleteCandidate(id);
         await fetchData();
@@ -230,36 +239,53 @@ const Candidates = () => {
     }
   };
 
-  const handleMultipleDelete = async () => {
+  const handleMultipleDelete = () => {
     if (selectedCandidates.length === 0) {
       setError('Please select candidates to delete');
       return;
     }
+    setShowBulkDeleteModal(true);
+  };
 
-    if (window.confirm(`Are you sure you want to delete ${selectedCandidates.length} selected candidate(s)?`)) {
-      try {
-        await deleteMultipleCandidates(selectedCandidates);
-        setSelectedCandidates([]);
-        setSelectAll(false);
-        await fetchData();
-      } catch (error) {
-        console.error('Error deleting candidates:', error);
-        
-        let errorMessage = 'Failed to delete selected candidates';
-        
-        if (error.response?.data?.error) {
-          errorMessage = error.response.data.error;
-        } else if (error.response?.status === 403) {
-          errorMessage = 'You do not have permission to delete these candidates';
-        } else if (error.response?.status === 409) {
-          errorMessage = 'Some candidates cannot be deleted - they may be associated with active elections';
-        } else if (!navigator.onLine) {
-          errorMessage = 'No internet connection. Please check your connection and try again';
-        }
-        
-        setError(`${errorMessage}. ${selectedCandidates.length} candidate(s) selected for deletion.`);
+  const confirmBulkDelete = async () => {
+    try {
+      setIsBulkDeleting(true);
+      setError('');
+      
+      const candidatesToDelete = candidates.filter(candidate => selectedCandidates.includes(candidate.id));
+      const deleteCount = selectedCandidates.length;
+      
+      await deleteMultipleCandidates(selectedCandidates);
+      
+      setSelectedCandidates([]);
+      setSelectAll(false);
+      setShowBulkDeleteModal(false);
+      
+      await fetchData();
+      setSuccess(`${deleteCount} candidate(s) deleted successfully!`);
+    } catch (error) {
+      console.error('Error deleting candidates:', error);
+      
+      let errorMessage = 'Failed to delete selected candidates';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 403) {
+        errorMessage = 'You do not have permission to delete these candidates';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Some candidates cannot be deleted - they may be associated with active elections';
+      } else if (!navigator.onLine) {
+        errorMessage = 'No internet connection. Please check your connection and try again';
       }
+      
+      setError(`${errorMessage}. ${selectedCandidates.length} candidate(s) were selected for deletion.`);
+    } finally {
+      setIsBulkDeleting(false);
     }
+  };
+
+  const cancelBulkDelete = () => {
+    setShowBulkDeleteModal(false);
   };
 
   const handleSelectCandidate = (id, isSelected) => {
@@ -279,23 +305,9 @@ const Candidates = () => {
     setSelectAll(!selectAll);
   };
 
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
-  };
+  // handleSort is now provided by usePersistentSort hook
 
-  const renderSortIcon = (field) => {
-    if (sortField !== field) {
-      return <i className="fas fa-sort text-muted ms-1"></i>;
-    }
-    return sortOrder === 'asc' 
-      ? <i className="fas fa-sort-up text-primary ms-1"></i>
-      : <i className="fas fa-sort-down text-primary ms-1"></i>;
-  };
+  // renderSortIcon replaced by getSortIcon from usePersistentSort hook
 
   if (!canViewCandidates) {
     return <ElectionStatusMessage />;
@@ -390,19 +402,19 @@ const Candidates = () => {
                   className="sortable-header"
                   onClick={() => handleSort('name')}
                 >
-                  Name {renderSortIcon('name')}
+                                          Name <i className={getSortIcon('name')}></i>
                 </th>
                 <th 
                   className="sortable-header"
                   onClick={() => handleSort('positionName')}
                 >
-                  Position {renderSortIcon('positionName')}
+                  Position <i className={getSortIcon('positionName')}></i>
                 </th>
                 <th 
                   className="sortable-header"
                   onClick={() => handleSort('departmentId')}
                 >
-                  Department {renderSortIcon('departmentId')}
+                                          Department <i className={getSortIcon('departmentId')}></i>
                 </th>
                 <th>Course</th>
                 <th>Actions</th>
@@ -583,6 +595,17 @@ const Candidates = () => {
           </div>
         </div>
       )}
+
+      {/* Enhanced Bulk Delete Modal */}
+      <BulkDeleteModal
+        show={showBulkDeleteModal}
+        items={candidates.filter(candidate => selectedCandidates.includes(candidate.id))}
+        itemType="candidate"
+        onConfirm={confirmBulkDelete}
+        onCancel={cancelBulkDelete}
+        isDeleting={isBulkDeleting}
+        getItemDisplayName={(candidate) => `${candidate.name} (${positions.find(p => p.id === candidate.positionId)?.name || 'Unknown Position'})`}
+      />
     </div>
   );
 };

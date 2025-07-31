@@ -11,6 +11,8 @@ import DepartmentCard from '../components/Departments/DepartmentCard';
 import DepartmentModal from '../components/Departments/DepartmentModal';
 import CourseModal from '../components/Departments/CourseModal';
 import DepartmentMessage from '../components/Departments/DepartmentMessage';
+import DepartmentDeleteModal from '../components/Departments/DepartmentDeleteModal';
+import CourseDeleteModal from '../components/Departments/CourseDeleteModal';
 
 // Import hooks and utilities
 import { useDepartmentActions } from '../hooks/useDepartmentActions';
@@ -32,6 +34,14 @@ const DepartmentManagement = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Delete modal states
+  const [showDepartmentDeleteModal, setShowDepartmentDeleteModal] = useState(false);
+  const [showCourseDeleteModal, setShowCourseDeleteModal] = useState(false);
+  const [deletingDepartment, setDeletingDepartment] = useState(null);
+  const [deletingCourse, setDeletingCourse] = useState(null);
+  const [isDeletingDepartment, setIsDeletingDepartment] = useState(false);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
   
   // Form data
   const [departmentFormData, setDepartmentFormData] = useState({ id: '', name: '' });
@@ -127,15 +137,47 @@ const DepartmentManagement = () => {
     }
   };
 
-  const onDeleteDepartment = async (departmentId) => {
+  const onDeleteDepartment = (departmentId) => {
+    const department = departments.find(dept => dept.id === departmentId);
+    const associatedCourses = courses.filter(course => course.departmentId === departmentId);
+    
+    setDeletingDepartment({
+      department,
+      associatedCourses
+    });
+    setShowDepartmentDeleteModal(true);
+  };
+
+  const confirmDepartmentDelete = async () => {
+    if (!deletingDepartment) return;
+    
     try {
-      await handleDeleteDepartment(departmentId, departments, setDepartments, courses, setCourses, setSuccess, setError);
-      // Refresh all data to ensure consistency
+      setIsDeletingDepartment(true);
+      setError('');
+      
+      await handleDeleteDepartment(
+        deletingDepartment.department.id, 
+        departments, 
+        setDepartments, 
+        courses, 
+        setCourses, 
+        setSuccess, 
+        setError
+      );
+      
+      setShowDepartmentDeleteModal(false);
+      setDeletingDepartment(null);
       await fetchData();
     } catch (error) {
-      // Error already handled in the hook
       console.error('Department deletion failed:', error);
+    } finally {
+      setIsDeletingDepartment(false);
     }
+  };
+
+  const cancelDepartmentDelete = () => {
+    setShowDepartmentDeleteModal(false);
+    setDeletingDepartment(null);
   };
 
   const onCreateCourse = async (e) => {
@@ -163,7 +205,44 @@ const DepartmentManagement = () => {
   };
 
   const onDeleteCourse = (courseId) => {
-    handleDeleteCourse(courseId, courses, setCourses, setSuccess, setError);
+    const course = courses.find(c => c.id === courseId);
+    const department = departments.find(dept => dept.id === course?.departmentId);
+    
+    setDeletingCourse({
+      course,
+      department
+    });
+    setShowCourseDeleteModal(true);
+  };
+
+  const confirmCourseDelete = async () => {
+    if (!deletingCourse) return;
+    
+    try {
+      setIsDeletingCourse(true);
+      setError('');
+      
+      await handleDeleteCourse(
+        deletingCourse.course.id, 
+        courses, 
+        setCourses, 
+        setSuccess, 
+        setError
+      );
+      
+      setShowCourseDeleteModal(false);
+      setDeletingCourse(null);
+      await fetchData();
+    } catch (error) {
+      console.error('Course deletion failed:', error);
+    } finally {
+      setIsDeletingCourse(false);
+    }
+  };
+
+  const cancelCourseDelete = () => {
+    setShowCourseDeleteModal(false);
+    setDeletingCourse(null);
   };
 
   if (loading) {
@@ -260,6 +339,26 @@ const DepartmentManagement = () => {
         onChange={setCourseFormData}
         onSubmit={editingCourse ? onUpdateCourse : onCreateCourse}
         onClose={closeCourseModal}
+      />
+
+      {/* Department Delete Modal */}
+      <DepartmentDeleteModal
+        show={showDepartmentDeleteModal}
+        department={deletingDepartment?.department}
+        associatedCourses={deletingDepartment?.associatedCourses || []}
+        onConfirm={confirmDepartmentDelete}
+        onCancel={cancelDepartmentDelete}
+        isDeleting={isDeletingDepartment}
+      />
+
+      {/* Course Delete Modal */}
+      <CourseDeleteModal
+        show={showCourseDeleteModal}
+        course={deletingCourse?.course}
+        department={deletingCourse?.department}
+        onConfirm={confirmCourseDelete}
+        onCancel={cancelCourseDelete}
+        isDeleting={isDeletingCourse}
       />
     </div>
   );
