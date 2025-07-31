@@ -140,6 +140,16 @@ export const deletePosition = async (positionId) => {
   }
 };
 
+export const deleteMultiplePositions = async (ids) => {
+  try {
+    const response = await api.delete('/positions', { data: { ids } });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting multiple positions:', error);
+    throw error;
+  }
+};
+
 // Candidate API functions
 export const getCandidates = async () => {
   try {
@@ -177,6 +187,16 @@ export const deleteCandidate = async (candidateId) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting candidate:', error);
+    throw error;
+  }
+};
+
+export const deleteMultipleCandidates = async (ids) => {
+  try {
+    const response = await api.delete('/candidates', { data: { ids } });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting multiple candidates:', error);
     throw error;
   }
 };
@@ -409,6 +429,16 @@ export const deleteVoter = async (voterId) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting voter:', error);
+    throw error;
+  }
+};
+
+export const deleteMultipleVoters = async (ids) => {
+  try {
+    const response = await api.delete('/voters', { data: { ids } });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting multiple voters:', error);
     throw error;
   }
 };

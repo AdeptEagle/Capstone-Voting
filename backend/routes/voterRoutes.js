@@ -21,4 +21,7 @@ router.put("/:id", VoterController.updateVoter);
 // Delete voter
 router.delete("/:id", VoterController.deleteVoter);
 
+// Delete multiple voters
+router.delete("/", VoterController.deleteMultipleVoters);
+
 export default router; 

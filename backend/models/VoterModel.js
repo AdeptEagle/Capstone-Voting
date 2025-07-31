@@ -87,6 +87,28 @@ export class VoterModel {
     });
   }
 
+  static async deleteMultiple(ids) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      if (!ids || ids.length === 0) {
+        db.end();
+        return reject(new Error("No voters selected for deletion"));
+      }
+      
+      const placeholders = ids.map(() => '?').join(',');
+      const query = `DELETE FROM voters WHERE id IN (${placeholders})`;
+      
+      db.query(query, ids, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ 
+          message: `${data.affectedRows} voter(s) deleted successfully!`,
+          deletedCount: data.affectedRows
+        });
+      });
+    });
+  }
+
   static async getById(id) {
     const db = createConnection();
     return new Promise((resolve, reject) => {

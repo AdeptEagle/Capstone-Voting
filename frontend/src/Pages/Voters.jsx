@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getVoters, createVoter, updateVoter, deleteVoter, getDepartments, getCoursesByDepartment } from '../services/api';
+import { getVoters, createVoter, updateVoter, deleteVoter, deleteMultipleVoters, getDepartments, getCoursesByDepartment } from '../services/api';
 
 const Voters = () => {
   const [voters, setVoters] = useState([]);
@@ -22,6 +22,8 @@ const Voters = () => {
     departmentId: '',
     courseId: ''
   });
+  const [selectedVoters, setSelectedVoters] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     fetchVoters();
@@ -250,6 +252,44 @@ const Voters = () => {
     }
   };
 
+  const handleMultipleDelete = async () => {
+    if (selectedVoters.length === 0) {
+      alert('Please select voters to delete');
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedVoters.length} voter(s)?`)) {
+      try {
+        await deleteMultipleVoters(selectedVoters);
+        setSelectedVoters([]);
+        setSelectAll(false);
+        fetchVoters();
+        setSuccess(`${selectedVoters.length} voter(s) deleted successfully!`);
+      } catch (error) {
+        console.error('Error deleting multiple voters:', error);
+        setError('Failed to delete voters');
+      }
+    }
+  };
+
+  const handleSelectVoter = (id) => {
+    setSelectedVoters(prev => 
+      prev.includes(id) 
+        ? prev.filter(voterId => voterId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedVoters([]);
+      setSelectAll(false);
+    } else {
+      setSelectedVoters(filteredVoters.map(voter => voter.id));
+      setSelectAll(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -318,10 +358,36 @@ const Voters = () => {
 
       <div className="card">
         <div className="card-body">
+          {selectedVoters.length > 0 && (
+            <div className="mb-3 p-3 bg-warning bg-opacity-10 border border-warning rounded">
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="text-warning">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  {selectedVoters.length} voter(s) selected
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={handleMultipleDelete}
+                >
+                  <i className="fas fa-trash me-1"></i>
+                  Delete Selected ({selectedVoters.length})
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="table-responsive">
             <table className="table table-hover">
               <thead className="table-header-custom">
                 <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th>#</th>
                   <th 
                     style={{ cursor: 'pointer' }}
@@ -372,6 +438,14 @@ const Voters = () => {
                 {filteredVoters.length > 0 ? (
                   filteredVoters.map((voter, index) => (
                     <tr key={voter.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          checked={selectedVoters.includes(voter.id)}
+                          onChange={() => handleSelectVoter(voter.id)}
+                        />
+                      </td>
                       <td>{index + 1}</td>
                       <td>{voter.name}</td>
                       <td>{voter.email}</td>
@@ -405,14 +479,16 @@ const Voters = () => {
                         <button 
                           className="btn btn-sm btn-outline-primary me-2"
                           onClick={() => handleShowModal(voter)}
+                          title="Edit Voter"
                         >
-                          Edit
+                          <i className="fas fa-edit"></i>
                         </button>
                         <button 
                           className="btn btn-sm btn-outline-danger"
                           onClick={() => handleDelete(voter.id)}
+                          title="Delete Voter"
                         >
-                          Delete
+                          <i className="fas fa-trash"></i>
                         </button>
                       </td>
                     </tr>

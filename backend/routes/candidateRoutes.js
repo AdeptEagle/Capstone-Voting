@@ -23,4 +23,7 @@ router.put("/:id", upload.single('photo'), CandidateController.updateCandidate);
 // Delete candidate
 router.delete("/:id", CandidateController.deleteCandidate);
 
+// Delete multiple candidates
+router.delete("/", CandidateController.deleteMultipleCandidates);
+
 export default router; 

@@ -107,6 +107,20 @@ export class CandidateController {
     }
   }
 
+  static async deleteMultipleCandidates(req, res) {
+    try {
+      const { ids } = req.body;
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: "Please select candidates to delete" });
+      }
+      
+      const result = await CandidateModel.deleteMultiple(ids);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   static async getCandidateById(req, res) {
     try {
       const candidateId = req.params.id;

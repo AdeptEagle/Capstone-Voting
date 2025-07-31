@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert } from 'react-bootstrap';
-import { getCandidates, createCandidate, updateCandidate, deleteCandidate, getPositions, getDepartments, getCoursesByDepartment, assignCandidateToElection } from '../services/api';
+import { getCandidates, createCandidate, updateCandidate, deleteCandidate, deleteMultipleCandidates, getPositions, getDepartments, getCoursesByDepartment, assignCandidateToElection } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
@@ -32,6 +32,8 @@ const Candidates = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [selectedCandidates, setSelectedCandidates] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   const role = checkCurrentUser().role;
   const { canViewCandidates, hasActiveElection, triggerImmediateRefresh } = useElection();
@@ -234,6 +236,43 @@ const Candidates = () => {
         console.error('Error deleting candidate:', error);
         setError('Failed to delete candidate');
       }
+    }
+  };
+
+  const handleMultipleDelete = async () => {
+    if (selectedCandidates.length === 0) {
+      alert('Please select candidates to delete');
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedCandidates.length} candidate(s)?`)) {
+      try {
+        await deleteMultipleCandidates(selectedCandidates);
+        setSelectedCandidates([]);
+        setSelectAll(false);
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting multiple candidates:', error);
+        setError('Failed to delete candidates');
+      }
+    }
+  };
+
+  const handleSelectCandidate = (id) => {
+    setSelectedCandidates(prev => 
+      prev.includes(id) 
+        ? prev.filter(candidateId => candidateId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedCandidates([]);
+      setSelectAll(false);
+    } else {
+      setSelectedCandidates(filteredCandidates.map(candidate => candidate.id));
+      setSelectAll(true);
     }
   };
 
@@ -625,6 +664,24 @@ const Candidates = () => {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
+      {selectedCandidates.length > 0 && (
+        <div className="mb-3 p-3 bg-warning bg-opacity-10 border border-warning rounded">
+          <div className="d-flex justify-content-between align-items-center">
+            <span className="text-warning">
+              <i className="fas fa-exclamation-triangle me-2"></i>
+              {selectedCandidates.length} candidate(s) selected
+            </span>
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={handleMultipleDelete}
+            >
+              <i className="fas fa-trash me-1"></i>
+              Delete Selected ({selectedCandidates.length})
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="d-flex flex-wrap align-items-center mb-3 gap-2">
         <input
           type="text"
@@ -639,6 +696,14 @@ const Candidates = () => {
         <table className="table table-hover">
           <thead className="table-header-custom">
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+              </th>
               <th>#</th>
               <th>Photo</th>
               <th
@@ -677,6 +742,14 @@ const Candidates = () => {
             {filteredCandidates.length > 0 ? (
               filteredCandidates.map((candidate, index) => (
                 <tr key={candidate.id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={selectedCandidates.includes(candidate.id)}
+                      onChange={() => handleSelectCandidate(candidate.id)}
+                    />
+                  </td>
                   <td>{index + 1}</td>
                   <td>
                     {candidate.photoUrl ? (
@@ -704,20 +777,23 @@ const Candidates = () => {
                     <button 
                       className="btn btn-sm btn-outline-primary me-2"
                       onClick={() => handleShowModal(candidate)}
+                      title="Edit Candidate"
                     >
-                      Edit
+                      <i className="fas fa-edit"></i>
                     </button>
                     <button 
                       className="btn btn-sm btn-outline-danger me-2"
                       onClick={() => handleDelete(candidate.id)}
+                      title="Delete Candidate"
                     >
-                      Delete
+                      <i className="fas fa-trash"></i>
                     </button>
                     <button 
                       className="btn btn-sm btn-outline-info"
                       onClick={() => setViewCandidate(candidate)}
+                      title="View Candidate"
                     >
-                      View
+                      <i className="fas fa-eye"></i>
                     </button>
                   </td>
                 </tr>

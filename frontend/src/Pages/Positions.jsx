@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPositions, createPosition, updatePosition, deletePosition } from '../services/api';
+import { getPositions, createPosition, updatePosition, deletePosition, deleteMultiplePositions } from '../services/api';
 
 const Positions = () => {
   const [positions, setPositions] = useState([]);
@@ -10,6 +10,8 @@ const Positions = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [formData, setFormData] = useState({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
+  const [selectedPositions, setSelectedPositions] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     fetchPositions();
@@ -125,6 +127,42 @@ const Positions = () => {
     }
   };
 
+  const handleMultipleDelete = async () => {
+    if (selectedPositions.length === 0) {
+      alert('Please select positions to delete');
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedPositions.length} position(s)?`)) {
+      try {
+        await deleteMultiplePositions(selectedPositions);
+        setSelectedPositions([]);
+        setSelectAll(false);
+        fetchPositions();
+      } catch (error) {
+        console.error('Error deleting multiple positions:', error);
+      }
+    }
+  };
+
+  const handleSelectPosition = (id) => {
+    setSelectedPositions(prev => 
+      prev.includes(id) 
+        ? prev.filter(posId => posId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedPositions([]);
+      setSelectAll(false);
+    } else {
+      setSelectedPositions(filteredPositions.map(pos => pos.id));
+      setSelectAll(true);
+    }
+  };
+
   const openModal = () => {
     setEditingPosition(null);
     setFormData({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
@@ -196,10 +234,36 @@ const Positions = () => {
 
       <div className="card">
         <div className="card-body">
+          {selectedPositions.length > 0 && (
+            <div className="mb-3 p-3 bg-warning bg-opacity-10 border border-warning rounded">
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="text-warning">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  {selectedPositions.length} position(s) selected
+                </span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={handleMultipleDelete}
+                >
+                  <i className="fas fa-trash me-1"></i>
+                  Delete Selected ({selectedPositions.length})
+                </button>
+              </div>
+            </div>
+          )}
+          
           <div className="table-responsive">
             <table className="table table-hover">
               <thead className="table-header-custom">
                 <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th 
                     style={{ cursor: 'pointer' }}
                     onClick={() => handleSort('id')}
@@ -234,6 +298,14 @@ const Positions = () => {
               <tbody>
                 {filteredPositions.map((position) => (
                   <tr key={position.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={selectedPositions.includes(position.id)}
+                        onChange={() => handleSelectPosition(position.id)}
+                      />
+                    </td>
                     <td>{position.id}</td>
                     <td>{position.name}</td>
                     <td>{position.voteLimit}</td>
@@ -242,14 +314,16 @@ const Positions = () => {
                       <button
                         className="btn btn-sm btn-outline-primary me-2"
                         onClick={() => handleEdit(position)}
+                        title="Edit Position"
                       >
-                        Edit
+                        <i className="fas fa-edit"></i>
                       </button>
                       <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => handleDelete(position.id)}
+                        title="Delete Position"
                       >
-                        Delete
+                        <i className="fas fa-trash"></i>
                       </button>
                     </td>
                   </tr>

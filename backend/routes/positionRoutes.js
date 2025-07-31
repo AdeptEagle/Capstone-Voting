@@ -22,4 +22,7 @@ router.put("/:id", PositionController.updatePosition);
 // Delete position
 router.delete("/:id", PositionController.deletePosition);
 
+// Delete multiple positions
+router.delete("/", PositionController.deleteMultiplePositions);
+
 export default router; 
