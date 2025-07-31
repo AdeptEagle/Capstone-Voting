@@ -44,20 +44,59 @@ export const useDepartmentActions = () => {
   };
 
   const handleDeleteDepartment = async (departmentId, departments, setDepartments, courses, setCourses, setSuccess, setError) => {
-    if (window.confirm('Are you sure you want to delete this department? This action cannot be undone.')) {
+    // Find the department to show its name in confirmation
+    const department = departments.find(dept => dept.id === departmentId);
+    const departmentName = department ? department.name : departmentId;
+    const associatedCourses = courses.filter(course => course.departmentId === departmentId);
+    
+    const confirmMessage = associatedCourses.length > 0 
+      ? `Are you sure you want to delete "${departmentName}" department?\n\nThis will also delete ${associatedCourses.length} associated course(s):\n${associatedCourses.map(c => `• ${c.name}`).join('\n')}\n\nThis action cannot be undone.`
+      : `Are you sure you want to delete "${departmentName}" department?\n\nThis action cannot be undone.`;
+    
+    if (window.confirm(confirmMessage)) {
       try {
         setLoading(true);
+        setError(''); // Clear any existing errors
+        
+        console.log(`🗑️ Deleting department: ${departmentName} (${departmentId})`);
+        
+        // Call API to delete department (should cascade delete courses)
         await deleteDepartment(departmentId);
+        
+        console.log(`✅ Department deleted successfully: ${departmentName}`);
+        
+        // Update local state to remove the department and its courses
         setDepartments(departments.filter(dept => dept.id !== departmentId));
         setCourses(courses.filter(course => course.departmentId !== departmentId));
-        setSuccess('Department deleted successfully!');
+        
+        setSuccess(`Department "${departmentName}" and all associated courses deleted successfully!`);
+        
+        return true; // Indicate successful deletion
       } catch (error) {
-        setError('Error deleting department: ' + error.message);
+        console.error('❌ Error deleting department:', error);
+        
+        let errorMessage = 'Failed to delete department';
+        
+        if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response?.status === 409) {
+          errorMessage = 'Cannot delete department - it may have associated voters or be used in active elections';
+        } else if (error.response?.status === 403) {
+          errorMessage = 'You do not have permission to delete this department';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'Department not found - it may have already been deleted';
+        } else if (!navigator.onLine) {
+          errorMessage = 'No internet connection. Please check your connection and try again';
+        }
+        
+        setError(`${errorMessage}: ${departmentName}`);
         throw error;
       } finally {
         setLoading(false);
       }
     }
+    
+    return false; // Indicate cancellation or failure
   };
 
   const handleCreateCourse = async (formData, courses, setCourses, setSuccess, setError) => {

@@ -175,7 +175,29 @@ const Candidates = () => {
       handleCloseModal();
     } catch (error) {
       console.error('Error saving candidate:', error);
-      setError(error.response?.data?.error || 'Failed to save candidate');
+      
+      // Enhanced error handling with specific messages
+      let errorMessage = 'Failed to save candidate';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 409) {
+        errorMessage = 'A candidate with this name already exists for this position';
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Invalid candidate data. Please check all fields and try again';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'You do not have permission to perform this action';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error occurred. Please try again or contact support';
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (!navigator.onLine) {
+        errorMessage = 'No internet connection. Please check your connection and try again';
+      }
+      
+      // Add context about what was being done
+      const action = editingCandidate ? 'update' : 'create';
+      setError(`Failed to ${action} candidate: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -188,7 +210,22 @@ const Candidates = () => {
         await fetchData();
       } catch (error) {
         console.error('Error deleting candidate:', error);
-        setError('Failed to delete candidate');
+        
+        let errorMessage = 'Failed to delete candidate';
+        
+        if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response?.status === 403) {
+          errorMessage = 'You do not have permission to delete this candidate';
+        } else if (error.response?.status === 409) {
+          errorMessage = 'Cannot delete candidate - they may be associated with an active election';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'Candidate not found - they may have already been deleted';
+        } else if (!navigator.onLine) {
+          errorMessage = 'No internet connection. Please check your connection and try again';
+        }
+        
+        setError(errorMessage);
       }
     }
   };
@@ -207,7 +244,20 @@ const Candidates = () => {
         await fetchData();
       } catch (error) {
         console.error('Error deleting candidates:', error);
-        setError('Failed to delete selected candidates');
+        
+        let errorMessage = 'Failed to delete selected candidates';
+        
+        if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response?.status === 403) {
+          errorMessage = 'You do not have permission to delete these candidates';
+        } else if (error.response?.status === 409) {
+          errorMessage = 'Some candidates cannot be deleted - they may be associated with active elections';
+        } else if (!navigator.onLine) {
+          errorMessage = 'No internet connection. Please check your connection and try again';
+        }
+        
+        setError(`${errorMessage}. ${selectedCandidates.length} candidate(s) selected for deletion.`);
       }
     }
   };

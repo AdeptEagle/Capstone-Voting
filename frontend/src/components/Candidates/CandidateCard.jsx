@@ -88,25 +88,43 @@ const CandidateCard = ({
       {showActions && (
         <div className="candidate-actions">
           <button
-            className="btn btn-outline-primary btn-sm"
+            className="btn btn-outline-primary"
             onClick={() => onView(candidate)}
             title="View Details"
+            style={{ 
+              fontSize: '0.75rem', 
+              padding: '0.25rem 0.5rem', 
+              lineHeight: '1.2',
+              borderRadius: '0.25rem'
+            }}
           >
-            <i className="fas fa-eye"></i>
+            <i className="fas fa-eye" style={{ fontSize: '0.7rem' }}></i>
           </button>
           <button
-            className="btn btn-outline-secondary btn-sm"
+            className="btn btn-outline-secondary"
             onClick={() => onEdit(candidate)}
             title="Edit Candidate"
+            style={{ 
+              fontSize: '0.75rem', 
+              padding: '0.25rem 0.5rem', 
+              lineHeight: '1.2',
+              borderRadius: '0.25rem'
+            }}
           >
-            <i className="fas fa-edit"></i>
+            <i className="fas fa-edit" style={{ fontSize: '0.7rem' }}></i>
           </button>
           <button
-            className="btn btn-outline-danger btn-sm"
+            className="btn btn-outline-danger"
             onClick={() => onDelete(candidate.id)}
             title="Delete Candidate"
+            style={{ 
+              fontSize: '0.75rem', 
+              padding: '0.25rem 0.5rem', 
+              lineHeight: '1.2',
+              borderRadius: '0.25rem'
+            }}
           >
-            <i className="fas fa-trash"></i>
+            <i className="fas fa-trash" style={{ fontSize: '0.7rem' }}></i>
           </button>
         </div>
       )}

@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { getPositions, createPosition, updatePosition, deletePosition, deleteMultiplePositions } from '../services/api';
+import PositionDeleteModal from '../components/Positions/PositionDeleteModal';
+import PositionFormModal from '../components/Positions/PositionFormModal';
+import PositionAlerts from '../components/Positions/PositionAlerts';
 
 const Positions = () => {
   const [positions, setPositions] = useState([]);
   const [filteredPositions, setFilteredPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editingPosition, setEditingPosition] = useState(null);
+  const [deletingPosition, setDeletingPosition] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [formData, setFormData] = useState({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
   const [selectedPositions, setSelectedPositions] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchPositions();
@@ -30,6 +39,17 @@ const Positions = () => {
       setSelectAll(allFilteredSelected && selectedPositions.length > 0);
     }
   }, [filteredPositions, selectedPositions]);
+
+  // Auto-clear messages after 5 seconds
+  useEffect(() => {
+    if (success || error) {
+      const timer = setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
 
   const filterAndSortPositions = () => {
     let filtered = positions;
@@ -84,6 +104,7 @@ const Positions = () => {
       setPositions(data);
     } catch (error) {
       console.error('Error fetching positions:', error);
+      setError('Failed to load positions. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -91,6 +112,9 @@ const Positions = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    
     try {
       if (editingPosition) {
         await updatePosition(editingPosition.id, {
@@ -98,6 +122,7 @@ const Positions = () => {
           voteLimit: Number(formData.voteLimit),
           displayOrder: Number(formData.displayOrder)
         });
+        setSuccess(`Position "${formData.name}" updated successfully!`);
       } else {
         await createPosition({
           id: formData.id,
@@ -105,13 +130,22 @@ const Positions = () => {
           voteLimit: Number(formData.voteLimit),
           displayOrder: Number(formData.displayOrder)
         });
+        setSuccess(`Position "${formData.name}" created successfully!`);
       }
+      
       setShowModal(false);
       setEditingPosition(null);
-      setFormData({ id: '', name: '', voteLimit: 1 });
-      fetchPositions();
+      setFormData({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
+      await fetchPositions();
     } catch (error) {
       console.error('Error saving position:', error);
+      setError(
+        error.response?.data?.error || 
+        error.message || 
+        `Failed to ${editingPosition ? 'update' : 'create'} position. Please try again.`
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -126,33 +160,56 @@ const Positions = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this position?')) {
-      try {
-        await deletePosition(id);
-        fetchPositions();
-      } catch (error) {
-        console.error('Error deleting position:', error);
+  const handleDelete = (position) => {
+    setDeletingPosition(position);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingPosition) return;
+    
+    setIsDeleting(true);
+    setError('');
+    
+    try {
+      if (Array.isArray(deletingPosition)) {
+        await deleteMultiplePositions(deletingPosition);
+        setSuccess(`${deletingPosition.length} position(s) deleted successfully!`);
+        setSelectedPositions([]);
+        setSelectAll(false);
+      } else {
+        await deletePosition(deletingPosition.id);
+        setSuccess(`Position "${deletingPosition.name}" deleted successfully!`);
       }
+      
+      setShowDeleteModal(false);
+      setDeletingPosition(null);
+      await fetchPositions();
+    } catch (error) {
+      console.error('Error deleting position:', error);
+      setError(
+        error.response?.data?.error || 
+        error.message || 
+        'Failed to delete position(s). Please try again.'
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleMultipleDelete = async () => {
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingPosition(null);
+  };
+
+  const handleMultipleDelete = () => {
     if (selectedPositions.length === 0) {
-      alert('Please select positions to delete');
+      setError('Please select positions to delete');
       return;
     }
     
-    if (window.confirm(`Are you sure you want to delete ${selectedPositions.length} position(s)?`)) {
-      try {
-        await deleteMultiplePositions(selectedPositions);
-        setSelectedPositions([]);
-        setSelectAll(false);
-        fetchPositions();
-      } catch (error) {
-        console.error('Error deleting multiple positions:', error);
-      }
-    }
+    setDeletingPosition(selectedPositions);
+    setShowDeleteModal(true);
   };
 
   const handleSelectPosition = (id) => {
@@ -199,12 +256,20 @@ const Positions = () => {
             <p className="dashboard-subtitle-pro">Create and manage election positions.</p>
           </div>
           <div className="dashboard-header-actions">
-            <button className="btn btn-custom-blue" onClick={openModal}>
+            <button className="btn btn-custom-blue" onClick={handleAddPosition}>
               Add Position
             </button>
           </div>
         </div>
       </div>
+
+      {/* Success/Error Messages */}
+      <PositionAlerts
+        success={success}
+        error={error}
+        onClearSuccess={() => setSuccess('')}
+        onClearError={() => setError('')}
+      />
 
       {/* Search and Filter Section */}
       <div className="card mb-3">
@@ -330,7 +395,7 @@ const Positions = () => {
                       </button>
                       <button
                         className="btn btn-sm btn-outline-danger"
-                        onClick={() => handleDelete(position.id)}
+                        onClick={() => handleDelete(position)}
                         title="Delete Position"
                       >
                         <i className="fas fa-trash"></i>
@@ -345,88 +410,33 @@ const Positions = () => {
       </div>
 
       {/* Modal */}
-      {showModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">
-                  {editingPosition ? 'Edit Position' : 'Add New Position'}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowModal(false)}
-                ></button>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <div className="modal-body">
-                  {!editingPosition && (
-                    <div className="mb-3">
-                      <label className="form-label">ID</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={formData.id}
-                        onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                        required
-                        placeholder="e.g. PRES, VP, SEC"
-                      />
-                    </div>
-                  )}
-                  <div className="mb-3">
-                    <label className="form-label">Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Vote Limit</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      min={1}
-                      value={formData.voteLimit}
-                      onChange={(e) => setFormData({ ...formData, voteLimit: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label">Display Order (Priority)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      min={0}
-                      value={formData.displayOrder}
-                      onChange={(e) => setFormData({ ...formData, displayOrder: e.target.value })}
-                      placeholder="Lower numbers appear first (1 = highest priority)"
-                    />
-                    <small className="form-text text-muted">
-                      Lower numbers appear first. 1 = highest priority, 0 = default.
-                    </small>
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-custom-blue">
-                    {editingPosition ? 'Update' : 'Create'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Enhanced Position Form Modal */}
+      <PositionFormModal
+        show={showModal}
+        editingPosition={editingPosition}
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        onCancel={() => {
+          setShowModal(false);
+          setEditingPosition(null);
+          setFormData({ id: '', name: '', voteLimit: 1, displayOrder: 0 });
+          setError('');
+        }}
+        isLoading={isSubmitting}
+        error={error}
+        existingPositions={positions}
+      />
+
+      {/* Enhanced Delete Confirmation Modal */}
+      <PositionDeleteModal
+        show={showDeleteModal}
+        position={deletingPosition}
+        positions={positions}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };

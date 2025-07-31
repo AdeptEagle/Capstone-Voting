@@ -127,8 +127,15 @@ const DepartmentManagement = () => {
     }
   };
 
-  const onDeleteDepartment = (departmentId) => {
-    handleDeleteDepartment(departmentId, departments, setDepartments, courses, setCourses, setSuccess, setError);
+  const onDeleteDepartment = async (departmentId) => {
+    try {
+      await handleDeleteDepartment(departmentId, departments, setDepartments, courses, setCourses, setSuccess, setError);
+      // Refresh all data to ensure consistency
+      await fetchData();
+    } catch (error) {
+      // Error already handled in the hook
+      console.error('Department deletion failed:', error);
+    }
   };
 
   const onCreateCourse = async (e) => {
