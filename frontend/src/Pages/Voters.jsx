@@ -246,7 +246,8 @@ const Voters = () => {
   };
 
   const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this voter? This action cannot be undone.')) {
+    // TODO: Replace with proper delete modal
+    if (window.confirm('Are you sure you want to delete this voter? This action cannot be undone.')) {
       try {
         await deleteVoter(id);
         fetchVoters();

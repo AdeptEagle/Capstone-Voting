@@ -13,7 +13,7 @@ import CandidateForm from '../components/Candidates/CandidateForm';
 import CandidateViewModal from '../components/Candidates/CandidateViewModal';
 import { useCandidateForm } from '../hooks/useCandidateForm';
 import { usePersistentSort } from '../hooks/usePersistentSort';
-import { filterAndSortCandidates, groupCandidatesByPosition, formatCandidateData } from '../utils/candidateUtils';
+import { filterCandidates, filterAndSortCandidates, groupCandidatesByPosition, formatCandidateData } from '../utils/candidateUtils';
 import BulkDeleteModal from '../components/Common/BulkDeleteModal';
 
 const Candidates = () => {
@@ -65,10 +65,10 @@ const Candidates = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = filterCandidates(candidates, searchTerm, positions);
+    const filtered = filterCandidates(candidates, searchTerm);
     const sorted = applySorting(filtered);
     setFilteredCandidates(sorted);
-  }, [candidates, searchTerm, positions, applySorting]);
+  }, [candidates, searchTerm, applySorting]);
 
   useEffect(() => {
     // Update selectAll state when filtered data or selection changes

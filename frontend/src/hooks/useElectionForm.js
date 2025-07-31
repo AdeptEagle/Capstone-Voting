@@ -142,7 +142,7 @@ export const useElectionForm = () => {
       case 1:
         return formData.title && formData.description && formData.startTime && formData.endTime;
       case 2:
-        return tempPositions.length > 0 && tempPositions.every(p => p.id && p.name);
+        return (formData.positionIds.length > 0) || (tempPositions.length > 0 && tempPositions.every(p => p.id && p.name));
       case 3:
         return true; // Candidates are optional
       case 4:

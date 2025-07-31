@@ -137,6 +137,98 @@ const MultiStepForm = ({
         </button>
       </div>
 
+      {/* Existing Positions Selection */}
+      {positions && positions.length > 0 && (
+        <div className="mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">📋 Select Existing Positions ({positions.length} available)</h6>
+            <div className="btn-group" role="group">
+              <button
+                type="button"
+                className="btn btn-outline-primary btn-sm"
+                onClick={() => {
+                  const allPositionIds = positions.map(p => p.id);
+                  setFormData(prev => ({
+                    ...prev,
+                    positionIds: [...new Set([...prev.positionIds, ...allPositionIds])]
+                  }));
+                }}
+              >
+                Select All
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => setFormData(prev => ({ ...prev, positionIds: [] }))}
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+
+          <div className="row">
+            {positions.map((position) => (
+              <div key={position.id} className="col-md-6 mb-2">
+                <div className={`card h-100 ${formData.positionIds.includes(position.id) ? 'border-primary bg-light' : ''}`}>
+                  <div className="card-body p-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`existing-position-${position.id}`}
+                        checked={formData.positionIds.includes(position.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              positionIds: [...prev.positionIds, position.id]
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              positionIds: prev.positionIds.filter(id => id !== position.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <label className="form-check-label w-100" htmlFor={`existing-position-${position.id}`}>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong>{position.name}</strong>
+                            <br />
+                            <small className="text-muted">ID: {position.id}</small>
+                          </div>
+                          <div className="text-end">
+                            <small className="text-muted">
+                              Vote Limit: {position.voteLimit || 1}
+                            </small>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Selected Positions Summary */}
+          {formData.positionIds.length > 0 && (
+            <div className="alert alert-success mt-3">
+              <i className="fas fa-check-circle me-2"></i>
+              <strong>{formData.positionIds.length}</strong> existing position{formData.positionIds.length !== 1 ? 's' : ''} selected
+            </div>
+          )}
+        </div>
+      )}
+
+      {positions && positions.length === 0 && (
+        <div className="alert alert-warning">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          No existing positions found. Create positions in the Position Management tab first, or create new positions below.
+        </div>
+      )}
+
       {tempPositions.length === 0 ? (
         <div className="text-center py-4">
           <i className="fas fa-list fa-3x text-muted mb-3"></i>
