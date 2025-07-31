@@ -44,7 +44,7 @@ const Voters = () => {
         voter.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         voter.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (voter.departmentName && voter.departmentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (voter.courseName && voter.courseName.toLowerCase().includes(searchTerm.toLowerCase()))
+        (voter.courseId && voter.courseId.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -58,9 +58,9 @@ const Voters = () => {
         if (sortConfig.key === 'departmentName') {
           aValue = a.departmentName || '';
           bValue = b.departmentName || '';
-        } else if (sortConfig.key === 'courseName') {
-          aValue = a.courseName || '';
-          bValue = b.courseName || '';
+        } else if (sortConfig.key === 'courseId') {
+          aValue = a.courseId || '';
+          bValue = b.courseId || '';
         }
 
         // Handle boolean values
@@ -419,10 +419,10 @@ const Voters = () => {
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
-                    onClick={() => handleSort('courseName')}
+                    onClick={() => handleSort('courseId')}
                     className="sortable-header"
                   >
-                    Course {getSortIcon('courseName')}
+                    Course {getSortIcon('courseId')}
                   </th>
                   <th 
                     style={{ cursor: 'pointer' }}
@@ -460,9 +460,9 @@ const Voters = () => {
                         )}
                       </td>
                       <td>
-                        {voter.courseName ? (
+                        {voter.courseId ? (
                           <span className="badge bg-info">
-                            <strong>{voter.courseId}</strong> - {voter.courseName}
+                            {voter.courseId}
                           </span>
                         ) : (
                           <span className="text-muted">No course</span>

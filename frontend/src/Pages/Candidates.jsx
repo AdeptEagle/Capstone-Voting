@@ -287,7 +287,7 @@ const Candidates = () => {
         candidate.name?.toLowerCase().includes(term) ||
         candidate.positionName?.toLowerCase().includes(term) ||
         candidate.departmentName?.toLowerCase().includes(term) ||
-        candidate.courseName?.toLowerCase().includes(term)
+        candidate.courseId?.toLowerCase().includes(term)
       );
     })
     .sort((a, b) => {
@@ -385,10 +385,10 @@ const Candidates = () => {
                           <p className="candidate-department">
                             <i className="fas fa-university me-1"></i>
                             {candidate.departmentName}
-                            {candidate.courseName && (
+                            {candidate.courseId && (
                               <span className="candidate-course">
                                 <i className="fas fa-graduation-cap me-1"></i>
-                                {candidate.courseName}
+                                {candidate.courseId}
                               </span>
                             )}
                           </p>
@@ -531,10 +531,10 @@ const Candidates = () => {
                                 <span><strong>Department:</strong> {viewCandidate?.departmentName || 'Not specified'}</span>
                               </div>
                             )}
-                            {viewCandidate?.courseName && (
+                            {viewCandidate?.courseId && (
                               <div className="detail-item">
                                 <i className="fas fa-graduation-cap"></i>
-                                <span><strong>Course:</strong> {viewCandidate?.courseName}</span>
+                                <span><strong>Course:</strong> {viewCandidate?.courseId}</span>
                               </div>
                             )}
                             <div className="detail-item">
@@ -728,11 +728,11 @@ const Candidates = () => {
                 Department {renderSortIcon('departmentName')}
               </th>
               <th
-                className={sortField === 'courseName' ? 'sortable active-sort' : 'sortable'}
+                className={sortField === 'courseId' ? 'sortable active-sort' : 'sortable'}
                 style={{ cursor: 'pointer' }}
-                onClick={() => setSortField('courseName') || setSortOrder(sortField === 'courseName' && sortOrder === 'asc' ? 'desc' : 'asc')}
+                onClick={() => setSortField('courseId') || setSortOrder(sortField === 'courseId' && sortOrder === 'asc' ? 'desc' : 'asc')}
               >
-                Course {renderSortIcon('courseName')}
+                Course {renderSortIcon('courseId')}
               </th>
               <th>Description</th>
               <th>Actions</th>
@@ -771,7 +771,7 @@ const Candidates = () => {
                   <td>{candidate.name}</td>
                   <td>{candidate.positionName}</td>
                   <td>{candidate.departmentName || '-'}</td>
-                  <td>{candidate.courseName || '-'}</td>
+                  <td>{candidate.courseId || '-'}</td>
                   <td>{candidate.description || '-'}</td>
                   <td>
                     <button 
@@ -912,10 +912,10 @@ const Candidates = () => {
                               <span><strong>Department:</strong> {viewCandidate?.departmentName || 'Not specified'}</span>
                             </div>
                           )}
-                          {viewCandidate?.courseName && (
+                          {viewCandidate?.courseId && (
                             <div className="detail-item">
                               <i className="fas fa-graduation-cap"></i>
-                              <span><strong>Course:</strong> {viewCandidate?.courseName}</span>
+                              <span><strong>Course:</strong> {viewCandidate?.courseId}</span>
                             </div>
                           )}
                           <div className="detail-item">
