@@ -46,12 +46,12 @@ async function resetDatabaseFix() {
     
     // Create departments with correct IDs
     console.log('🏢 Creating departments with correct IDs...');
-    const departments = [
-      { id: 'COE', name: 'College of Engineering', created_by: superadminId },
-      { id: 'CBM', name: 'College of Business and Management', created_by: superadminId },
-      { id: 'CCS', name: 'College of Computer Studies', created_by: superadminId },
-      { id: 'CEA', name: 'College of Education and Arts', created_by: superadminId }
-    ];
+         const departments = [
+       { id: 'CoE', name: 'College of Engineering', created_by: superadminId },
+       { id: 'CBM', name: 'College of Business and Management', created_by: superadminId },
+       { id: 'CCS', name: 'College of Computer Studies', created_by: superadminId },
+       { id: 'CEA', name: 'College of Education and Arts', created_by: superadminId }
+     ];
 
     for (const dept of departments) {
       await connection.execute(
@@ -64,26 +64,25 @@ async function resetDatabaseFix() {
     // Create courses with correct department assignments
     console.log('\n📚 Creating courses with correct department assignments...');
     const courses = [
-      // College of Engineering
-      { id: 'course-ee', name: 'BS in Electrical Engineering', departmentId: 'COE', created_by: superadminId },
-      { id: 'course-ce', name: 'BS in Civil Engineering', departmentId: 'COE', created_by: superadminId },
-      { id: 'course-me', name: 'BS in Mechanical Engineering', departmentId: 'COE', created_by: superadminId },
-      { id: 'course-ie', name: 'BS in Industrial Engineering', departmentId: 'COE', created_by: superadminId },
+             // College of Engineering
+       { id: 'BSEE', name: 'BS in Electrical Engineering', departmentId: 'CoE', created_by: superadminId },
+       { id: 'BSCE', name: 'BS in Civil Engineering', departmentId: 'CoE', created_by: superadminId },
+       { id: 'BSME', name: 'BS in Mechanical Engineering', departmentId: 'CoE', created_by: superadminId },
+       { id: 'BSIE', name: 'BS in Industrial Engineering', departmentId: 'CoE', created_by: superadminId },
       
       // College of Business and Management
-      { id: 'course-hm', name: 'BS in Hospitality Management', departmentId: 'CBM', created_by: superadminId },
-      { id: 'course-acc', name: 'BS in Accountancy', departmentId: 'CBM', created_by: superadminId },
-      { id: 'course-mkt', name: 'BS in Business Administration Major in Marketing Management', departmentId: 'CBM', created_by: superadminId },
-      { id: 'course-hrd', name: 'BS in Business Administration Major in Human Resource Development Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSHM', name: 'BS in Hospitality Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSA', name: 'BS in Accountancy', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSBA-MM', name: 'BS in Business Administration Major in Marketing Management', departmentId: 'CBM', created_by: superadminId },
+      { id: 'BSBA-HRDM', name: 'BS in Business Administration Major in Human Resource Development Management', departmentId: 'CBM', created_by: superadminId },
       
       // College of Computer Studies
-      { id: 'course-it', name: 'BS in Information Technology', departmentId: 'CCS', created_by: superadminId },
+      { id: 'BSIT', name: 'BS in Information Technology', departmentId: 'CCS', created_by: superadminId },
       
       // College of Education and Arts
-      { id: 'course-elem', name: 'Bachelor in Elementary Education', departmentId: 'CEA', created_by: superadminId },
-      { id: 'course-gen', name: 'General Education', departmentId: 'CEA', created_by: superadminId },
-      { id: 'course-sec-eng', name: 'Bachelor in Secondary Education Major in English', departmentId: 'CEA', created_by: superadminId },
-      { id: 'course-mass', name: 'Bachelor in Mass Communications', departmentId: 'CEA', created_by: superadminId }
+      { id: 'BEEd', name: 'Bachelor in Elementary Education - General Education', departmentId: 'CEA', created_by: superadminId },
+      { id: 'BMC', name: 'Bachelor in Mass Communications', departmentId: 'CEA', created_by: superadminId },
+      { id: 'BSEd-English', name: 'Bachelor in Secondary Education Major in English', departmentId: 'CEA', created_by: superadminId }
     ];
 
     for (const course of courses) {
@@ -98,9 +97,9 @@ async function resetDatabaseFix() {
     
     // Verify the structure
     console.log('\n🔍 Verifying final structure:');
-    const [finalDepartments] = await connection.execute(
-      'SELECT id, name FROM departments WHERE id IN ("COE", "CBM", "CCS", "CEA") ORDER BY name'
-    );
+         const [finalDepartments] = await connection.execute(
+       'SELECT id, name FROM departments WHERE id IN ("CoE", "CBM", "CCS", "CEA") ORDER BY name'
+     );
     
     for (const dept of finalDepartments) {
       console.log(`\n   ${dept.name} (${dept.id}):`);
