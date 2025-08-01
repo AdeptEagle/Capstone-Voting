@@ -38,124 +38,181 @@ const UserDashboard = () => {
 
   return (
     <div className="user-dashboard-container">
-      <div className="user-dashboard-header">
-        <h2>Welcome, {user?.name || 'Voter'}!</h2>
-        <p>Your Student ID: <strong>{user?.studentId}</strong></p>
+      {/* Modern Header Card */}
+      <div className="header-card">
+        <div className="header-content">
+          <div>
+            <h2 className="dashboard-title">Welcome, {user?.name || 'Voter'}!</h2>
+            <p className="dashboard-subtitle">Student ID: <strong>{user?.studentId}</strong></p>
+          </div>
+          <div className="user-info-stats">
+            <div className="analytics-card card-sm">
+              <div className="card-icon icon-bg-blue">
+                <i className="fas fa-user"></i>
+              </div>
+              <div className="card-content">
+                <h3>Voter Status</h3>
+                <div className="card-value">{hasVoted ? 'Voted' : 'Ready'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Election Status Notification */}
-      <div className="election-status-notification">
+      {/* Election Status Cards */}
+      <div className="election-status-section">
         {hasActiveElection ? (
-          <div className="election-info-card">
-            <div className="election-info-header">
-              <i className="fas fa-vote-yea"></i>
-              <h3>Current Election: {activeElection.title}</h3>
+          <div className="modern-card card-primary">
+            <div className="election-status-header">
+              <div className="card-icon icon-bg-navy">
+                <i className="fas fa-vote-yea"></i>
+              </div>
+              <div>
+                <h3>Current Election</h3>
+                <h4 className="election-title">{activeElection.title}</h4>
+                <p className="election-description">{activeElection.description}</p>
+              </div>
+              <div className="election-status-badge">
+                <span className={`status-badge ${activeElection.status}`}>
+                  {activeElection.status.charAt(0).toUpperCase() + activeElection.status.slice(1)}
+                </span>
+              </div>
             </div>
-            <div className="election-info-content">
-              <p className="election-description">{activeElection.description}</p>
-              <div className="election-details">
-                <div className="detail-item">
-                  <i className="fas fa-calendar-alt"></i>
-                  <span><strong>Start:</strong> {new Date(activeElection.startTime).toLocaleString()}</span>
+            
+            <div className="election-details-grid">
+              <div className="detail-card">
+                <div className="detail-icon">
+                  <i className="fas fa-calendar-alt text-success"></i>
                 </div>
-                <div className="detail-item">
-                  <i className="fas fa-calendar-check"></i>
-                  <span><strong>End:</strong> {new Date(activeElection.endTime).toLocaleString()}</span>
+                <div>
+                  <small className="text-muted">Start Time</small>
+                  <div className="detail-value">{new Date(activeElection.startTime).toLocaleString()}</div>
                 </div>
-                <div className="detail-item">
-                  <i className="fas fa-clock"></i>
-                  <span><strong>Status:</strong> 
-                    <span className={`status-badge ${activeElection.status}`}>
-                      {activeElection.status.charAt(0).toUpperCase() + activeElection.status.slice(1)}
-                    </span>
-                  </span>
+              </div>
+              
+              <div className="detail-card">
+                <div className="detail-icon">
+                  <i className="fas fa-calendar-check text-info"></i>
+                </div>
+                <div>
+                  <small className="text-muted">End Time</small>
+                  <div className="detail-value">{new Date(activeElection.endTime).toLocaleString()}</div>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="no-election-notification">
-            <div className="notification-icon">
-              <i className="fas fa-info-circle"></i>
-            </div>
-            <div className="notification-content">
-              <h3>No Active Election</h3>
-              <p>There is currently no active election. The ballot is not open for voting at this time.</p>
-              <div className="notification-actions">
-                <button
-                  className="btn btn-outline-primary"
-                  onClick={() => navigate('/user/candidates')}
-                >
-                  <i className="fas fa-users me-2"></i>
-                  View Candidates (if available)
-                </button>
-                {canViewResults && (
-                  <button
-                    className="btn btn-outline-info"
-                    onClick={() => navigate('/user/results')}
-                  >
-                    <i className="fas fa-chart-bar me-2"></i>
-                    View Previous Results
-                  </button>
-                )}
+          <div className="modern-card card-warning">
+            <div className="no-election-content">
+              <div className="card-icon icon-bg-orange">
+                <i className="fas fa-info-circle"></i>
               </div>
+              <div className="notification-text">
+                <h3>No Active Election</h3>
+                <p>There is currently no active election. The ballot is not open for voting at this time.</p>
+              </div>
+            </div>
+            <div className="notification-actions">
+              <button
+                className="btn btn-outline-primary"
+                onClick={() => navigate('/user/candidates')}
+              >
+                <i className="fas fa-users me-2"></i>
+                View Candidates (if available)
+              </button>
+              {canViewResults && (
+                <button
+                  className="btn btn-outline-info"
+                  onClick={() => navigate('/user/results')}
+                >
+                  <i className="fas fa-chart-bar me-2"></i>
+                  View Previous Results
+                </button>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Voting Status */}
+      {/* Voting Status Cards */}
       {hasActiveElection && (
-        <div className="user-dashboard-status">
+        <div className="voting-status-section">
           {hasVoted ? (
-            <div className="alert alert-success">
-              <i className="fas fa-check-circle me-2"></i>
-              <strong>Vote Submitted!</strong> You have already cast your vote. Thank you for participating!
+            <div className="modern-card card-success">
+              <div className="status-content">
+                <div className="card-icon icon-bg-green">
+                  <i className="fas fa-check-circle"></i>
+                </div>
+                <div>
+                  <h4>Vote Submitted!</h4>
+                  <p>You have already cast your vote. Thank you for participating in the election!</p>
+                </div>
+              </div>
             </div>
           ) : canVote ? (
-            <div className="alert alert-success">
-              <i className="fas fa-unlock me-2"></i>
-              <strong>Voting is Open!</strong> You can now cast your vote. Please proceed to the voting page.
+            <div className="modern-card card-success">
+              <div className="status-content">
+                <div className="card-icon icon-bg-green">
+                  <i className="fas fa-unlock"></i>
+                </div>
+                <div>
+                  <h4>Voting is Open!</h4>
+                  <p>You can now cast your vote. Please proceed to the voting page to make your selection.</p>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="alert alert-warning">
-              <i className="fas fa-clock me-2"></i>
-              <strong>Voting Not Yet Open</strong> The election exists but voting has not started yet. Please wait for the ballot to open.
+            <div className="modern-card card-warning">
+              <div className="status-content">
+                <div className="card-icon icon-bg-orange">
+                  <i className="fas fa-clock"></i>
+                </div>
+                <div>
+                  <h4>Voting Not Yet Open</h4>
+                  <p>The election exists but voting has not started yet. Please wait for the ballot to open.</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="user-dashboard-actions">
+      {/* Action Cards Grid */}
+      <div className="actions-grid">
         {hasActiveElection && canVote && !hasVoted && (
-          <button
-            className="btn btn-primary btn-lg mb-3"
-            onClick={() => navigate('/user/vote')}
-          >
-            <i className="fas fa-vote-yea me-2"></i>
-            Cast Your Vote Now
-          </button>
+          <div className="analytics-card card-clickable card-primary" onClick={() => navigate('/user/vote')}>
+            <div className="card-icon icon-bg-navy">
+              <i className="fas fa-vote-yea"></i>
+            </div>
+            <div className="card-content">
+              <h3>Cast Your Vote</h3>
+              <div className="card-subtitle">Click here to vote now</div>
+            </div>
+          </div>
         )}
         
         {hasActiveElection && (
-          <button
-            className="btn btn-outline-secondary mb-3 me-2"
-            onClick={() => navigate('/user/candidates')}
-          >
-            <i className="fas fa-users me-2"></i>
-            View Candidates
-          </button>
+          <div className="analytics-card card-clickable" onClick={() => navigate('/user/candidates')}>
+            <div className="card-icon icon-bg-blue">
+              <i className="fas fa-users"></i>
+            </div>
+            <div className="card-content">
+              <h3>View Candidates</h3>
+              <div className="card-subtitle">See all election candidates</div>
+            </div>
+          </div>
         )}
         
         {canViewResults && (
-          <button
-            className="btn btn-outline-info mb-3"
-            onClick={() => navigate('/user/results')}
-          >
-            <i className="fas fa-chart-bar me-2"></i>
-            View Results
-          </button>
+          <div className="analytics-card card-clickable" onClick={() => navigate('/user/results')}>
+            <div className="card-icon icon-bg-teal">
+              <i className="fas fa-chart-bar"></i>
+            </div>
+            <div className="card-content">
+              <h3>View Results</h3>
+              <div className="card-subtitle">Check election results</div>
+            </div>
+          </div>
         )}
       </div>
     </div>

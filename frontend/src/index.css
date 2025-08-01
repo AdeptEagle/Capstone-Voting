@@ -1,3 +1,6 @@
+/* Import Modern Card System */
+@import './styles/modern-cards.css';
+
 :root {
   /* Navy Blue + Cool Gray Color Scheme - Professional & Trustworthy */
   --primary-navy: #1D3557;      /* Deep Navy Blue */

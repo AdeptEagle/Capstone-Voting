@@ -43,6 +43,7 @@ const Candidates = () => {
   } = usePersistentSort('candidates-sort', { key: 'name', direction: 'asc' });
 
   const role = checkCurrentUser().role;
+  const isAdmin = role === 'admin' || role === 'superadmin';
   const { canViewCandidates, hasActiveElection, triggerImmediateRefresh } = useElection();
 
   // Use custom hook for form management
@@ -311,6 +312,19 @@ const Candidates = () => {
 
   // renderSortIcon replaced by getSortIcon from usePersistentSort hook
 
+  // Only admins can access the candidate management page
+  if (!isAdmin) {
+    return (
+      <div className="candidates-container">
+        <div className="alert alert-warning text-center">
+          <i className="fas fa-exclamation-triangle fa-2x mb-3"></i>
+          <h4>Access Restricted</h4>
+          <p>Only administrators can manage candidates. Regular users should use the "View Candidates" page.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!canViewCandidates) {
     return <ElectionStatusMessage />;
   }
@@ -337,14 +351,16 @@ const Candidates = () => {
             <p className="dashboard-subtitle-pro">Manage election candidates and their information</p>
           </div>
           <div className="dashboard-header-actions">
-            <Button
-              variant="primary"
-              onClick={() => handleShowModal()}
-              disabled={hasActiveElection}
-              title={hasActiveElection ? "Cannot add candidates during active election" : ""}
-            >
-              <i className="fas fa-plus me-2"></i>Add Candidate
-            </Button>
+            {isAdmin && (
+              <Button
+                variant="primary"
+                onClick={() => handleShowModal()}
+                disabled={hasActiveElection}
+                title={hasActiveElection ? "Cannot add candidates during active election" : ""}
+              >
+                <i className="fas fa-plus me-2"></i>Add Candidate
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -369,7 +385,7 @@ const Candidates = () => {
           </div>
           <div className="col-md-6">
             <div className="d-flex justify-content-end gap-2">
-              {selectedCandidates.length > 0 && (
+              {isAdmin && selectedCandidates.length > 0 && (
                 <Button
                   variant="outline-danger"
                   size="sm"
@@ -391,14 +407,16 @@ const Candidates = () => {
           <table className="table table-hover">
             <thead className="table-light">
               <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                    disabled={filteredCandidates.length === 0}
-                  />
-                </th>
+                {isAdmin && (
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                      disabled={filteredCandidates.length === 0}
+                    />
+                  </th>
+                )}
                 <th>Photo</th>
                 <th 
                   className="sortable-header"
@@ -425,13 +443,15 @@ const Candidates = () => {
             <tbody>
               {filteredCandidates.map(candidate => (
                 <tr key={candidate.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onChange={(e) => handleSelectCandidate(candidate.id, e.target.checked)}
-                    />
-                  </td>
+                  {isAdmin && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedCandidates.includes(candidate.id)}
+                        onChange={(e) => handleSelectCandidate(candidate.id, e.target.checked)}
+                      />
+                    </td>
+                  )}
                   <td>
                     <div className="candidate-photo-small">
                       {candidate.photoUrl ? (
@@ -471,22 +491,26 @@ const Candidates = () => {
                       >
                         <i className="fas fa-eye"></i>
                       </button>
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => handleShowModal(candidate)}
-                        disabled={hasActiveElection}
-                        title="Edit Candidate"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => handleDelete(candidate.id)}
-                        disabled={hasActiveElection}
-                        title="Delete Candidate"
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            className="btn btn-outline-secondary btn-sm"
+                            onClick={() => handleShowModal(candidate)}
+                            disabled={hasActiveElection}
+                            title="Edit Candidate"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleDelete(candidate.id)}
+                            disabled={hasActiveElection}
+                            title="Delete Candidate"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

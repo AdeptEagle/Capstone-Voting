@@ -11,6 +11,7 @@ import BallotCandidates from './Pages/Admin/BallotCandidates';
 import UserDashboard from './Pages/User/UserDashboard';
 import Positions from './Pages/Positions';
 import Candidates from './Pages/Candidates';
+import UserCandidates from './Pages/User/UserCandidates';
 import Voters from './Pages/Voters';
 import Results from './Pages/Results';
 import Elections from './Pages/Elections';
@@ -244,7 +245,7 @@ function App() {
             <Route path="/user/candidates" element={
               <UserRoute>
                 <UserLayout>
-                  <Candidates />
+                  <UserCandidates />
                 </UserLayout>
               </UserRoute>
             } />
