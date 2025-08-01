@@ -6,7 +6,12 @@ const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'h
 export const getImageUrl = (photoUrl) => {
   if (!photoUrl) return '/default-avatar.png';
   
-  // If it's already a full URL, return as is
+  // If it's a data URL (base64), return as is
+  if (photoUrl.startsWith('data:')) {
+    return photoUrl;
+  }
+  
+  // If it's already a full URL (Cloudinary, Vercel Blob, etc.), return as is
   if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
     return photoUrl;
   }

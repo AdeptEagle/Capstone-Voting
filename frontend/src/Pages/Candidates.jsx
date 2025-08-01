@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert } from 'react-bootstrap';
-import { getCandidates, createCandidate, updateCandidate, deleteCandidate, deleteMultipleCandidates, getPositions, getDepartments, getCoursesByDepartment, assignCandidateToElection } from '../services/api';
+import { api } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
-import { uploadImageToBlob, uploadImageFallback } from '../services/blobUpload';
 import './Candidates.css';
 
 // Import new components and utilities
@@ -15,6 +14,7 @@ import { useCandidateForm } from '../hooks/useCandidateForm';
 import { usePersistentSort } from '../hooks/usePersistentSort';
 import { filterCandidates, filterAndSortCandidates, groupCandidatesByPosition, formatCandidateData } from '../utils/candidateUtils';
 import BulkDeleteModal from '../components/Common/BulkDeleteModal';
+import { uploadToCloudinary } from '../services/cloudinaryService';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
@@ -85,9 +85,9 @@ const Candidates = () => {
     try {
       setLoading(true);
       const [candidatesData, positionsData, departmentsData] = await Promise.all([
-        getCandidates(),
-        getPositions(),
-        getDepartments()
+        api.getCandidates(),
+        api.getPositions(),
+        api.getDepartments()
       ]);
 
       // Transform candidates data to include position names
@@ -115,7 +115,7 @@ const Candidates = () => {
 
     try {
       setLoadingCourses(true);
-      const coursesData = await getCoursesByDepartment(departmentId);
+      const coursesData = await api.getCoursesByDepartment(departmentId);
       setCourses(coursesData);
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -164,30 +164,22 @@ const Candidates = () => {
       let photoUrl = formData.photoUrl;
       if (photoFile) {
         try {
-          console.log('🖼️ Uploading photo:', photoFile.name);
-          // Try Vercel Blob first, fallback to data URL if token not configured
-          try {
-            photoUrl = await uploadImageToBlob(photoFile);
-            console.log('✅ Photo uploaded to Vercel Blob successfully:', photoUrl);
-          } catch (blobError) {
-            console.warn('⚠️ Vercel Blob not available, using fallback:', blobError.message);
-            photoUrl = await uploadImageFallback(photoFile);
-            console.log('✅ Photo converted to data URL successfully');
-          }
+          console.log('🖼️ Uploading photo to Cloudinary:', photoFile.name);
+          photoUrl = await uploadToCloudinary(photoFile);
+          console.log('✅ Photo uploaded to Cloudinary successfully:', photoUrl);
         } catch (uploadError) {
-          console.error('❌ Photo upload failed:', uploadError);
-          setError(`Photo upload failed: ${uploadError.message}. Candidate will be saved without photo.`);
-          // Continue without photo
-          photoUrl = '';
+          console.error('❌ Cloudinary upload failed:', uploadError);
+          setError(`Photo upload failed: ${uploadError.message}. Please try again or continue without photo.`);
+          return;
         }
       }
 
       const candidateData = formatCandidateData(formData, photoUrl);
 
       if (editingCandidate) {
-        await updateCandidate(editingCandidate.id, candidateData);
+        await api.updateCandidate(editingCandidate.id, candidateData);
       } else {
-        await createCandidate(candidateData);
+        await api.createCandidate(candidateData);
       }
 
       await fetchData();
@@ -225,7 +217,7 @@ const Candidates = () => {
   const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this candidate? This action cannot be undone.')) {
       try {
-        await deleteCandidate(id);
+        await api.deleteCandidate(id);
         await fetchData();
       } catch (error) {
         console.error('Error deleting candidate:', error);
@@ -265,7 +257,7 @@ const Candidates = () => {
       const candidatesToDelete = candidates.filter(candidate => selectedCandidates.includes(candidate.id));
       const deleteCount = selectedCandidates.length;
       
-      await deleteMultipleCandidates(selectedCandidates);
+      await api.deleteMultipleCandidates(selectedCandidates);
       
       setSelectedCandidates([]);
       setSelectAll(false);
