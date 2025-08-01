@@ -4,12 +4,11 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Get departments with their courses (public - MUST be first to avoid /:id conflicts)
+router.get('/with-courses', DepartmentController.getAllWithCourses);
+
 // Public routes (no authentication required)
 router.get('/', DepartmentController.getAll);
-
-// Get departments with their courses (public - needed for department management display)
-// This MUST come before /:id routes to avoid conflicts
-router.get('/with-courses', DepartmentController.getAllWithCourses);
 
 // Get courses in a department (public - needed for user registration and candidate creation)
 router.get('/:id/courses', DepartmentController.getCourses);
