@@ -2,26 +2,79 @@
 @import './styles/modern-cards.css';
 
 :root {
-  /* Navy Blue + Cool Gray Color Scheme - Professional & Trustworthy */
-  --primary-navy: #1D3557;      /* Deep Navy Blue */
-  --accent-steel: #457B9D;      /* Steel Blue Accent */
-  --background-off-white: #f8fafc; /* Softer off-white background */
-  --sidebar-dark: #2B2D42;      /* Dark sidebar */
-  --card-dark: #343A40;         /* Dark card background */
-  --text-light: #EAEAEA;        /* Light text for dark backgrounds */
-  --text-white: #f1f5f9;        /* Softer white text */
-  --text-dark: #1f2937;         /* Dark text for readability */
-  --text-muted: #6b7280;        /* Muted text */
-  --white: #fafafa;             /* Softer white */
-  --light-gray: #f1f5f9;        /* Softer light gray */
-  --medium-gray: #d1d5db;
-  --dark-gray: #374151;
-  --success-green: #10B981;     /* Success green */
-  --danger-red: #EF4444;        /* Danger red */
-  --warning-orange: #F59E0B;    /* Warning orange */
-  --info-blue: #3B82F6;         /* Info blue */
+  /* Professional Color System - Based on Modern Design Palette */
+  
+  /* Primary Colors - Blues */
+  --primary-50: #f0f9ff;        /* Lightest blue */
+  --primary-100: #e0f2fe;       /* Very light blue */
+  --primary-200: #bae6fd;       /* Light blue */
+  --primary-300: #7dd3fc;       /* Medium light blue */
+  --primary-400: #38bdf8;       /* Medium blue */
+  --primary-500: #0ea5e9;       /* Main blue */
+  --primary-600: #0284c7;       /* Dark blue */
+  --primary-700: #0369a1;       /* Darker blue */
+  --primary-800: #075985;       /* Very dark blue */
+  --primary-900: #0c4a6e;       /* Darkest blue */
+
+  /* Neutrals - Grays */
+  --neutral-50: #fafafa;        /* Lightest gray */
+  --neutral-100: #f5f5f5;       /* Very light gray */
+  --neutral-200: #e5e5e5;       /* Light gray */
+  --neutral-300: #d4d4d4;       /* Medium light gray */
+  --neutral-400: #a3a3a3;       /* Medium gray */
+  --neutral-500: #737373;       /* Main gray */
+  --neutral-600: #525252;       /* Dark gray */
+  --neutral-700: #404040;       /* Darker gray */
+  --neutral-800: #262626;       /* Very dark gray */
+  --neutral-900: #171717;       /* Darkest gray */
+
+  /* Semantic Colors */
+  --success-50: #f0fdf4;
+  --success-500: #22c55e;
+  --success-600: #16a34a;
+  --success-700: #15803d;
+
+  --warning-50: #fffbeb;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  --warning-700: #b45309;
+
+  --danger-50: #fef2f2;
+  --danger-500: #ef4444;
+  --danger-600: #dc2626;
+  --danger-700: #b91c1c;
+
+  /* System Variables */
+  --background-primary: var(--neutral-50);
+  --background-secondary: var(--neutral-100);
+  --background-elevated: #ffffff;
+  
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  --text-muted: var(--neutral-500);
+  --text-inverse: #ffffff;
+  
+  --border-light: var(--neutral-200);
+  --border-medium: var(--neutral-300);
+  --border-strong: var(--neutral-400);
+  
+  --sidebar-bg: var(--neutral-900);
+  --sidebar-text: var(--neutral-200);
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: var(--primary-500);
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
   --sidebar-width: 280px;
-  --transition-time: 0.3s;
+  --transition-time: 0.2s;
   
   /* Legacy variables for backward compatibility */
   --primary-color: #007bff;
@@ -39,16 +92,57 @@
 body {
   margin: 0;
   font-family: var(--font-family-sans-serif);
-  background-color: var(--background-off-white);
-  color: var(--text-dark);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .App {
   display: flex;
   min-height: 100vh;
-  background-color: var(--background-off-white);
+  background-color: var(--background-primary);
+}
+
+/* === Professional Layout System === */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-primary);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-time) ease;
+  min-height: 100vh;
+}
+
+.content-area {
+  flex: 1;
+  background-color: var(--background-primary);
+  position: relative;
+}
+
+/* === Responsive Layout === */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+/* === Header Adjustments === */
+.header {
+  background: var(--background-elevated);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  z-index: 100;
+  position: relative;
 }
 
 /* Sidebar Styles */
