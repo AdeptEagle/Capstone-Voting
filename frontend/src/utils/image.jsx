@@ -62,7 +62,7 @@ export const getImageUrl = (photoUrl) => {
       return `${BACKEND_URL}/uploads${cleanedUrl}`;
     }
   }
-
+  
   // Handle filenames (should be treated as relative to uploads directory)
   if (cleanedUrl.length > 0 && !cleanedUrl.includes(' ') && !cleanedUrl.includes(';')) {
     return `${BACKEND_URL}/uploads/${cleanedUrl}`;

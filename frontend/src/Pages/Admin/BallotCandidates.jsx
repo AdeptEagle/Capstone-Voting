@@ -5,7 +5,7 @@ import {
 } from '../../services/api';
 import './BallotCandidates.css';
 import '../Candidates.css';
-import { getImageUrl, CandidatePhotoPlaceholder } from '../../utils/image';
+import { CandidateImage } from '../../utils/image';
 
 const BallotCandidates = () => {
   const { activeElection } = useElection();
@@ -165,19 +165,11 @@ const BallotCandidates = () => {
                         <span className="rank-number">{index + 1}</span>
                       </div>
                       <div className="candidate-photo-container">
-                        {candidate.photoUrl && candidate.photoUrl.trim() !== '' ? (
-                          <img 
-                            src={getImageUrl(candidate.photoUrl)} 
-                            alt={candidate.name}
-                            className="candidate-photo"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.parentNode.querySelector('.candidate-photo-placeholder').style.display = 'flex';
-                            }}
-                          />
-                        ) : (
-                          <CandidatePhotoPlaceholder className="candidate-photo-placeholder" />
-                        )}
+                        <CandidateImage 
+                          photoUrl={candidate.photoUrl}
+                          alt={candidate.name}
+                          className="candidate-photo"
+                        />
                       </div>
                     </div>
                     

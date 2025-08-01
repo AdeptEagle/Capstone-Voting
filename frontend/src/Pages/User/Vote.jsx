@@ -366,7 +366,10 @@ const Vote = () => {
                       onError={e => {
                         setImgError(prev => ({ ...prev, [candidate.id]: true }));
                         e.target.style.display = 'none';
-                        e.target.parentNode.querySelector('.candidate-photo-placeholder').style.display = 'flex';
+                        const placeholder = e.target.parentNode?.querySelector('.candidate-photo-placeholder');
+                        if (placeholder) {
+                          placeholder.style.display = 'flex';
+                        }
                       }}
                     />
                   ) : null}

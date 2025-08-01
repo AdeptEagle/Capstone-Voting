@@ -49,7 +49,10 @@ const CandidateSelectionGrid = ({
                       className="candidate-photo"
                       onError={(e) => {
                         e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
+                        const placeholder = e.target.nextSibling;
+                        if (placeholder) {
+                          placeholder.style.display = 'flex';
+                        }
                       }}
                     />
                   ) : null}

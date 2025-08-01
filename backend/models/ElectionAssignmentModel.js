@@ -248,4 +248,4 @@ export class ElectionAssignmentModel {
       });
     });
   }
-} 
+}
