@@ -42,7 +42,14 @@ api.interceptors.response.use(
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    // Don't add Authorization header for login/register endpoints
+    const isAuthEndpoint = config.url && (
+      config.url.includes('/auth/admin/login') ||
+      config.url.includes('/auth/user/login') ||
+      config.url.includes('/auth/user/register')
+    );
+    
+    if (token && !isAuthEndpoint) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
