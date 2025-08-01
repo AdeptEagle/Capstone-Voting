@@ -15,7 +15,6 @@ import { useCandidateForm } from '../hooks/useCandidateForm';
 import { usePersistentSort } from '../hooks/usePersistentSort';
 import { filterCandidates, filterAndSortCandidates, groupCandidatesByPosition, formatCandidateData } from '../utils/candidateUtils';
 import BulkDeleteModal from '../components/Common/BulkDeleteModal';
-import ActiveElectionWarning from '../components/Common/ActiveElectionWarning';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
@@ -375,7 +374,6 @@ const Candidates = () => {
 
       {/* Status Messages */}
       {error && <Alert variant="danger">{error}</Alert>}
-      {hasActiveElection && <ActiveElectionWarning />}
 
       {/* Controls */}
       <div className="candidates-controls mb-4">
