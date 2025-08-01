@@ -8,3 +8,8 @@
   [31mremotes/origin/frontend[m
   [31mremotes/origin/main[m
   [31mremotes/origin/staging[m
+[33m70a8fa9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdeployment[m[33m, [m[1;31morigin/deployment[m[33m)[m Fix Step 3 ballot creation - candidates from Candidates tab now display properly
+[33m31a234c[m fix: update env.example files with correct Vercel Blob token format
+[33me997a50[m docs: add Vercel Blob token configuration to env.example files
+[33mb617a51[m fix: resolve all critical deployment issues with comprehensive testing
+[33m0a23004[m fix: resolve all critical deployment issues with comprehensive testing

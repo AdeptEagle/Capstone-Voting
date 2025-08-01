@@ -8,6 +8,7 @@ import ElectionForm from '../components/Elections/ElectionForm';
 import DeleteConfirmationModal from '../components/Elections/DeleteConfirmationModal';
 import MultiStepForm from '../components/Elections/MultiStepForm';
 import ElectionsList from '../components/Elections/ElectionsList';
+import ElectionCard from '../components/Elections/ElectionCard';
 import ElectionHeader from '../components/Elections/ElectionHeader';
 import ElectionMessages from '../components/Elections/ElectionMessages';
 
@@ -327,7 +328,7 @@ const Elections = () => {
               <div key={election.id} className="col-lg-6 col-xl-4 mb-4">
                 <ElectionCard
                   election={election}
-                  onEdit={onEditClick}
+                  onEdit={handleEditClick}
                   onDelete={onDeleteElection}
                   onStatusChange={handleStatusChange}
                   isUpdating={updatingElection === election.id}
