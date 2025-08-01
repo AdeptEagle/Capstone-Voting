@@ -74,7 +74,7 @@ export class VotingService {
       const voteId = await IDGenerator.default.getNextVoteID();
       
       console.log(`Generated vote ID: ${voteId}`);
-      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${candidate.positionId}`);
+      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${positionId}`);
       
       // BEGIN TRANSACTION - ACID Atomicity
       await new Promise((resolve, reject) => {
@@ -85,20 +85,13 @@ export class VotingService {
       });
       
       try {
-        // Record the vote
-        await new Promise((resolve, reject) => {
-          const query = "INSERT INTO votes (id, voterId, candidateId, electionId, positionId) VALUES (?, ?, ?, ?, ?)";
-          const values = [voteId, voterId, candidateId, activeElection.id, positionId];
-          console.log(`Executing vote insert query with values:`, values);
-          db.query(query, values, (err) => {
-            if (err) {
-              console.error('Vote insert error:', err);
-              reject(err);
-            } else {
-              console.log(`Vote recorded successfully: ${voteId}`);
-              resolve();
-            }
-          });
+        // Record the vote using VoteModel
+        await VoteModel.create({
+          id: voteId,
+          voterId,
+          candidateId,
+          electionId: activeElection.id,
+          positionId
         });
         
         // Only set hasVoted = true if this is the last vote

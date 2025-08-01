@@ -32,19 +32,10 @@ class IDGenerator {
   }
 
   static async getNextVoteID() {
-    const db = createConnection();
-    try {
-      const result = await new Promise((resolve, reject) => {
-        db.query('SELECT COUNT(*) as count FROM votes', (err, results) => {
-          if (err) reject(err);
-          else resolve(results[0].count);
-        });
-      });
-      // Use compact format: V1, V2, V3, etc. (max 20 chars)
-      return `V${result + 1}`;
-    } finally {
-      db.end();
-    }
+    // Use timestamp and random number for uniqueness
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 6); // 4 random chars
+    return `V${timestamp}-${random}`;
   }
 
   // Utility method to validate custom ID format
