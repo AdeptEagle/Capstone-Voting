@@ -88,15 +88,13 @@ function AdminLayout({ children }) {
   };
 
   return (
-    <div className="app-layout">
+    <>
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-      <div className="main-content">
-        <Header onToggleSidebar={toggleSidebar} />
-        <main className="content-area">
-          {children}
-        </main>
-      </div>
-    </div>
+      <Header onToggleSidebar={toggleSidebar} />
+      <main>
+        {children}
+      </main>
+    </>
   );
 }
 
@@ -109,15 +107,13 @@ function UserLayout({ children }) {
   };
 
   return (
-    <div className="app-layout">
+    <>
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-      <div className="main-content">
-        <Header onToggleSidebar={toggleSidebar} />
-        <main className="content-area">
-          {children}
-        </main>
-      </div>
-    </div>
+      <Header onToggleSidebar={toggleSidebar} />
+      <main>
+        {children}
+      </main>
+    </>
   );
 }
 

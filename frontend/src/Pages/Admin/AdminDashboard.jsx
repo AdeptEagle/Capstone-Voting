@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPositions, getCandidates, getVoters, getVotes } from '../../services/api';
-import { useElection } from '../../contexts/ElectionContext';
-import { checkCurrentUser } from '../../services/auth';
+import { checkCurrentUser, getToken } from '../../services/auth';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -11,8 +10,7 @@ const AdminDashboard = () => {
     totalCandidates: 0,
     totalVoters: 0,
     totalVotes: 0,
-    activeVoters: 0,
-    voterParticipation: 0
+    activeVoters: 0
   });
   const [recentData, setRecentData] = useState({
     positions: [],
@@ -22,8 +20,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const currentUser = checkCurrentUser();
-  const { activeElection, allElections, hasActiveElection, hasAnyElection } = useElection();
 
   useEffect(() => {
     fetchDashboardData();
@@ -39,22 +35,18 @@ const AdminDashboard = () => {
         getVotes()
       ]);
 
-      const activeVoters = voters.filter(voter => voter.hasVoted).length;
-      const voterParticipation = voters.length > 0 ? (activeVoters / voters.length) * 100 : 0;
-
       setStats({
         totalPositions: positions.length,
         totalCandidates: candidates.length,
         totalVoters: voters.length,
         totalVotes: votes.length,
-        activeVoters,
-        voterParticipation: Math.round(voterParticipation)
+        activeVoters: voters.filter(voter => voter.hasVoted).length
       });
 
       setRecentData({
-        positions: positions.slice(-5),
-        candidates: candidates.slice(-5),
-        voters: voters.slice(-5)
+        positions: positions.slice(0, 3),
+        candidates: candidates.slice(0, 3),
+        voters: voters.slice(0, 3)
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -64,314 +56,335 @@ const AdminDashboard = () => {
     }
   };
 
-  const getElectionStatusInfo = () => {
-    if (hasActiveElection) {
-      return {
-        status: activeElection.status,
-        title: activeElection.title,
-        description: activeElection.description,
-        statusColor: activeElection.status === 'active' ? 'success' : 'warning'
-      };
-    }
-    return {
-      status: 'No Active Election',
-      title: 'Ready to Create',
-      description: 'System is ready for new election setup',
-      statusColor: 'info'
-    };
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    navigate('/admin-login');
   };
-
-  const quickActions = [
-    {
-      title: 'Elections',
-      description: 'Create & manage elections',
-      icon: 'fas fa-vote-yea',
-      color: 'blue',
-      path: '/admin/elections',
-      highlight: !hasActiveElection
-    },
-    {
-      title: 'Positions',
-      description: 'Setup election positions',
-      icon: 'fas fa-user-tie',
-      color: 'indigo',
-      path: '/admin/positions'
-    },
-    {
-      title: 'Candidates',
-      description: 'Manage candidates',
-      icon: 'fas fa-users',
-      color: 'green',
-      path: '/admin/candidates'
-    },
-    {
-      title: 'Voters',
-      description: 'Voter management',
-      icon: 'fas fa-user-friends',
-      color: 'teal',
-      path: '/admin/voters'
-    },
-    {
-      title: 'Results',
-      description: 'View election results',
-      icon: 'fas fa-chart-bar',
-      color: 'orange',
-      path: '/admin/results',
-      highlight: hasAnyElection
-    },
-    {
-      title: 'History',
-      description: 'Election history',
-      icon: 'fas fa-history',
-      color: 'purple',
-      path: '/admin/election-history'
-    }
-  ];
-
-  const managementSections = [
-    {
-      title: 'Recent Positions',
-      items: recentData.positions,
-      emptyText: 'No positions created yet',
-      viewAllPath: '/admin/positions',
-      renderItem: (item) => (
-        <div key={item.id} className="recent-item">
-          <div className="recent-item-icon">
-            <i className="fas fa-briefcase"></i>
-          </div>
-          <div className="recent-item-content">
-            <h6>{item.name}</h6>
-            <p>{item.description || 'No description'}</p>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: 'Recent Candidates',
-      items: recentData.candidates,
-      emptyText: 'No candidates added yet',
-      viewAllPath: '/admin/candidates',
-      renderItem: (item) => (
-        <div key={item.id} className="recent-item">
-          <div className="recent-item-icon">
-            <i className="fas fa-user"></i>
-          </div>
-          <div className="recent-item-content">
-            <h6>{item.name}</h6>
-            <p>{item.positionName || 'No position assigned'}</p>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: 'Recent Voters',
-      items: recentData.voters,
-      emptyText: 'No voters registered yet',
-      viewAllPath: '/admin/voters',
-      renderItem: (item) => (
-        <div key={item.id} className="recent-item">
-          <div className="recent-item-icon">
-            <i className={`fas ${item.hasVoted ? 'fa-check-circle text-success' : 'fa-user-clock'}`}></i>
-          </div>
-          <div className="recent-item-content">
-            <h6>{item.name}</h6>
-            <p>ID: {item.studentId} • {item.hasVoted ? 'Voted' : 'Not voted'}</p>
-          </div>
-        </div>
-      )
-    }
-  ];
 
   if (loading) {
     return (
-      <div className="admin-dashboard-loading">
-        <div className="loading-spinner">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-3">Loading dashboard...</p>
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
   }
 
-  const electionInfo = getElectionStatusInfo();
-
   return (
     <div className="admin-dashboard">
-      {/* Professional Header */}
-      <div className="header-card">
-        <div className="header-content">
-          <div className="header-text">
-            <h1 className="dashboard-title">
-              <i className="fas fa-tachometer-alt me-3"></i>
-              Admin Dashboard
-            </h1>
-            <p className="dashboard-subtitle">
-              Welcome back, {currentUser.user?.username || 'Administrator'}! 
-              Manage your voting system from this central hub.
-            </p>
-          </div>
-          <div className="header-stats">
-            <div className="header-stat">
-              <div className="stat-value">{allElections.length}</div>
-              <div className="stat-label">Total Elections</div>
-            </div>
-            <div className="header-stat">
-              <div className="stat-value">{stats.totalVotes}</div>
-              <div className="stat-label">Votes Cast</div>
-            </div>
+      {/* Unified Professional Header */}
+      <div className="dashboard-header-pro">
+        <div className="dashboard-header-row">
+          <div>
+            <h1 className="dashboard-title-pro">Admin Panel</h1>
+            <p className="dashboard-subtitle-pro">Welcome back, Admin! Manage your system from here.</p>
           </div>
         </div>
       </div>
 
-      {error && (
-        <div className="modern-card card-danger mb-4">
-          <div className="alert-content">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            {error}
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* Stats Cards */}
+      <div className="row mb-4">
+        <div className="col-md-2 mb-3">
+          <div className="stat-card">
+            <div className="stat-icon position-icon">
+              <i className="fas fa-briefcase"></i>
+            </div>
+            <div className="stat-content">
+              <h3>{stats.totalPositions}</h3>
+              <p>Positions</p>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Election Status Card */}
-      <div className={`modern-card card-${electionInfo.statusColor} mb-4`}>
-        <div className="election-status-header">
-          <div className="status-icon">
-            <i className="fas fa-info-circle"></i>
-          </div>
-          <div className="status-content">
-            <h3>Current Election Status</h3>
-            <h4>{electionInfo.title}</h4>
-            <p>{electionInfo.description}</p>
-          </div>
-          <div className="status-badge">
-            <span className={`badge badge-${electionInfo.statusColor}`}>
-              {electionInfo.status}
-            </span>
+        <div className="col-md-2 mb-3">
+          <div className="stat-card">
+            <div className="stat-icon candidate-icon">
+              <i className="fas fa-user-tie"></i>
+            </div>
+            <div className="stat-content">
+              <h3>{stats.totalCandidates}</h3>
+              <p>Candidates</p>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Statistics Grid */}
-      <div className="analytics-grid mb-4">
-        <div className="analytics-card">
-          <div className="card-icon icon-bg-indigo">
-            <i className="fas fa-briefcase"></i>
-          </div>
-          <div className="card-content">
-            <h3>Positions</h3>
-            <div className="card-value">{stats.totalPositions}</div>
-            <div className="card-subtitle">Available positions</div>
+        <div className="col-md-2 mb-3">
+          <div className="stat-card">
+            <div className="stat-icon voter-icon">
+              <i className="fas fa-user-friends"></i>
+            </div>
+            <div className="stat-content">
+              <h3>{stats.totalVoters}</h3>
+              <p>Voters</p>
+            </div>
           </div>
         </div>
-
-        <div className="analytics-card">
-          <div className="card-icon icon-bg-green">
-            <i className="fas fa-users"></i>
-          </div>
-          <div className="card-content">
-            <h3>Candidates</h3>
-            <div className="card-value">{stats.totalCandidates}</div>
-            <div className="card-subtitle">Registered candidates</div>
-          </div>
-        </div>
-
-        <div className="analytics-card">
-          <div className="card-icon icon-bg-teal">
-            <i className="fas fa-user-friends"></i>
-          </div>
-          <div className="card-content">
-            <h3>Voters</h3>
-            <div className="card-value">{stats.totalVoters}</div>
-            <div className="card-subtitle">Registered voters</div>
+        <div className="col-md-2 mb-3">
+          <div className="stat-card">
+            <div className="stat-icon vote-icon">
+              <i className="fas fa-vote-yea"></i>
+            </div>
+            <div className="stat-content">
+              <h3>{stats.totalVotes}</h3>
+              <p>Votes Cast</p>
+            </div>
           </div>
         </div>
-
-        <div className="analytics-card">
-          <div className="card-icon icon-bg-blue">
-            <i className="fas fa-vote-yea"></i>
-          </div>
-          <div className="card-content">
-            <h3>Votes Cast</h3>
-            <div className="card-value">{stats.totalVotes}</div>
-            <div className="card-subtitle">Total votes</div>
-          </div>
-        </div>
-
-        <div className="analytics-card">
-          <div className="card-icon icon-bg-orange">
-            <i className="fas fa-chart-line"></i>
-          </div>
-          <div className="card-content">
-            <h3>Participation</h3>
-            <div className="card-value">{stats.voterParticipation}%</div>
-            <div className="card-subtitle">Voter turnout</div>
+        <div className="col-md-2 mb-3">
+          <div className="stat-card">
+            <div className="stat-icon active-icon">
+              <i className="fas fa-check-circle"></i>
+            </div>
+            <div className="stat-content">
+              <h3>{stats.activeVoters}</h3>
+              <p>Voted</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="modern-card mb-4">
-        <div className="card-header-modern">
-          <h3>
-            <i className="fas fa-bolt me-2"></i>
-            Quick Actions
-          </h3>
-          <p>Common administrative tasks</p>
-        </div>
-        <div className="quick-actions-grid">
-          {quickActions.map((action, index) => (
-            <div
-              key={index}
-              className={`action-card ${action.highlight ? 'action-card-highlight' : ''}`}
-              onClick={() => navigate(action.path)}
-            >
-              <div className={`action-icon icon-bg-${action.color}`}>
-                <i className={action.icon}></i>
-              </div>
-              <div className="action-content">
-                <h4>{action.title}</h4>
-                <p>{action.description}</p>
-              </div>
-              {action.highlight && (
-                <div className="action-badge">
-                  <i className="fas fa-star"></i>
-                </div>
-              )}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Quick Actions</h5>
             </div>
-          ))}
+            <div className="card-body">
+              <div className="row">
+                <div className="col-md-3 mb-3">
+                  <button 
+                    className="btn btn-primary w-100 action-btn"
+                    onClick={() => navigate('/admin/positions')}
+                  >
+                    <i className="fas fa-briefcase me-2"></i>
+                    Manage Positions
+                  </button>
+                </div>
+                <div className="col-md-3 mb-3">
+                  <button 
+                    className="btn btn-success w-100 action-btn"
+                    onClick={() => navigate('/admin/candidates')}
+                  >
+                    <i className="fas fa-user-tie me-2"></i>
+                    Manage Candidates
+                  </button>
+                </div>
+                <div className="col-md-3 mb-3">
+                  <button 
+                    className="btn btn-info w-100 action-btn"
+                    onClick={() => navigate('/admin/voters')}
+                  >
+                    <i className="fas fa-user-friends me-2"></i>
+                    Manage Voters
+                  </button>
+                </div>
+                <div className="col-md-3 mb-3">
+                  <button 
+                    className="btn btn-warning w-100 action-btn"
+                    onClick={() => navigate('/admin/results')}
+                  >
+                    <i className="fas fa-chart-bar me-2"></i>
+                    View Results
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="content-grid">
-        {managementSections.map((section, index) => (
-          <div key={index} className="modern-card">
-            <div className="card-header-modern">
-              <h4>{section.title}</h4>
-              <button
-                className="btn btn-sm btn-outline-primary"
-                onClick={() => navigate(section.viewAllPath)}
+      {/* Tab Explanations and Recent Data */}
+      <div className="row">
+        <div className="col-md-6 mb-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Positions Management</h5>
+            </div>
+            <div className="card-body">
+              <p className="text-muted mb-3">
+                Create and manage voting positions. Each position represents a role that candidates can run for.
+              </p>
+              <div className="recent-data">
+                <h6>Recent Positions:</h6>
+                {recentData.positions.length > 0 ? (
+                  recentData.positions.map((position, index) => (
+                    <div key={position.id} className="data-item">
+                      <span className="data-label">{position.name}</span>
+                      <span className="data-value">Vote Limit: {position.voteLimit}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted small">No positions created yet.</p>
+                )}
+              </div>
+              <button 
+                className="btn btn-outline-primary btn-sm mt-2"
+                onClick={() => navigate('/admin/positions')}
               >
-                View All
+                View All Positions
               </button>
             </div>
-            <div className="recent-items-list">
-              {section.items.length > 0 ? (
-                section.items.map(section.renderItem)
-              ) : (
-                <div className="empty-state-small">
-                  <i className="fas fa-inbox text-muted"></i>
-                  <p>{section.emptyText}</p>
-                </div>
-              )}
+          </div>
+        </div>
+
+        <div className="col-md-6 mb-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Candidates Management</h5>
+            </div>
+            <div className="card-body">
+              <p className="text-muted mb-3">
+                Add and manage candidates for each position. Candidates are the individuals running for election.
+              </p>
+              <div className="recent-data">
+                <h6>Recent Candidates:</h6>
+                {recentData.candidates.length > 0 ? (
+                  recentData.candidates.map((candidate, index) => (
+                    <div key={candidate.id} className="data-item">
+                      <span className="data-label">{candidate.name}</span>
+                      <span className="data-value">Position: {candidate.positionId}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted small">No candidates added yet.</p>
+                )}
+              </div>
+              <button 
+                className="btn btn-outline-primary btn-sm mt-2"
+                onClick={() => navigate('/admin/candidates')}
+              >
+                View All Candidates
+              </button>
             </div>
           </div>
-        ))}
+        </div>
+
+        <div className="col-md-6 mb-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Voters Management</h5>
+            </div>
+            <div className="card-body">
+              <p className="text-muted mb-3">
+                Register and manage voter accounts. Voters can cast their votes once per election.
+              </p>
+              <div className="recent-data">
+                <h6>Recent Voters:</h6>
+                {recentData.voters.length > 0 ? (
+                  recentData.voters.map((voter, index) => (
+                    <div key={voter.id} className="data-item">
+                      <span className="data-label">{voter.name}</span>
+                      <span className={`data-value ${voter.hasVoted ? 'text-success' : 'text-warning'}`}>
+                        {voter.hasVoted ? 'Voted' : 'Not Voted'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted small">No voters registered yet.</p>
+                )}
+              </div>
+              <button 
+                className="btn btn-outline-primary btn-sm mt-2"
+                onClick={() => navigate('/admin/voters')}
+              >
+                View All Voters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 mb-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Results & Analytics</h5>
+            </div>
+            <div className="card-body">
+              <p className="text-muted mb-3">
+                View real-time election results, voting statistics, and analytics for each position.
+              </p>
+              <div className="results-preview">
+                <h6>Voting Progress:</h6>
+                <div className="progress mb-2">
+                  <div 
+                    className="progress-bar" 
+                    style={{ width: `${stats.totalVoters > 0 ? (stats.activeVoters / stats.totalVoters) * 100 : 0}%` }}
+                  >
+                    {stats.totalVoters > 0 ? Math.round((stats.activeVoters / stats.totalVoters) * 100) : 0}%
+                  </div>
+                </div>
+                <small className="text-muted">
+                  {stats.activeVoters} of {stats.totalVoters} voters have cast their votes
+                </small>
+              </div>
+              <div className="d-flex gap-2 mt-2">
+                <button 
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => navigate('/admin/results')}
+                >
+                  View Results
+                </button>
+                <button 
+                  className="btn btn-outline-info btn-sm"
+                  onClick={() => navigate('/admin/vote-traceability')}
+                >
+                  Vote Traceability
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* System Status */}
+      <div className="row">
+        <div className="col-md-6 mb-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">System Status</h5>
+            </div>
+            <div className="card-body">
+              <div className="status-item">
+                <span className="status-label">Database:</span>
+                <span className="status-value text-success">Online</span>
+              </div>
+              <div className="status-item">
+                <span className="status-label">API Server:</span>
+                <span className="status-value text-success">Running</span>
+              </div>
+              <div className="status-item">
+                <span className="status-label">Voting Status:</span>
+                <span className="status-value text-warning">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6 mb-4">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="mb-0">Quick Tips</h5>
+            </div>
+            <div className="card-body">
+              <div className="tip-item">
+                <i className="fas fa-lightbulb text-warning me-2"></i>
+                <span>Create positions before adding candidates</span>
+              </div>
+              <div className="tip-item">
+                <i className="fas fa-lightbulb text-warning me-2"></i>
+                <span>Register voters early to ensure smooth voting</span>
+              </div>
+              <div className="tip-item">
+                <i className="fas fa-lightbulb text-warning me-2"></i>
+                <span>Monitor results regularly during the election</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboard; 
