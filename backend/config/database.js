@@ -390,6 +390,9 @@ async function fixVotesTableConstraint(verbose = true) {
     const expectedColumns = ['voterId', 'electionId', 'positionId', 'candidateId'];
     const actualColumns = constraintCheck.map(row => row.COLUMN_NAME);
     
+    console.log('Current constraint columns:', actualColumns);
+    console.log('Expected constraint columns:', expectedColumns);
+    
     // If constraint is correct, no action needed
     if (JSON.stringify(actualColumns) === JSON.stringify(expectedColumns)) {
       if (verbose) {
@@ -514,11 +517,9 @@ async function ensureDatabaseAndTables() {
     // Always seed with default data (this will update existing data if needed)
     await insertDefaultData(isFreshSetup);
 
-    // Fix votes table constraint for existing databases
-    if (isFreshSetup) {
-      await fixVotesTableConstraint(isFreshSetup);
-      console.log('✅ Votes table constraint fixed successfully');
-    }
+    // Fix votes table constraint for ALL databases (fresh and existing)
+    await fixVotesTableConstraint(isFreshSetup);
+    console.log('✅ Votes table constraint verified/fixed');
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);

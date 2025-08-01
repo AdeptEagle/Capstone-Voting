@@ -78,7 +78,10 @@ export class VotingService {
         });
       });
       
+      console.log(`Duplicate check for voter ${voterId}, candidate ${candidateId}, position ${positionId}: ${duplicateCheck} existing votes`);
+      
       if (duplicateCheck > 0) {
+        console.log(`❌ Duplicate vote detected: voter ${voterId} already voted for candidate ${candidateId} in position ${positionId}`);
         throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
       }
       
