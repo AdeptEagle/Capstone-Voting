@@ -22,8 +22,8 @@ const testDepartments = async () => {
       console.log(`   ❌ Error: ${await deptResponse.text()}`);
     }
     
-    console.log('\n2. Testing /departments/with-courses endpoint...');
-    const withCoursesResponse = await fetch(`${baseUrl}/departments/with-courses`);
+    console.log('\n2. Testing /departments/all-with-courses endpoint...');
+    const withCoursesResponse = await fetch(`${baseUrl}/departments/all-with-courses`);
     console.log(`   Status: ${withCoursesResponse.status} ${withCoursesResponse.statusText}`);
     
     if (withCoursesResponse.ok) {
