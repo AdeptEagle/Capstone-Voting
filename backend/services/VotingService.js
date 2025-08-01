@@ -9,10 +9,10 @@ export class VotingService {
     const db = createConnection();
     
     try {
-      const { voterId, candidateId, id, isLastVote } = voteData;
+      const { voterId, candidateId, positionId, isLastVote } = voteData;
       
       // Log vote submission for traceability
-      console.log(`Vote submission: ID=${id}, VoterID=${voterId}, CandidateID=${candidateId}, isLastVote=${isLastVote}`);
+      console.log(`Vote submission: VoterID=${voterId}, CandidateID=${candidateId}, PositionID=${positionId}, isLastVote=${isLastVote}`);
       
       // First check if there's an active election
       const activeElection = await ElectionModel.getActive();
@@ -42,7 +42,7 @@ export class VotingService {
       
       console.log(`Voter ${voterId} has not voted yet, proceeding with vote recording`);
       
-      // Get the position ID from the candidate
+      // Get the candidate and position details
       const { CandidateModel } = await import("../models/CandidateModel.js");
       const candidate = await CandidateModel.getById(candidateId);
       if (!candidate) {
@@ -51,13 +51,18 @@ export class VotingService {
 
       // Get the position and check vote limit
       const { PositionModel } = await import("../models/PositionModel.js");
-      const position = await PositionModel.getById(candidate.positionId);
+      const position = await PositionModel.getById(positionId);
       if (!position) {
         throw new Error("Position not found");
       }
 
+      // Verify candidate belongs to this position
+      if (candidate.positionId !== positionId) {
+        throw new Error("Candidate does not belong to the specified position");
+      }
+
       // Count existing votes for this position
-      const existingVotes = await VoteModel.countVotesByPosition(voterId, activeElection.id, candidate.positionId);
+      const existingVotes = await VoteModel.countVotesByPosition(voterId, activeElection.id, positionId);
       console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
       
       if (existingVotes >= position.voteLimit) {
@@ -83,7 +88,7 @@ export class VotingService {
         // Record the vote
         await new Promise((resolve, reject) => {
           const query = "INSERT INTO votes (id, voterId, candidateId, electionId, positionId) VALUES (?, ?, ?, ?, ?)";
-          const values = [voteId, voterId, candidateId, activeElection.id, candidate.positionId];
+          const values = [voteId, voterId, candidateId, activeElection.id, positionId];
           console.log(`Executing vote insert query with values:`, values);
           db.query(query, values, (err) => {
             if (err) {
