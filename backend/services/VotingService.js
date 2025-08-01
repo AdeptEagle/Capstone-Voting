@@ -70,7 +70,6 @@ export class VotingService {
       }
       
       // Check if voter has already voted for this candidate
-      const db = createConnection();
       try {
         const duplicateCheck = await new Promise((resolve, reject) => {
           const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?";
@@ -83,8 +82,8 @@ export class VotingService {
         if (duplicateCheck > 0) {
           throw new Error(`You have already voted for this candidate in ${position.name}. Please select a different candidate.`);
         }
-      } finally {
-        db.end();
+      } catch (err) {
+        throw err;
       }
       
       // Get next vote ID
