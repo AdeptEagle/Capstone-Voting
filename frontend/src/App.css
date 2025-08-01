@@ -1,9 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
 
+/* Higher specificity to override Bootstrap */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--background-off-white);
-  color: var(--text-dark);
+  font-family: 'Inter', sans-serif !important;
+  background-color: var(--background-off-white) !important;
+  color: var(--text-dark) !important;
   margin: 0;
   overflow-x: hidden;
   min-height: 100vh;
@@ -19,54 +20,125 @@ main {
   box-sizing: border-box;
 }
 
-/* Override any pure white backgrounds */
-.bg-white, .bg-light, .bg-transparent {
+/* Override any pure white backgrounds with higher specificity */
+.App .bg-white, 
+.App .bg-light, 
+.App .bg-transparent {
   background-color: #fafafa !important;
 }
 
 /* Softer text colors */
-.text-white {
+.App .text-white {
   color: #f1f5f9 !important;
 }
 
-/* Softer borders */
-.border, .border-light {
-  border-color: #e2e8f0 !important;
+/* Softer borders with better visibility for all monitors */
+.App .border, 
+.App .border-light {
+  border-color: #cbd5e1 !important; /* Darker border */
+  border-width: 1.5px !important; /* Thicker border */
 }
 
 /* Override any Bootstrap white backgrounds that might be causing issues */
-.container-fluid,
-.container {
+.App .container-fluid,
+.App .container {
   background-color: transparent !important;
 }
 
-.row {
+.App .row {
   background-color: transparent !important;
 }
 
-.col, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
-.col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12,
-.col-xl-1, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6, .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-10, .col-xl-11, .col-xl-12 {
+.App .col, 
+.App .col-md-1, .App .col-md-2, .App .col-md-3, .App .col-md-4, .App .col-md-5, .App .col-md-6, .App .col-md-7, .App .col-md-8, .App .col-md-9, .App .col-md-10, .App .col-md-11, .App .col-md-12,
+.App .col-lg-1, .App .col-lg-2, .App .col-lg-3, .App .col-lg-4, .App .col-lg-5, .App .col-lg-6, .App .col-lg-7, .App .col-lg-8, .App .col-lg-9, .App .col-lg-10, .App .col-lg-11, .App .col-lg-12,
+.App .col-xl-1, .App .col-xl-2, .App .col-xl-3, .App .col-xl-4, .App .col-xl-5, .App .col-xl-6, .App .col-xl-7, .App .col-xl-8, .App .col-xl-9, .App .col-xl-10, .App .col-xl-11, .App .col-xl-12 {
   background-color: transparent !important;
 }
 
 /* Reduce brightness of white elements */
-.bg-white {
+.App .bg-white {
   background-color: #fafafa !important;
 }
 
-.bg-light {
+.App .bg-light {
   background-color: #f1f5f9 !important;
 }
 
-/* Softer card backgrounds */
-.card {
+/* Enhanced card borders */
+.App .card {
   background-color: #fafafa !important;
-  border-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important; /* Much darker border */
+  border-width: 2px !important; /* Thicker border */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; /* More shadow */
 }
 
-.card-body {
+.App .card-body {
   background-color: #fafafa !important;
+}
+
+/* Enhanced header borders */
+.App .header-card,
+.App .modern-card {
+  border-color: #64748b !important; /* Even darker for headers */
+  border-width: 2.5px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Enhanced form borders */
+.App .form-control {
+  border-color: #94a3b8 !important;
+  border-width: 1.5px !important;
+}
+
+.App .form-control:focus {
+  border-color: #3b82f6 !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 0.3rem rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Enhanced button borders */
+.App .btn {
+  border-width: 1.5px !important;
+}
+
+.App .btn-primary {
+  border-color: #1d4ed8 !important;
+}
+
+.App .btn-secondary {
+  border-color: #64748b !important;
+}
+
+/* Enhanced modal borders */
+.App .modal-content {
+  border-color: #64748b !important;
+  border-width: 2px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Enhanced table borders */
+.App .table {
+  border-color: #94a3b8 !important;
+}
+
+.App .table th,
+.App .table td {
+  border-color: #cbd5e1 !important;
+  border-width: 1px !important;
+}
+
+/* Enhanced list group borders */
+.App .list-group-item {
+  border-color: #cbd5e1 !important;
+  border-width: 1px !important;
+}
+
+/* Enhanced dropdown borders */
+.App .dropdown-menu {
+  border-color: #94a3b8 !important;
+  border-width: 1.5px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Sidebar */

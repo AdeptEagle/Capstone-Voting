@@ -9,6 +9,9 @@ import { ensureDatabaseAndTables, closePool } from "./config/database.js";
 // Import middleware
 import { uploadsDir } from "./middleware/upload.js";
 
+// Import services
+import { ElectionTimerService } from "./services/ElectionTimerService.js";
+
 // Import routes
 import positionRoutes from "./routes/positionRoutes.js";
 import candidateRoutes from "./routes/candidateRoutes.js";
@@ -21,6 +24,7 @@ import electionAssignmentRoutes from "./routes/electionAssignmentRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import passwordResetRoutes from "./routes/passwordResetRoutes.js";
+import ballotHistoryRoutes from "./routes/ballotHistoryRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -131,7 +135,8 @@ const routes = [
   { path: "/api/election-assignments", router: electionAssignmentRoutes },
   { path: "/api/departments", router: departmentRoutes },
   { path: "/api/courses", router: courseRoutes },
-  { path: "/api/password-reset", router: passwordResetRoutes }
+  { path: "/api/password-reset", router: passwordResetRoutes },
+  { path: "/api/ballot-history", router: ballotHistoryRoutes }
 ];
 
 routes.forEach(({ path, router }) => {
@@ -179,11 +184,22 @@ app.use((req, res) => {
 
 // Graceful shutdown handler
 const gracefulShutdown = (signal) => {
+  console.log(`🛑 Received ${signal}, shutting down gracefully...`);
+  
   server.close(async () => {
     try {
+      // Cleanup timer service
+      ElectionTimerService.cleanup();
+      console.log('🧹 Timer service cleaned up');
+      
+      // Close database pool
       await closePool();
+      console.log('🗄️ Database pool closed');
+      
+      console.log('✅ Server shutdown complete');
       process.exit(0);
     } catch (error) {
+      console.error('❌ Error during shutdown:', error);
       process.exit(1);
     }
   });
@@ -230,6 +246,12 @@ const startServer = async () => {
       console.log('🗄️ Initializing database...');
       await ensureDatabaseAndTables();
       console.log('✅ Database initialized successfully');
+      
+      // Initialize election timer service
+      console.log('⏰ Initializing election timer service...');
+      await ElectionTimerService.initialize();
+      console.log('✅ Election timer service initialized successfully');
+      
     } catch (dbError) {
       console.error('❌ Database initialization failed:', dbError);
       // Don't exit - server can still serve health checks

@@ -13,6 +13,7 @@ import {
 } from '../services/api';
 import { useElection } from '../contexts/ElectionContext';
 import MultiStepForm from '../components/Elections/MultiStepForm';
+import CountdownTimer from '../components/Elections/CountdownTimer';
 import { useElectionForm } from '../hooks/useElectionForm';
 import { useElectionActions } from '../hooks/useElectionActions';
 import { createInitialElectionState } from '../utils/electionStateUtils';
@@ -417,6 +418,24 @@ const Elections = () => {
                         <i className="fas fa-users me-2"></i>
                         <strong>Users can now vote!</strong> The ballot is currently active.
                       </div>
+                    </div>
+                  )}
+
+                  {/* Countdown Timer */}
+                  {activeElection.endTime && (activeElection.status === 'active' || activeElection.status === 'pending') && (
+                    <div className="mt-3">
+                      <CountdownTimer
+                        endTime={activeElection.endTime}
+                        electionId={activeElection.id}
+                        electionTitle={activeElection.title}
+                        onExpired={(electionId) => {
+                          console.log(`Election ${electionId} expired, refreshing...`);
+                          refreshElection();
+                        }}
+                        size="normal"
+                        showTitle={false}
+                        variant="primary"
+                      />
                     </div>
                   )}
                 </div>

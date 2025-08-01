@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getVoters } from '../../services/api';
 import { useElection } from '../../contexts/ElectionContext';
+import CountdownTimer from '../../components/Elections/CountdownTimer';
 import './UserDashboard.css';
 
 const UserDashboard = () => {
@@ -100,6 +101,24 @@ const UserDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Election Countdown Timer */}
+            {activeElection.endTime && (activeElection.status === 'active' || activeElection.status === 'pending') && (
+              <div className="mt-4">
+                <CountdownTimer
+                  endTime={activeElection.endTime}
+                  electionId={activeElection.id}
+                  electionTitle={activeElection.title}
+                  onExpired={(electionId) => {
+                    console.log(`Election ${electionId} expired, refreshing dashboard...`);
+                    triggerImmediateRefresh();
+                  }}
+                  size="normal"
+                  showTitle={false}
+                  variant="info"
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="modern-card card-warning">

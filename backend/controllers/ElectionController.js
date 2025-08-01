@@ -1,4 +1,5 @@
-import { ElectionModel } from "../models/ElectionModel.js";
+import { ElectionModel } from '../models/ElectionModel.js';
+import { ElectionTimerService } from '../services/ElectionTimerService.js';
 
 export class ElectionController {
   static async getAllElections(req, res) {
@@ -111,6 +112,12 @@ export class ElectionController {
       };
 
       const result = await ElectionModel.create(electionData);
+      
+      // Start timer if election has an end time
+      if (endTime) {
+        await ElectionTimerService.startElectionTimer(electionId, endTime, title);
+      }
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -155,6 +162,13 @@ export class ElectionController {
     try {
       const electionId = req.params.id;
       const result = await ElectionModel.startElection(electionId);
+      
+      // Get election details to restart timer if needed
+      const election = await ElectionModel.getById(electionId);
+      if (election && election.endTime) {
+        await ElectionTimerService.startElectionTimer(electionId, election.endTime, election.title);
+      }
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -165,6 +179,10 @@ export class ElectionController {
     try {
       const electionId = req.params.id;
       const result = await ElectionModel.pauseElection(electionId);
+      
+      // Stop timer when election is paused
+      ElectionTimerService.stopElectionTimer(electionId);
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -175,6 +193,10 @@ export class ElectionController {
     try {
       const electionId = req.params.id;
       const result = await ElectionModel.stopElection(electionId);
+      
+      // Stop timer when election is stopped
+      ElectionTimerService.stopElectionTimer(electionId);
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -185,6 +207,13 @@ export class ElectionController {
     try {
       const electionId = req.params.id;
       const result = await ElectionModel.resumeElection(electionId);
+      
+      // Restart timer when election is resumed
+      const election = await ElectionModel.getById(electionId);
+      if (election && election.endTime) {
+        await ElectionTimerService.startElectionTimer(electionId, election.endTime, election.title);
+      }
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -195,6 +224,10 @@ export class ElectionController {
     try {
       const electionId = req.params.id;
       const result = await ElectionModel.endElection(electionId);
+      
+      // Stop timer when election is ended
+      ElectionTimerService.stopElectionTimer(electionId);
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -204,6 +237,10 @@ export class ElectionController {
   static async deleteElection(req, res) {
     try {
       const electionId = req.params.id;
+      
+      // Stop timer before deleting election
+      ElectionTimerService.stopElectionTimer(electionId);
+      
       const result = await ElectionModel.delete(electionId);
       res.json(result);
     } catch (error) {
@@ -226,6 +263,82 @@ export class ElectionController {
       const electionId = req.params.id;
       const candidates = await ElectionModel.getElectionCandidates(electionId);
       res.json(candidates);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // Timer-related endpoints
+  static async getElectionTimer(req, res) {
+    try {
+      const electionId = req.params.id;
+      const timeRemaining = ElectionTimerService.getTimeRemaining(electionId);
+      
+      if (timeRemaining === null) {
+        return res.status(404).json({ error: 'No active timer found for this election' });
+      }
+      
+      res.json({
+        electionId,
+        timeRemaining,
+        hasTimer: true
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async getAllActiveTimers(req, res) {
+    try {
+      const activeTimers = ElectionTimerService.getActiveTimers();
+      res.json({
+        activeTimers,
+        count: activeTimers.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  static async getElectionCountdown(req, res) {
+    try {
+      const electionId = req.params.id;
+      const election = await ElectionModel.getById(electionId);
+      
+      if (!election) {
+        return res.status(404).json({ error: 'Election not found' });
+      }
+      
+      const now = new Date();
+      const endTime = new Date(election.endTime);
+      const timeRemaining = endTime.getTime() - now.getTime();
+      
+      if (timeRemaining <= 0) {
+        return res.json({
+          electionId,
+          status: election.status,
+          timeRemaining: 0,
+          expired: true,
+          message: 'Election has ended'
+        });
+      }
+      
+      const countdown = {
+        total: timeRemaining,
+        days: Math.floor(timeRemaining / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((timeRemaining % (1000 * 60)) / 1000)
+      };
+      
+      res.json({
+        electionId,
+        status: election.status,
+        endTime: election.endTime,
+        timeRemaining: countdown,
+        expired: false,
+        hasTimer: ElectionTimerService.getTimeRemaining(electionId) !== null
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

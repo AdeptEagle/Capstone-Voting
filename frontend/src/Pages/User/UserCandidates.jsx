@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getCandidates, getPositions, getDepartments } from '../../services/api';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
-import { getImageUrl, CandidatePhotoPlaceholder } from '../../utils/image';
+import { CandidateImage } from '../../utils/image';
 import './UserCandidates.css';
 
 const UserCandidates = () => {
@@ -212,25 +212,12 @@ const UserCandidates = () => {
                     <div key={candidate.id} className="candidate-card">
                       <div className="candidate-card-header">
                         <div className="candidate-photo-container">
-                          {candidate.photoUrl && candidate.photoUrl.trim() !== '' ? (
-                            <img
-                              src={getImageUrl(candidate.photoUrl)}
-                              alt={candidate.name}
-                              className="candidate-photo"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                          ) : null}
-                          <div 
-                            className="candidate-photo-placeholder" 
-                            style={{ 
-                              display: candidate.photoUrl && candidate.photoUrl.trim() !== '' ? 'none' : 'flex' 
-                            }}
-                          >
-                            <i className="fas fa-user"></i>
-                          </div>
+                          <CandidateImage 
+                            photoUrl={candidate.photoUrl}
+                            alt={candidate.name}
+                            className="candidate-photo"
+                            size="large"
+                          />
                         </div>
                       </div>
                       
@@ -241,20 +228,20 @@ const UserCandidates = () => {
                         {candidate.departmentName && (
                           <div className="candidate-department">
                             <i className="fas fa-building me-1"></i>
-                            <small className="text-muted">{candidate.departmentName}</small>
+                            <small className="candidate-info">{candidate.departmentName}</small>
                           </div>
                         )}
                         
                         {candidate.courseName && (
                           <div className="candidate-course">
                             <i className="fas fa-graduation-cap me-1"></i>
-                            <small className="text-muted">{candidate.courseName}</small>
+                            <small className="candidate-info">{candidate.courseName}</small>
                           </div>
                         )}
                         
                         {candidate.description && (
                           <div className="candidate-description">
-                            <p className="text-muted">{candidate.description}</p>
+                            <p className="candidate-desc-text">{candidate.description}</p>
                           </div>
                         )}
                       </div>

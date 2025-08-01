@@ -55,6 +55,11 @@ router.post("/:id/resume", authenticate, requireRole(["admin", "superadmin"]), E
 // End election (requires authentication)
 router.post("/:id/end", authenticate, requireRole(["admin", "superadmin"]), ElectionController.endElection);
 
+// Timer-related routes
+router.get("/:id/timer", ElectionController.getElectionTimer);
+router.get("/:id/countdown", ElectionController.getElectionCountdown);
+router.get("/timers/active", ElectionController.getAllActiveTimers);
+
 // Delete election (requires authentication)
 router.delete("/:id", authenticate, requireRole(["admin", "superadmin"]), ElectionController.deleteElection);
 

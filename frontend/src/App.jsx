@@ -16,6 +16,7 @@ import Voters from './Pages/Voters';
 import Results from './Pages/Results';
 import Elections from './Pages/Elections';
 import ElectionHistory from './Pages/ElectionHistory';
+import BallotHistory from './Pages/BallotHistory';
 import UserRegister from './Pages/User/UserRegister';
 import Vote from './Pages/User/Vote';
 import AdminLogin from './Pages/AdminLogin';
@@ -26,10 +27,10 @@ import ResetPassword from './Pages/ResetPassword';
 import DepartmentManagement from './Pages/DepartmentManagement';
 import { getToken, checkCurrentUser } from './services/auth';
 import { ElectionProvider } from './contexts/ElectionContext';
-import './App.css';
-import './brightness-fix.css';
-import './responsive-fix.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Load Bootstrap FIRST
+import './App.css'; // Then custom styles
+import './brightness-fix.css'; // Then brightness fixes
+import './responsive-fix.css'; // Then responsive fixes
 
 // Admin Route Protection (for admin and superadmin)
 function AdminRoute({ children }) {
@@ -188,6 +189,13 @@ function App() {
               <AdminRoute>
                 <AdminLayout>
                   <ElectionHistory />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/ballot-history" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <BallotHistory />
                 </AdminLayout>
               </AdminRoute>
             } />

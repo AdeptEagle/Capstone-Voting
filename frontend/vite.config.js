@@ -13,6 +13,18 @@ export default defineConfig({
       }
     }
   },
+  css: {
+    // Ensure CSS is processed consistently
+    postcss: {
+      plugins: [
+        // Add any PostCSS plugins if needed
+      ]
+    },
+    // Ensure CSS modules work properly
+    modules: {
+      localsConvention: 'camelCase'
+    }
+  },
   server: {
     host: '0.0.0.0',
     port: 4173

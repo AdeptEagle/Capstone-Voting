@@ -1,8 +1,10 @@
+import { createConnection } from "../config/database.js";
 import { ElectionModel } from "../models/ElectionModel.js";
 import { VoteModel } from "../models/VoteModel.js";
 import { VoterModel } from "../models/VoterModel.js";
 import { ResultsModel } from "../models/ResultsModel.js";
-import { createConnection } from "../config/database.js";
+import { CandidateModel } from "../models/CandidateModel.js";
+import { PositionModel } from "../models/PositionModel.js";
 
 export class VotingService {
   static async processVote(voteData) {
@@ -42,15 +44,13 @@ export class VotingService {
       
       console.log(`Voter ${voterId} has not voted yet, proceeding with vote recording`);
       
-      // Get the candidate and position details
-      const { CandidateModel } = await import("../models/CandidateModel.js");
+      // Get the candidate details
       const candidate = await CandidateModel.getById(candidateId);
       if (!candidate) {
         throw new Error("Candidate not found");
       }
 
       // Get the position and check vote limit
-      const { PositionModel } = await import("../models/PositionModel.js");
       const position = await PositionModel.getById(positionId);
       if (!position) {
         throw new Error("Position not found");
@@ -61,7 +61,7 @@ export class VotingService {
         throw new Error("Candidate does not belong to the specified position");
       }
 
-      // Count existing votes for this position
+      // Count existing votes for this position by this voter
       const existingVotes = await VoteModel.countVotesByPosition(voterId, activeElection.id, positionId);
       console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
       
@@ -69,7 +69,7 @@ export class VotingService {
         throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}. Please select a different position or candidate.`);
       }
       
-      // Check if voter has already voted for this candidate
+      // Check if voter has already voted for this specific candidate
       const duplicateCheckDb = createConnection();
       try {
         const duplicateCheck = await new Promise((resolve, reject) => {
@@ -92,7 +92,7 @@ export class VotingService {
       const voteId = await IDGenerator.default.getNextVoteID();
       
       console.log(`Generated vote ID: ${voteId}`);
-      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${positionId}`);
+      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, positionId=${positionId}`);
       
       // BEGIN TRANSACTION - ACID Atomicity
       await new Promise((resolve, reject) => {
@@ -103,7 +103,7 @@ export class VotingService {
       });
       
       try {
-        // Check for duplicate vote and record the vote using VoteModel
+        // Record the vote using VoteModel
         try {
           await VoteModel.create({
             id: voteId,
@@ -112,6 +112,7 @@ export class VotingService {
             electionId: activeElection.id,
             positionId
           });
+          console.log(`Vote recorded successfully: ${voteId}`);
         } catch (err) {
           if (err.code === 'ER_DUP_ENTRY') {
             throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
@@ -152,7 +153,12 @@ export class VotingService {
           });
         });
         
-        return { message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded" };
+        return { 
+          message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded",
+          voteId,
+          position: position.name,
+          candidate: candidate.name
+        };
         
       } catch (error) {
         console.error('Error during vote processing, rolling back transaction:', error);
@@ -178,14 +184,85 @@ export class VotingService {
     try {
       return await ResultsModel.getActiveElectionResults();
     } catch (error) {
+      console.error('Error fetching active election results:', error);
       throw error;
     }
   }
 
-  static async getResults(showAll = false) {
+  static async getAllElectionResults() {
     try {
-      return await ResultsModel.getResults(showAll);
+      return await ResultsModel.getAllElectionResults();
     } catch (error) {
+      console.error('Error fetching all election results:', error);
+      throw error;
+    }
+  }
+
+  static async getVotesByElection(electionId) {
+    try {
+      const db = createConnection();
+      return new Promise((resolve, reject) => {
+        const query = `
+          SELECT 
+            v.id,
+            v.voterId,
+            v.candidateId,
+            v.positionId,
+            v.created_at,
+            vo.name as voterName,
+            vo.studentId,
+            vo.departmentName,
+            vo.courseName,
+            c.name as candidateName,
+            p.name as positionName
+          FROM votes v
+          LEFT JOIN voters vo ON v.voterId = vo.id
+          LEFT JOIN candidates c ON v.candidateId = c.id
+          LEFT JOIN positions p ON v.positionId = p.id
+          WHERE v.electionId = ?
+          ORDER BY v.created_at DESC
+        `;
+        db.query(query, [electionId], (err, data) => {
+          db.end();
+          if (err) reject(err);
+          else resolve(data);
+        });
+      });
+    } catch (error) {
+      console.error('Error fetching votes by election:', error);
+      throw error;
+    }
+  }
+
+  static async getVotingStatistics(electionId) {
+    try {
+      const db = createConnection();
+      return new Promise((resolve, reject) => {
+        const query = `
+          SELECT 
+            COUNT(DISTINCT v.voterId) as totalVoters,
+            COUNT(v.id) as totalVotes,
+            COUNT(DISTINCT v.positionId) as positionsVoted,
+            MIN(v.created_at) as firstVoteTime,
+            MAX(v.created_at) as lastVoteTime,
+            ROUND(AVG(votesPerVoter.voteCount), 2) as avgVotesPerVoter
+          FROM votes v
+          LEFT JOIN (
+            SELECT voterId, COUNT(*) as voteCount 
+            FROM votes 
+            WHERE electionId = ? 
+            GROUP BY voterId
+          ) votesPerVoter ON v.voterId = votesPerVoter.voterId
+          WHERE v.electionId = ?
+        `;
+        db.query(query, [electionId, electionId], (err, data) => {
+          db.end();
+          if (err) reject(err);
+          else resolve(data[0]);
+        });
+      });
+    } catch (error) {
+      console.error('Error fetching voting statistics:', error);
       throw error;
     }
   }
@@ -194,6 +271,7 @@ export class VotingService {
     try {
       return await ResultsModel.getRealTimeStats();
     } catch (error) {
+      console.error('Error fetching real-time stats:', error);
       throw error;
     }
   }
@@ -202,6 +280,7 @@ export class VotingService {
     try {
       return await ResultsModel.getVoteTimeline();
     } catch (error) {
+      console.error('Error fetching vote timeline:', error);
       throw error;
     }
   }
@@ -210,6 +289,7 @@ export class VotingService {
     try {
       return await VoterModel.resetVotingStatus(voterId);
     } catch (error) {
+      console.error('Error resetting voter status:', error);
       throw error;
     }
   }
@@ -227,6 +307,7 @@ export class VotingService {
         hasVoted: voter.hasVoted
       };
     } catch (error) {
+      console.error('Error fetching voter status:', error);
       throw error;
     }
   }

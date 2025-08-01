@@ -1,5 +1,5 @@
 import React from 'react';
-import { getImageUrl } from '../../utils/image';
+import { CandidateImage } from '../../utils/image';
 
 const CandidateCard = ({ 
   candidate, 
@@ -11,16 +11,6 @@ const CandidateCard = ({
   showActions = true,
   showSelection = false 
 }) => {
-  const handleImageError = (e) => {
-    e.target.style.display = 'none';
-    e.target.nextSibling.style.display = 'flex';
-  };
-
-  const handleImageLoad = (e) => {
-    e.target.style.display = 'block';
-    e.target.nextSibling.style.display = 'none';
-  };
-
   return (
     <div className="candidate-card">
       {showSelection && (
@@ -35,24 +25,12 @@ const CandidateCard = ({
       )}
       
       <div className="candidate-photo-container" onClick={() => onView(candidate)}>
-        {candidate.photoUrl ? (
-          <>
-            <img
-              src={getImageUrl(candidate.photoUrl)}
-              alt={candidate.name}
-              className="candidate-photo"
-              onError={handleImageError}
-              onLoad={handleImageLoad}
-            />
-            <div className="candidate-photo-placeholder" style={{ display: 'none' }}>
-              <i className="fas fa-user"></i>
-            </div>
-          </>
-        ) : (
-          <div className="candidate-photo-placeholder">
-            <i className="fas fa-user"></i>
-          </div>
-        )}
+        <CandidateImage 
+          photoUrl={candidate.photoUrl}
+          alt={candidate.name}
+          className="candidate-photo"
+          size="normal"
+        />
       </div>
 
       <div className="candidate-info">

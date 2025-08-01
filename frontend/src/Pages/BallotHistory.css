@@ -1,0 +1,555 @@
+/* Ballot History Page Styles */
+
+.ballot-history-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.ballot-history-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+/* Header Styles */
+.ballot-history-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  color: white;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: white;
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.header-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-card {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+/* Elections Sidebar */
+.elections-sidebar {
+  margin-bottom: 20px;
+}
+
+.elections-list-card {
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  max-height: calc(100vh - 200px);
+  overflow: hidden;
+}
+
+.elections-list {
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+.election-item {
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.election-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+}
+
+.election-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-left: 4px solid #fff;
+}
+
+.election-main-info {
+  margin-bottom: 15px;
+}
+
+.election-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: inherit;
+}
+
+.election-description {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+.election-stats {
+  margin-bottom: 10px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+}
+
+.stat-icon {
+  font-size: 0.9rem;
+  width: 20px;
+}
+
+.election-date {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 10px;
+}
+
+.election-item.active .election-date {
+  border-top-color: rgba(255, 255, 255, 0.2);
+}
+
+.no-elections-message {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+/* Analysis Cards */
+.selection-prompt-card,
+.loading-card,
+.analysis-card {
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+
+.election-tabs {
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 20px;
+}
+
+.election-tabs .nav-link {
+  color: #495057;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-weight: 500;
+  padding: 12px 20px;
+  transition: all 0.3s ease;
+}
+
+.election-tabs .nav-link:hover {
+  border-bottom-color: #667eea;
+  color: #667eea;
+}
+
+.election-tabs .nav-link.active {
+  background: none;
+  border-bottom-color: #667eea;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.tab-content-container {
+  padding-top: 20px;
+}
+
+/* Summary Cards */
+.summary-cards {
+  margin-bottom: 30px;
+}
+
+.summary-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  transition: transform 0.3s ease;
+}
+
+.summary-stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon-large {
+  font-size: 2.5rem;
+  opacity: 0.8;
+}
+
+.stat-info {
+  text-align: left;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 5px;
+}
+
+/* Timeline */
+.timeline-info {
+  display: grid;
+  gap: 15px;
+}
+
+.timeline-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.timeline-label {
+  font-weight: 600;
+  color: #495057;
+}
+
+.timeline-value {
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+/* Position Results */
+.position-results-card {
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+
+.winners-section,
+.losers-section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.candidate-result-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+}
+
+.candidate-result-card.winner {
+  border-color: #28a745;
+  background: linear-gradient(135deg, #f8fff9, #ffffff);
+}
+
+.candidate-result-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.candidate-photo-section {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.rank-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #6c757d;
+  color: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.winner-badge {
+  background: #ffd700;
+  color: #333;
+}
+
+.candidate-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.candidate-details {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.vote-count-badge {
+  background: #667eea;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.vote-count-badge.secondary {
+  background: #6c757d;
+}
+
+/* Voters Table */
+.voters-table-container {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.voters-table-container .table {
+  margin-bottom: 0;
+}
+
+.voters-table-container th {
+  background-color: #f8f9fa;
+  border-top: none;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Charts */
+.simple-chart {
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.chart-container {
+  display: flex;
+  align-items: end;
+  justify-content: space-around;
+  height: 200px;
+  gap: 10px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.chart-bar-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.chart-bar-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.chart-bar-wrapper {
+  flex: 1;
+  width: 30px;
+  display: flex;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.chart-bar {
+  width: 100%;
+  min-height: 5px;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+}
+
+.chart-bar:hover {
+  opacity: 0.8;
+  transform: scaleY(1.05);
+}
+
+.chart-bar-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Pie Chart */
+.simple-pie-chart {
+  margin-bottom: 20px;
+}
+
+.pie-chart-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pie-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pie-legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.pie-legend-label {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ballot-history-container {
+    padding: 15px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .elections-list-card {
+    max-height: 300px;
+  }
+  
+  .summary-stat-card {
+    margin-bottom: 15px;
+  }
+  
+  .chart-container {
+    flex-wrap: wrap;
+    height: auto;
+  }
+  
+  .chart-bar-container {
+    min-width: 80px;
+    height: 150px;
+  }
+  
+  .election-tabs .nav-link {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .stat-card {
+    padding: 10px 15px;
+  }
+  
+  .election-item {
+    padding: 15px;
+  }
+  
+  .summary-stat-card {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .stat-info {
+    text-align: center;
+  }
+  
+  .timeline-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+} 

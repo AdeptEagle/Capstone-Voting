@@ -566,4 +566,136 @@ export const deleteDepartment = async (departmentId) => {
   }
 };
 
+// Timer and countdown functions
+export const getElectionTimer = async (electionId) => {
+  try {
+    const response = await api.get(`/elections/${electionId}/timer`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting election timer:', error);
+    throw error;
+  }
+};
+
+export const getElectionCountdown = async (electionId) => {
+  try {
+    const response = await api.get(`/elections/${electionId}/countdown`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting election countdown:', error);
+    throw error;
+  }
+};
+
+export const getAllActiveTimers = async () => {
+  try {
+    const response = await api.get('/elections/timers/active');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting active timers:', error);
+    throw error;
+  }
+};
+
+// Ballot History API functions
+export const getAllCompletedElections = async () => {
+  try {
+    const response = await api.get('/ballot-history/elections');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting completed elections:', error);
+    throw error;
+  }
+};
+
+export const getElectionAnalysis = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/analysis`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting election analysis:', error);
+    throw error;
+  }
+};
+
+export const getElectionSummary = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/summary`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting election summary:', error);
+    throw error;
+  }
+};
+
+export const getElectionHistoryResults = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/results`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting election results:', error);
+    throw error;
+  }
+};
+
+export const getElectionVoters = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/voters`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting election voters:', error);
+    throw error;
+  }
+};
+
+export const getDepartmentStats = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/departments`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting department stats:', error);
+    throw error;
+  }
+};
+
+export const getCourseStats = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/courses`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting course stats:', error);
+    throw error;
+  }
+};
+
+export const getVotingTimeline = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/timeline`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting voting timeline:', error);
+    throw error;
+  }
+};
+
+export const getPositionAnalytics = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/analytics/positions`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting position analytics:', error);
+    throw error;
+  }
+};
+
+export const getVoteDistribution = async (electionId) => {
+  try {
+    const response = await api.get(`/ballot-history/elections/${electionId}/analytics/distribution`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting vote distribution:', error);
+    throw error;
+  }
+};
+
 export default api; 
