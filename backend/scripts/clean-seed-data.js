@@ -7,9 +7,9 @@ export const cleanDefaultData = {
   admins: [
     {
       "id": "admin-001",
-      "username": "admin1123",
-      "email": "admin1123@votingsystem.com",
-      "password": "$2b$10$bPYyvJ99TicH6hviI6bZ1OQ8BM60xF/KU29gpEl5aQZTKYXM5JkAS",
+      "username": "admin1",
+      "email": "admin1@votingsystem.com",
+      "password": "$2b$10$LOZXGcPv/Ir1Is5GJ8cIce1kEdSCAX2m.2vcGr0A2faQ205KQfTdi",
       "role": "admin",
       "created_at": "2025-07-28T19:48:24.000Z",
       "updated_at": "2025-07-28T20:16:48.000Z"
@@ -18,7 +18,7 @@ export const cleanDefaultData = {
       "id": "admin-002",
       "username": "admin2",
       "email": "admin2@votingsystem.com",
-      "password": "$2b$10$865cIoKXjrNw1Bit5OQyHu4/OHpmpNwgSDEEkrC.VN5g4KglkardW",
+      "password": "$2b$10$LOZXGcPv/Ir1Is5GJ8cIce1kEdSCAX2m.2vcGr0A2faQ205KQfTdi",
       "role": "admin",
       "created_at": "2025-07-28T20:20:51.000Z",
       "updated_at": "2025-07-28T20:20:51.000Z"
@@ -27,7 +27,7 @@ export const cleanDefaultData = {
       "id": "admin-003",
       "username": "admin3",
       "email": "admin3@votingsystem.com",
-      "password": "$2b$10$bKiewgfLtQx8Pi73XXawMOBpVIXUc0E3fUtR9rTxaOj9Y1UntPpdy",
+      "password": "$2b$10$LOZXGcPv/Ir1Is5GJ8cIce1kEdSCAX2m.2vcGr0A2faQ205KQfTdi",
       "role": "admin",
       "created_at": "2025-07-28T19:48:24.000Z",
       "updated_at": "2025-07-28T19:48:24.000Z"
@@ -36,7 +36,7 @@ export const cleanDefaultData = {
       "id": "superadmin-001",
       "username": "superadmin",
       "email": "superadmin@votingsystem.com",
-      "password": "$2b$10$iEKbBdMsWDP789SUOCvu1ueZtKvMzIuNlOFLf8dMLTMl9gkZnTVT2",
+      "password": "$2b$10$tH9SrLZLKuZAbZvjfBM.yOpuBUA0M9d1bC5EFT4gU/PZ/dhZyRChW",
       "role": "superadmin",
       "created_at": "2025-07-28T19:48:24.000Z",
       "updated_at": "2025-07-28T20:17:20.000Z"
