@@ -249,3 +249,5 @@ export class ElectionAssignmentModel {
     });
   }
 }
+
+export default ElectionAssignmentModel;
