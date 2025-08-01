@@ -73,6 +73,21 @@ export class ElectionController {
       const { title, description, startTime, endTime, positionIds, candidateIds } = req.body;
       const createdBy = req.user.id;
 
+      // Check for existing active/pending elections (single ballot restriction)
+      const existingElections = await ElectionModel.getAll();
+      const activeElections = existingElections.filter(election => 
+        election.status === 'active' || 
+        election.status === 'pending' || 
+        election.status === 'paused' || 
+        election.status === 'stopped'
+      );
+      
+      if (activeElections.length > 0) {
+        return res.status(400).json({ 
+          error: "Only one ballot can exist at a time. Please end or delete the current ballot first." 
+        });
+      }
+
       // Validate dates
       const start = new Date(startTime);
       const end = new Date(endTime);

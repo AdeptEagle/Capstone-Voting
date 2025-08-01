@@ -1,36 +1,45 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, getCandidates, getAllCandidates, getDepartments } from '../services/api';
-import './Elections.css';
-
-// Import new components and hooks
-import ElectionForm from '../components/Elections/ElectionForm';
-import DeleteConfirmationModal from '../components/Elections/DeleteConfirmationModal';
+import { 
+  getPositions, 
+  getAllCandidates, 
+  getDepartments, 
+  deleteElection,
+  startElection,
+  pauseElection,
+  stopElection,
+  resumeElection,
+  endElection
+} from '../services/api';
+import { useElection } from '../contexts/ElectionContext';
 import MultiStepForm from '../components/Elections/MultiStepForm';
-import ElectionsList from '../components/Elections/ElectionsList';
-import ElectionCard from '../components/Elections/ElectionCard';
-import ElectionHeader from '../components/Elections/ElectionHeader';
-import ElectionMessages from '../components/Elections/ElectionMessages';
-
 import { useElectionForm } from '../hooks/useElectionForm';
 import { useElectionActions } from '../hooks/useElectionActions';
-import { useElectionModals } from '../hooks/useElectionModals';
-import { createInitialElectionState, clearMessages } from '../utils/electionStateUtils';
+import { createInitialElectionState } from '../utils/electionStateUtils';
+import './Elections.css';
 
 const Elections = () => {
+  const navigate = useNavigate();
+  const { activeElection, allElections, loading: contextLoading, refreshElection } = useElection();
+  
   // Initialize state
   const initialState = createInitialElectionState();
-  const [elections, setElections] = useState(initialState.elections);
   const [positions, setPositions] = useState(initialState.positions);
   const [existingCandidates, setExistingCandidates] = useState(initialState.existingCandidates);
   const [departments, setDepartments] = useState(initialState.departments);
   const [loading, setLoading] = useState(initialState.loading);
-  const [loadingPositions, setLoadingPositions] = useState(initialState.loadingPositions);
-  const [loadingCandidates, setLoadingCandidates] = useState(initialState.loadingCandidates);
   const [error, setError] = useState(initialState.error);
   const [success, setSuccess] = useState(initialState.success);
-  
-  const navigate = useNavigate();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [updatingElection, setUpdatingElection] = useState(null);
+
+  // Use election actions hook
+  const {
+    handleCreateElection,
+    loading: actionsLoading
+  } = useElectionActions();
 
   // Use custom hooks
   const {
@@ -57,37 +66,6 @@ const Elections = () => {
     prevStep
   } = useElectionForm();
 
-  const {
-    updatingElection,
-    loading: actionsLoading,
-    handleStartElection,
-    handlePauseElection,
-    handleStopElection,
-    handleResumeElection,
-    handleEndElection,
-    handleDeleteElection,
-    handleCreateElection,
-    handleUpdateElection,
-    handleEditClick
-  } = useElectionActions();
-
-  const {
-    showCreateModal,
-    showEditModal,
-    showDeleteModal,
-    deletingElection,
-    deleteConfirmation,
-    editingElection,
-    setDeleteConfirmation,
-    openCreateModal,
-    closeCreateModal,
-    openEditModal,
-    closeEditModal,
-    openDeleteModal,
-    closeDeleteModal,
-    confirmDelete
-  } = useElectionModals();
-
   useEffect(() => {
     fetchElectionsData();
   }, []);
@@ -95,13 +73,11 @@ const Elections = () => {
   const fetchElectionsData = async () => {
     try {
       setLoading(true);
-      const [electionsData, positionsData, departmentsData] = await Promise.all([
-        getElections(),
+      const [positionsData, departmentsData] = await Promise.all([
         getPositions(),
         getDepartments()
       ]);
 
-      setElections(electionsData || []);
       setPositions(positionsData || []);
       setDepartments(departmentsData || []);
     } catch (error) {
@@ -112,129 +88,13 @@ const Elections = () => {
     }
   };
 
-  // Enhanced reset form
-  const resetForm = () => {
-    resetFormHook();
-    setExistingCandidates([]);
-  };
-
-  // Enhanced open create modal with candidate fetching
-  const openCreateModalWithCandidates = async () => {
-    openCreateModal(resetForm);
-    // Fetch existing candidates for selection in Step 3
-    await fetchExistingCandidates();
-  };
-
-  const onCreateElection = async (e) => {
-    e.preventDefault();
-    try {
-      await handleCreateElection(formData, tempPositions, tempCandidates, elections, setElections, setSuccess, setError);
-      closeCreateModal(resetForm);
-      await fetchElectionsData(); // Refresh data
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
-
-  const onEditElection = async (e) => {
-    e.preventDefault();
-    try {
-      await handleUpdateElection(editingElection, formData, elections, setElections, setSuccess, setError);
-      closeEditModal(resetForm);
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
-
-  // Wrapper functions for election actions
-  const onStartElection = (electionId) => 
-    handleStartElection(electionId, elections, setElections, setSuccess, setError);
-  
-  const onPauseElection = (electionId) => 
-    handlePauseElection(electionId, elections, setElections, setSuccess, setError);
-  
-  const onStopElection = (electionId) => 
-    handleStopElection(electionId, elections, setElections, setSuccess, setError);
-  
-  const onResumeElection = (electionId) => 
-    handleResumeElection(electionId, elections, setElections, setSuccess, setError);
-  
-  const onEndElection = (electionId) => 
-    handleEndElection(electionId, elections, setElections, setSuccess, setError);
-  
-  const onDeleteElection = (election) => openDeleteModal(election);
-  
-  const confirmDeleteElection = async () => {
-    if (confirmDelete(async () => {
-      await handleDeleteElection(deletingElection.id, elections, setElections, setSuccess, setError);
-      closeDeleteModal();
-    })) {
-      // Deletion confirmed and executed
-    }
-  };
-
-  const handleStatusChange = async (electionId, newStatus) => {
-    switch (newStatus) {
-      case 'active':
-        await handleStartElection(electionId);
-        break;
-      case 'paused':
-        await handlePauseElection(electionId);
-        break;
-      case 'stopped':
-        await handleStopElection(electionId);
-        break;
-      case 'active_from_paused':
-      case 'active_from_stopped':
-        await handleResumeElection(electionId);
-        break;
-      case 'ended':
-        await handleEndElection(electionId);
-        break;
-      default:
-        console.warn('Unknown status change:', newStatus);
-    }
-  };
-
-  const handleFixStatus = async (electionId) => {
-    try {
-      setUpdatingElection(electionId);
-      setError('');
-      setSuccess('');
-
-      const election = elections.find(e => e.id === electionId);
-      if (!election) {
-        throw new Error('Election not found');
-      }
-
-      // Set status to 'pending' by updating the election
-      const updatedElection = await updateElection(electionId, {
-        ...election,
-        status: 'pending'
-      });
-
-      setElections(elections.map(e => 
-        e.id === electionId ? updatedElection : e
-      ));
-      setSuccess('Election status fixed successfully!');
-    } catch (error) {
-      console.error('Error fixing election status:', error);
-      setError('Failed to fix election status');
-    } finally {
-      setUpdatingElection(null);
-    }
-  };
-
   const fetchExistingCandidates = async () => {
     try {
-      setLoadingCandidates(true);
       const candidates = await getAllCandidates();
       setExistingCandidates(candidates || []);
     } catch (error) {
       console.error('Error fetching candidates:', error);
       setError('Failed to load existing candidates');
-    } finally {
-      setLoadingCandidates(false);
     }
   };
 
@@ -253,37 +113,254 @@ const Elections = () => {
     );
   };
 
-  if (loading) {
+  // Enhanced reset form
+  const resetForm = () => {
+    resetFormHook();
+    setExistingCandidates([]);
+  };
+
+  // Enhanced open create modal with candidate fetching
+  const openCreateModalWithCandidates = async () => {
+    resetForm();
+    setShowCreateModal(true);
+    await fetchExistingCandidates();
+  };
+
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    resetForm();
+    setError('');
+  };
+
+  const onCreateElection = async (e) => {
+    e.preventDefault();
+    
+    // Check if there's already an active election
+    if (activeElection && activeElection.status !== 'ended') {
+      setError('Only one ballot can exist at a time. Please end or delete the current ballot first.');
+      return;
+    }
+
+    try {
+      // Use the hook to handle the complex creation logic
+      await handleCreateElection(formData, tempPositions, tempCandidates, allElections, () => {}, setSuccess, setError);
+      closeCreateModal();
+      await refreshElection(); // Refresh election context
+      await fetchElectionsData(); // Refresh local data
+    } catch (error) {
+      console.error('Error creating election:', error);
+      setError(error.response?.data?.error || 'Failed to create ballot');
+    }
+  };
+
+  const handleStatusChange = async (electionId, action) => {
+    setUpdatingElection(electionId);
+    try {
+      let result;
+      switch (action) {
+        case 'start':
+          result = await startElection(electionId);
+          setSuccess('Ballot started successfully! Users can now vote.');
+          break;
+        case 'pause':
+          result = await pauseElection(electionId);
+          setSuccess('Ballot paused successfully.');
+          break;
+        case 'resume':
+          result = await resumeElection(electionId);
+          setSuccess('Ballot resumed successfully.');
+          break;
+        case 'stop':
+          result = await stopElection(electionId);
+          setSuccess('Ballot stopped successfully.');
+          break;
+        case 'end':
+          result = await endElection(electionId);
+          setSuccess('Ballot ended and saved to history successfully.');
+          break;
+        default:
+          throw new Error('Invalid action');
+      }
+      
+      await refreshElection();
+    } catch (error) {
+      console.error(`Error ${action}ing election:`, error);
+      setError(`Failed to ${action} ballot: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setUpdatingElection(null);
+    }
+  };
+
+  const openDeleteModal = () => {
+    setShowDeleteModal(true);
+    setDeleteConfirmation('');
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteConfirmation('');
+  };
+
+  const handleDeleteElection = async () => {
+    if (deleteConfirmation.toLowerCase() !== 'delete') {
+      setError('Please type "delete" to confirm');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteElection(activeElection.id);
+      setSuccess('Ballot deleted successfully!');
+      closeDeleteModal();
+      await refreshElection();
+    } catch (error) {
+      console.error('Error deleting election:', error);
+      setError('Failed to delete ballot');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case 'active': return 'bg-success';
+      case 'paused': return 'bg-warning';
+      case 'stopped': return 'bg-secondary';
+      case 'ended': return 'bg-info';
+      case 'pending': return 'bg-primary';
+      default: return 'bg-secondary';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'active': return 'fas fa-play-circle';
+      case 'paused': return 'fas fa-pause-circle';
+      case 'stopped': return 'fas fa-stop-circle';
+      case 'ended': return 'fas fa-check-circle';
+      case 'pending': return 'fas fa-clock';
+      default: return 'fas fa-circle';
+    }
+  };
+
+  const canPerformAction = (action) => {
+    if (!activeElection) return false;
+    
+    switch (action) {
+      case 'start':
+        return activeElection.status === 'pending';
+      case 'pause':
+        return activeElection.status === 'active';
+      case 'resume':
+        return activeElection.status === 'paused';
+      case 'stop':
+        return activeElection.status === 'active' || activeElection.status === 'paused';
+      case 'end':
+        return activeElection.status === 'stopped';
+      case 'delete':
+        return activeElection.status !== 'active';
+      default:
+        return false;
+    }
+  };
+
+  if (contextLoading || loading) {
     return (
       <div className="elections-loading">
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-2">Loading elections...</p>
+        <p className="mt-2">Loading ballot management...</p>
       </div>
     );
   }
 
   return (
     <div className="elections-container">
-      {/* Unified Professional Header */}
+      {/* Header */}
       <div className="dashboard-header-pro">
         <div className="dashboard-header-row">
           <div>
             <h1 className="dashboard-title-pro">
               <i className="fas fa-vote-yea me-3"></i>
-              Election Management
+              Ballot Management
             </h1>
-            <p className="dashboard-subtitle-pro">Create, manage, and monitor election ballots</p>
+            <p className="dashboard-subtitle-pro">Manage your voting ballot - Only one ballot allowed at a time</p>
           </div>
           <div className="dashboard-actions-pro">
-            <button
-              className="btn btn-success btn-lg"
-              onClick={openCreateModalWithCandidates}
-            >
-              <i className="fas fa-plus me-2"></i>
-              Create New Ballot
-            </button>
+            {!activeElection || activeElection.status === 'ended' ? (
+              <button
+                className="btn btn-success btn-lg"
+                onClick={openCreateModalWithCandidates}
+                disabled={loading}
+              >
+                <i className="fas fa-plus me-2"></i>
+                Create New Ballot
+              </button>
+            ) : (
+              <div className="d-flex gap-2">
+                {canPerformAction('start') && (
+                  <button
+                    className="btn btn-success"
+                    onClick={() => handleStatusChange(activeElection.id, 'start')}
+                    disabled={updatingElection === activeElection.id}
+                  >
+                    <i className="fas fa-play me-2"></i>
+                    Start Ballot
+                  </button>
+                )}
+                {canPerformAction('pause') && (
+                  <button
+                    className="btn btn-warning"
+                    onClick={() => handleStatusChange(activeElection.id, 'pause')}
+                    disabled={updatingElection === activeElection.id}
+                  >
+                    <i className="fas fa-pause me-2"></i>
+                    Pause
+                  </button>
+                )}
+                {canPerformAction('resume') && (
+                  <button
+                    className="btn btn-info"
+                    onClick={() => handleStatusChange(activeElection.id, 'resume')}
+                    disabled={updatingElection === activeElection.id}
+                  >
+                    <i className="fas fa-play me-2"></i>
+                    Resume
+                  </button>
+                )}
+                {canPerformAction('stop') && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => handleStatusChange(activeElection.id, 'stop')}
+                    disabled={updatingElection === activeElection.id}
+                  >
+                    <i className="fas fa-stop me-2"></i>
+                    Stop
+                  </button>
+                )}
+                {canPerformAction('end') && (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleStatusChange(activeElection.id, 'end')}
+                    disabled={updatingElection === activeElection.id}
+                  >
+                    <i className="fas fa-save me-2"></i>
+                    End & Save to History
+                  </button>
+                )}
+                {canPerformAction('delete') && (
+                  <button
+                    className="btn btn-danger"
+                    onClick={openDeleteModal}
+                    disabled={updatingElection === activeElection.id}
+                  >
+                    <i className="fas fa-trash me-2"></i>
+                    Delete
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -305,67 +382,123 @@ const Elections = () => {
         </div>
       )}
 
-      {/* Elections Grid */}
-      <div className="elections-grid">
-        {elections.length === 0 ? (
+      {/* Current Ballot Status */}
+      <div className="current-ballot-section">
+        {activeElection && activeElection.status !== 'ended' ? (
+          <div className="card mb-4">
+            <div className="card-header bg-light">
+              <h5 className="mb-0">
+                <i className="fas fa-ballot-check me-2"></i>
+                Current Ballot
+              </h5>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                <div className="col-md-8">
+                  <h6 className="card-title">{activeElection.title}</h6>
+                  <p className="card-text text-muted">{activeElection.description}</p>
+                  <div className="row">
+                    <div className="col-sm-6">
+                      <small className="text-muted">
+                        <i className="fas fa-calendar-start me-1"></i>
+                        Start: {new Date(activeElection.startTime).toLocaleString()}
+                      </small>
+                    </div>
+                    <div className="col-sm-6">
+                      <small className="text-muted">
+                        <i className="fas fa-calendar-end me-1"></i>
+                        End: {new Date(activeElection.endTime).toLocaleString()}
+                      </small>
+                    </div>
+                  </div>
+                  {activeElection.status === 'active' && (
+                    <div className="mt-2">
+                      <div className="alert alert-success mb-0">
+                        <i className="fas fa-users me-2"></i>
+                        <strong>Users can now vote!</strong> The ballot is currently active.
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="col-md-4 text-end">
+                  <span className={`badge ${getStatusBadgeClass(activeElection.status)} fs-6 p-2`}>
+                    <i className={`${getStatusIcon(activeElection.status)} me-2`}></i>
+                    {activeElection.status.toUpperCase()}
+                  </span>
+                  {updatingElection === activeElection.id && (
+                    <div className="spinner-border spinner-border-sm ms-2" role="status">
+                      <span className="visually-hidden">Updating...</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
           <div className="empty-state">
             <div className="empty-state-content">
               <i className="fas fa-vote-yea fa-4x text-muted mb-3"></i>
-              <h3 className="text-muted">No Elections Yet</h3>
-              <p className="text-muted mb-4">Get started by creating your first election ballot</p>
+              <h3 className="text-muted">No Active Ballot</h3>
+              <p className="text-muted mb-4">Create a new ballot to start managing your election</p>
               <button
                 className="btn btn-primary btn-lg"
                 onClick={openCreateModalWithCandidates}
+                disabled={loading}
               >
                 <i className="fas fa-plus me-2"></i>
                 Create Your First Ballot
               </button>
             </div>
           </div>
-        ) : (
-          <div className="row">
-            {elections.map(election => (
-              <div key={election.id} className="col-lg-6 col-xl-4 mb-4">
-                <ElectionCard
-                  election={election}
-                  onEdit={handleEditClick}
-                  onDelete={onDeleteElection}
-                  onStatusChange={handleStatusChange}
-                  isUpdating={updatingElection === election.id}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Quick Create Button (Floating) */}
-        {elections.length > 0 && (
-          <div className="floating-create-btn">
-            <button
-              className="btn btn-success btn-lg rounded-circle"
-              onClick={openCreateModalWithCandidates}
-              title="Create New Ballot"
-            >
-              <i className="fas fa-plus me-2"></i>
-              Create Ballot with Positions & Candidates
-            </button>
-          </div>
         )}
       </div>
 
-      {/* Enhanced Create Election Modal with Multi-Step Form */}
+      {/* History Section */}
+      {allElections.some(e => e.status === 'ended') && (
+        <div className="history-section">
+          <h5 className="mb-3">
+            <i className="fas fa-history me-2"></i>
+            Ballot History
+          </h5>
+          <div className="row">
+            {allElections
+              .filter(election => election.status === 'ended')
+              .map(election => (
+                <div key={election.id} className="col-lg-6 mb-3">
+                  <div className="card">
+                    <div className="card-body">
+                      <h6 className="card-title">{election.title}</h6>
+                      <p className="card-text text-muted small">{election.description}</p>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <small className="text-muted">
+                          Ended: {new Date(election.endTime).toLocaleDateString()}
+                        </small>
+                        <span className="badge bg-info">
+                          <i className="fas fa-check-circle me-1"></i>
+                          ENDED
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* Create Election Modal */}
       {showCreateModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">
-                  Create New Election - Step {currentStep} of 4
+                  Create New Ballot - Step {currentStep} of 4
                 </h5>
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => closeCreateModal(resetForm)}
+                  onClick={closeCreateModal}
                 ></button>
               </div>
               
@@ -403,7 +536,7 @@ const Elections = () => {
                   onNextStep={nextStep}
                   onPrevStep={prevStep}
                   onSubmit={onCreateElection}
-                  loading={loading}
+                  loading={loading || actionsLoading}
                 />
               </div>
             </div>
@@ -411,68 +544,67 @@ const Elections = () => {
         </div>
       )}
 
-      {/* Edit Election Modal */}
-      {showEditModal && editingElection && (
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Edit Election</h5>
+                <h5 className="modal-title text-danger">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  Delete Ballot
+                </h5>
                 <button
                   type="button"
                   className="btn-close"
-                                      onClick={() => closeEditModal(resetForm)}
+                  onClick={closeDeleteModal}
                 ></button>
               </div>
-              <form onSubmit={onEditElection}>
-                <div className="modal-body">
-                  <ElectionForm
-                    formData={formData}
-                    setFormData={setFormData}
-                    positions={positions}
-                    loadingPositions={loadingPositions}
-                    isEditing={true}
-                  />
+              <div className="modal-body">
+                <div className="alert alert-danger">
+                  <strong>Warning:</strong> This action cannot be undone!
                 </div>
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => closeEditModal(resetForm)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={updatingElection === editingElection.id || formData.positionIds.length === 0 || loadingPositions}
-                  >
-                    {updatingElection === editingElection.id ? (
-                      <i className="fas fa-spinner fa-spin me-1"></i>
-                    ) : (
-                      <i className="fas fa-save me-1"></i>
-                    )}
-                    Update Election
-                  </button>
-                </div>
-              </form>
+                <p>
+                  You are about to permanently delete the ballot: 
+                  <strong> "{activeElection?.title}"</strong>
+                </p>
+                <p>Type <strong>delete</strong> to confirm:</p>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="Type 'delete' to confirm"
+                />
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closeDeleteModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleDeleteElection}
+                  disabled={deleteConfirmation.toLowerCase() !== 'delete' || loading}
+                >
+                  {loading ? (
+                    <i className="fas fa-spinner fa-spin me-1"></i>
+                  ) : (
+                    <i className="fas fa-trash me-1"></i>
+                  )}
+                  Delete Ballot
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        show={showDeleteModal}
-        election={deletingElection}
-        deleteConfirmation={deleteConfirmation}
-        setDeleteConfirmation={setDeleteConfirmation}
-        onConfirm={confirmDeleteElection}
-        onCancel={closeDeleteModal}
-        isDeleting={updatingElection === deletingElection?.id}
-      />
     </div>
   );
-}
+};
 
 export default Elections;
