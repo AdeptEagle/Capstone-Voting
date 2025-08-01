@@ -1,0 +1,17 @@
+{
+  "name": "voting-system-test",
+  "version": "1.0.0",
+  "description": "Comprehensive test script for the single ballot voting system",
+  "type": "module",
+  "scripts": {
+    "test:ballot": "node test-single-ballot-system.js",
+    "test:quick": "node test-quick-ballot.js"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {},
+  "keywords": ["voting", "election", "test", "automation"],
+  "author": "Voting System Team",
+  "license": "MIT"
+}
