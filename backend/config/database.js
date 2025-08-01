@@ -265,7 +265,7 @@ async function createTables(verbose = true) {
           FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
           FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
           FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_vote (voterId, electionId, candidateId)
+          UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
         )`
       },
       {
@@ -348,15 +348,98 @@ async function checkDatabaseExists() {
   try {
     // Connect without specifying database to check if it exists
     const connection = mysql.createConnection({
-      ...dbConfig,
-      multipleStatements: true
+      host: dbConfig.host,
+      user: dbConfig.user,
+      password: dbConfig.password,
+      port: dbConfig.port
+    });
+
+    const [rows] = await connection.execute(`SHOW DATABASES LIKE '${DB_NAME}'`);
+    connection.end();
+    
+    return rows.length > 0;
+  } catch (error) {
+    console.error('Error checking database existence:', error);
+    return false;
+  }
+}
+
+// Fix votes table constraint for existing databases
+async function fixVotesTableConstraint(verbose = true) {
+  const db = createConnection();
+  
+  try {
+    if (verbose) {
+      console.log('🔧 Checking votes table constraint...');
+    }
+    
+    // Check if the correct constraint exists
+    const constraintCheck = await new Promise((resolve, reject) => {
+      db.query(`
+        SELECT CONSTRAINT_NAME, COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+        WHERE TABLE_NAME = 'votes' 
+        AND CONSTRAINT_NAME = 'unique_vote'
+        ORDER BY ORDINAL_POSITION
+      `, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
     });
     
-    const result = await runQuery(connection, `SHOW DATABASES LIKE '${DB_NAME}'`);
-    connection.end();
-    return result.length > 0;
+    const expectedColumns = ['voterId', 'electionId', 'positionId', 'candidateId'];
+    const actualColumns = constraintCheck.map(row => row.COLUMN_NAME);
+    
+    // If constraint is correct, no action needed
+    if (JSON.stringify(actualColumns) === JSON.stringify(expectedColumns)) {
+      if (verbose) {
+        console.log('✅ Votes table constraint is already correct');
+      }
+      return;
+    }
+    
+    // Fix the constraint
+    if (verbose) {
+      console.log('🔧 Fixing votes table constraint...');
+    }
+    
+    // Drop existing constraint if it exists
+    try {
+      await new Promise((resolve, reject) => {
+        db.query("ALTER TABLE votes DROP INDEX unique_vote", (err) => {
+          if (err && err.code !== 'ER_CANT_DROP_FIELD_OR_KEY') {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    } catch (error) {
+      // Constraint might not exist, continue
+    }
+    
+    // Add correct constraint
+    await new Promise((resolve, reject) => {
+      db.query("ALTER TABLE votes ADD UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)", (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    
+    if (verbose) {
+      console.log('✅ Votes table constraint fixed successfully');
+    }
+    
   } catch (error) {
-    return false;
+    if (verbose) {
+      console.error('❌ Error fixing votes constraint:', error.message);
+    }
+    // Don't throw error - this is not critical for server startup
+  } finally {
+    db.end();
   }
 }
 
@@ -430,6 +513,12 @@ async function ensureDatabaseAndTables() {
 
     // Always seed with default data (this will update existing data if needed)
     await insertDefaultData(isFreshSetup);
+
+    // Fix votes table constraint for existing databases
+    if (isFreshSetup) {
+      await fixVotesTableConstraint(isFreshSetup);
+      console.log('✅ Votes table constraint fixed successfully');
+    }
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);

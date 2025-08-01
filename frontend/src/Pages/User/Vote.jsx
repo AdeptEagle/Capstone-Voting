@@ -136,6 +136,7 @@ const Vote = () => {
     // Use the voter ID from the voters table, not the JWT user ID
     if (!user) {
       setError('User information not found. Please log in again.');
+      setSubmitting(false);
       return;
     }
     
@@ -148,46 +149,59 @@ const Vote = () => {
       let voteCount = 0;
       const totalVotes = positionsToVote.reduce((total, pos) => total + selectedVotes[pos.id].length, 0);
       
-      try {
-        for (let i = 0; i < positionsToVote.length; i++) {
-          const pos = positionsToVote[i];
-          const candidateIds = selectedVotes[pos.id];
+      // IMPROVED: Collect all votes first, then submit them all at once
+      const votesToSubmit = [];
+      
+      for (let i = 0; i < positionsToVote.length; i++) {
+        const pos = positionsToVote[i];
+        const candidateIds = selectedVotes[pos.id];
+        
+        for (let j = 0; j < candidateIds.length; j++) {
+          const candidateId = candidateIds[j];
+          voteCount++;
+          const isLastVote = voteCount === totalVotes;
           
-          for (let j = 0; j < candidateIds.length; j++) {
-            const candidateId = candidateIds[j];
-            voteCount++;
-            const isLastVote = voteCount === totalVotes;
-            
-            console.log(`Submitting vote: voterId=${voterId}, candidateId=${candidateId}, isLastVote=${isLastVote}`);
-            
-            try {
-              await createVote({
-                voterId: voterId,
-                candidateId,
-                positionId: pos.id,
-                isLastVote: isLastVote
-              });
-            } catch (voteError) {
-              // Extract error message from response
-              const errorMessage = voteError.response?.data?.error || voteError.message || 'Failed to submit vote';
-              throw new Error(`Error voting for position ${pos.name}: ${errorMessage}`);
-            }
-          }
+          votesToSubmit.push({
+            voterId: voterId,
+            candidateId,
+            positionId: pos.id,
+            isLastVote: isLastVote,
+            positionName: pos.name
+          });
         }
-      } catch (error) {
-        setError(error.message);
-        // Reset submission state but keep the confirmation dialog open
-        setSubmitting(false);
-        return; // Stop processing on error
       }
       
+      // Submit all votes in sequence - if any fail, the transaction will be rolled back
+      for (let i = 0; i < votesToSubmit.length; i++) {
+        const voteData = votesToSubmit[i];
+        
+        console.log(`Submitting vote ${i + 1}/${votesToSubmit.length}: voterId=${voteData.voterId}, candidateId=${voteData.candidateId}, isLastVote=${voteData.isLastVote}`);
+        
+        try {
+          await createVote(voteData);
+          console.log(`Vote ${i + 1} submitted successfully`);
+        } catch (voteError) {
+          // Extract error message from response
+          const errorMessage = voteError.response?.data?.error || voteError.message || 'Failed to submit vote';
+          console.error(`Vote ${i + 1} failed:`, errorMessage);
+          
+          // IMPROVED: Provide more specific error information
+          throw new Error(`Error voting for position ${voteData.positionName}: ${errorMessage}`);
+        }
+      }
+      
+      // All votes submitted successfully
       setSuccess('Your votes have been submitted successfully! Thank you for participating.');
       setHasVoted(true);
       setShowIdConfirmation(false);
       setShowFinalScreen(true);
+      
     } catch (err) {
       console.error('Vote submission error:', err);
-      setError(err.response?.data?.error || 'Failed to submit votes');
+      setError(err.message || 'Failed to submit votes');
+      // Reset submission state but keep the confirmation dialog open
+      setSubmitting(false);
+      return; // Stop processing on error
     } finally {
       setSubmitting(false);
     }

@@ -5,17 +5,16 @@ import { VoterModel } from "../models/VoterModel.js";
 import { ResultsModel } from "../models/ResultsModel.js";
 import { CandidateModel } from "../models/CandidateModel.js";
 import { PositionModel } from "../models/PositionModel.js";
+import { TransactionHelper } from "../utils/transactionHelper.js";
 
 export class VotingService {
   static async processVote(voteData) {
-    const db = createConnection();
+    const { voterId, candidateId, positionId, isLastVote } = voteData;
     
-    try {
-      const { voterId, candidateId, positionId, isLastVote } = voteData;
-      
-      // Log vote submission for traceability
-      console.log(`Vote submission: VoterID=${voterId}, CandidateID=${candidateId}, PositionID=${positionId}, isLastVote=${isLastVote}`);
-      
+    // Log vote submission for traceability
+    console.log(`Vote submission: VoterID=${voterId}, CandidateID=${candidateId}, PositionID=${positionId}, isLastVote=${isLastVote}`);
+    
+    return await TransactionHelper.executeInTransaction(async (db) => {
       // First check if there's an active election
       const activeElection = await ElectionModel.getActive();
       if (!activeElection) {
@@ -69,22 +68,18 @@ export class VotingService {
         throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}. Please select a different position or candidate.`);
       }
       
-      // Check if voter has already voted for this specific candidate
-      const duplicateCheckDb = createConnection();
-      try {
-        const duplicateCheck = await new Promise((resolve, reject) => {
-          const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?";
-          duplicateCheckDb.query(query, [voterId, activeElection.id, candidateId], (err, result) => {
-            if (err) reject(err);
-            else resolve(result[0].count);
-          });
+      // FIXED: Check if voter has already voted for this specific candidate in this position
+      // This allows multiple votes for the same position but prevents duplicate votes for the same candidate
+      const duplicateCheck = await new Promise((resolve, reject) => {
+        const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ? AND positionId = ?";
+        db.query(query, [voterId, activeElection.id, candidateId, positionId], (err, result) => {
+          if (err) reject(err);
+          else resolve(result[0].count);
         });
-        
-        if (duplicateCheck > 0) {
-          throw new Error(`You have already voted for this candidate in ${position.name}. Please select a different candidate.`);
-        }
-      } finally {
-        duplicateCheckDb.end();
+      });
+      
+      if (duplicateCheck > 0) {
+        throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
       }
       
       // Get next vote ID
@@ -94,90 +89,50 @@ export class VotingService {
       console.log(`Generated vote ID: ${voteId}`);
       console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, positionId=${positionId}`);
       
-      // BEGIN TRANSACTION - ACID Atomicity
-      await new Promise((resolve, reject) => {
-        db.beginTransaction((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-      
+      // Record the vote using VoteModel
       try {
-        // Record the vote using VoteModel
-        try {
-          await VoteModel.create({
-            id: voteId,
-            voterId,
-            candidateId,
-            electionId: activeElection.id,
-            positionId
-          });
-          console.log(`Vote recorded successfully: ${voteId}`);
-        } catch (err) {
-          if (err.code === 'ER_DUP_ENTRY') {
-            throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
-          }
-          throw err;
+        await VoteModel.create({
+          id: voteId,
+          voterId,
+          candidateId,
+          electionId: activeElection.id,
+          positionId
+        });
+        console.log(`Vote recorded successfully: ${voteId}`);
+      } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
         }
-        
-        // Only set hasVoted = true if this is the last vote
-        if (isLastVote) {
-          console.log(`This is the last vote, updating voter ${voterId} hasVoted flag to true`);
-          await new Promise((resolve, reject) => {
-            const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
-            db.query(query, [voterId], (err, result) => {
-              if (err) {
-                console.error('Voter update error:', err);
-                reject(err);
-              } else {
-                console.log(`Voter ${voterId} hasVoted flag updated successfully. Rows affected: ${result.affectedRows}`);
-                resolve();
-              }
-            });
-          });
-          console.log(`Voter ${voterId} locked out after completing all votes`);
-        } else {
-          console.log(`This is not the last vote (${isLastVote}), keeping voter ${voterId} hasVoted flag as false`);
-        }
-        
-        // COMMIT TRANSACTION - ACID Durability
+        throw err;
+      }
+      
+      // Only set hasVoted = true if this is the last vote
+      if (isLastVote) {
+        console.log(`This is the last vote, updating voter ${voterId} hasVoted flag to true`);
         await new Promise((resolve, reject) => {
-          db.commit((err) => {
+          const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
+          db.query(query, [voterId], (err, result) => {
             if (err) {
-              console.error('Transaction commit error:', err);
+              console.error('Voter update error:', err);
               reject(err);
             } else {
-              console.log('Transaction committed successfully');
+              console.log(`Voter ${voterId} hasVoted flag updated successfully. Rows affected: ${result.affectedRows}`);
               resolve();
             }
           });
         });
-        
-        return { 
-          message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded",
-          voteId,
-          position: position.name,
-          candidate: candidate.name
-        };
-        
-      } catch (error) {
-        console.error('Error during vote processing, rolling back transaction:', error);
-        // ROLLBACK TRANSACTION - ACID Consistency
-        await new Promise((resolve) => {
-          db.rollback(() => {
-            console.log('Transaction rolled back');
-            resolve();
-          });
-        });
-        throw error;
+        console.log(`Voter ${voterId} locked out after completing all votes`);
+      } else {
+        console.log(`This is not the last vote (${isLastVote}), keeping voter ${voterId} hasVoted flag as false`);
       }
       
-    } catch (error) {
-      console.error('Vote processing error:', error);
-      throw error;
-    } finally {
-      db.end();
-    }
+      return { 
+        message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded",
+        voteId,
+        position: position.name,
+        candidate: candidate.name
+      };
+    });
   }
 
   static async getActiveElectionResults() {
