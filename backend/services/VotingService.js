@@ -48,6 +48,21 @@ export class VotingService {
       if (!candidate) {
         throw new Error("Candidate not found");
       }
+
+      // Get the position and check vote limit
+      const { PositionModel } = await import("../models/PositionModel.js");
+      const position = await PositionModel.getById(candidate.positionId);
+      if (!position) {
+        throw new Error("Position not found");
+      }
+
+      // Count existing votes for this position
+      const existingVotes = await VoteModel.countVotesByPosition(voterId, activeElection.id, candidate.positionId);
+      console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
+      
+      if (existingVotes >= position.voteLimit) {
+        throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}`);
+      }
       
       // Get next vote ID
       const IDGenerator = await import('../utils/idGenerator.js');

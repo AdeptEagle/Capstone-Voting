@@ -75,4 +75,16 @@ export class VoteModel {
       });
     });
   }
+
+  static async countVotesByPosition(voterId, electionId, positionId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = "SELECT COUNT(*) as voteCount FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?";
+      db.query(query, [voterId, electionId, positionId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve(data[0].voteCount);
+      });
+    });
+  }
 } 
