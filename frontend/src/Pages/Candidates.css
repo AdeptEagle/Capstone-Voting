@@ -776,14 +776,29 @@
   box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 } 
 
+/* Sortable table headers */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortable-header:hover {
+  background-color: #f8f9fa !important;
+}
+
+.sortable-header i {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
 .sortable {
   cursor: pointer;
   user-select: none;
-  transition: color 0.2s;
 }
 
 .sortable:hover {
-  color: var(--primary-navy);
+  background-color: rgba(0, 123, 255, 0.1);
 }
 
 .active-sort {

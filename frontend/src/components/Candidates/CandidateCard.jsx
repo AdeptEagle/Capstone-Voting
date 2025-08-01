@@ -1,5 +1,6 @@
 import React from 'react';
 import { CandidateImage } from '../../utils/image';
+import './CandidateCard.css';
 
 const CandidateCard = ({ 
   candidate, 
@@ -12,98 +13,67 @@ const CandidateCard = ({
   showSelection = false 
 }) => {
   return (
-    <div className="candidate-card">
-      {showSelection && (
-        <div className="candidate-selection">
-          <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={(e) => onSelect(candidate.id, e.target.checked)}
-            className="form-check-input"
-          />
+    <div className="modern-card candidate-card">
+      <div className="candidate-card-header">
+        <div className="candidate-card-info">
+          <h3 className="candidate-card-name">{candidate.name}</h3>
+          <div className="candidate-card-position">{candidate.positionName || 'No Position'}</div>
         </div>
-      )}
-      
-      <div className="candidate-photo-container" onClick={() => onView(candidate)}>
+        <div className="candidate-card-actions">
+          <button 
+            className="view-platform-btn"
+            onClick={() => onView(candidate)}
+            title="View Platform"
+          >
+            <i className="fas fa-eye"></i>
+            View Platform
+          </button>
+        </div>
+      </div>
+
+      <div className="candidate-photo-section">
         <CandidateImage 
           photoUrl={candidate.photoUrl}
           alt={candidate.name}
           className="candidate-photo"
-          size="normal"
+          size="large"
         />
       </div>
 
-      <div className="candidate-info">
-        <h5 className="candidate-name" onClick={() => onView(candidate)}>
-          {candidate.name}
-        </h5>
-        <p className="candidate-position">
-          {candidate.positionName || 'No Position'}
-        </p>
-        <div className="candidate-details">
-          <small className="text-muted">
-            <i className="fas fa-building me-1"></i>
-            {candidate.departmentId}
-          </small>
-          {candidate.courseId && (
-            <small className="text-muted d-block">
-              <i className="fas fa-graduation-cap me-1"></i>
-              {candidate.courseId}
-            </small>
-          )}
+      <div className="candidate-details-section">
+        <div className="candidate-stat">
+          <i className="fas fa-building"></i>
+          <span>{candidate.departmentId}</span>
         </div>
-        
-        {candidate.description && (
-          <p className="candidate-description">
+        {candidate.courseId && (
+          <div className="candidate-stat">
+            <i className="fas fa-graduation-cap"></i>
+            <span>{candidate.courseId}</span>
+          </div>
+        )}
+      </div>
+
+      {candidate.description && (
+        <div className="candidate-platform-preview">
+          <p>
             {candidate.description.length > 100 
               ? `${candidate.description.substring(0, 100)}...` 
               : candidate.description
             }
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
-      {showActions && (
-        <div className="candidate-actions">
-          <button
-            className="btn btn-outline-primary"
-            onClick={() => onView(candidate)}
-            title="View Details"
-            style={{ 
-              fontSize: '0.75rem', 
-              padding: '0.25rem 0.5rem', 
-              lineHeight: '1.2',
-              borderRadius: '0.25rem'
-            }}
-          >
-            <i className="fas fa-eye" style={{ fontSize: '0.7rem' }}></i>
-          </button>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => onEdit(candidate)}
-            title="Edit Candidate"
-            style={{ 
-              fontSize: '0.75rem', 
-              padding: '0.25rem 0.5rem', 
-              lineHeight: '1.2',
-              borderRadius: '0.25rem'
-            }}
-          >
-            <i className="fas fa-edit" style={{ fontSize: '0.7rem' }}></i>
-          </button>
-          <button
-            className="btn btn-outline-danger"
-            onClick={() => onDelete(candidate.id)}
-            title="Delete Candidate"
-            style={{ 
-              fontSize: '0.75rem', 
-              padding: '0.25rem 0.5rem', 
-              lineHeight: '1.2',
-              borderRadius: '0.25rem'
-            }}
-          >
-            <i className="fas fa-trash" style={{ fontSize: '0.7rem' }}></i>
-          </button>
+      {showSelection && (
+        <div className="candidate-selection">
+          <label className="selection-checkbox">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => onSelect(candidate.id, e.target.checked)}
+            />
+            <span className="checkmark"></span>
+          </label>
         </div>
       )}
     </div>

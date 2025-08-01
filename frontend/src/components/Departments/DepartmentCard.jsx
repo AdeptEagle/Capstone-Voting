@@ -15,88 +15,19 @@ const DepartmentCard = ({
 
   return (
     <div className="department-card">
-      <div className="department-card-header" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start', 
-        gap: '1rem',
-        flexWrap: 'nowrap'
-      }}>
-        <div className="department-card-title" style={{ 
-          flex: '1', 
-          minWidth: '0',
-          overflow: 'hidden'
-        }}>
-          <h3 className="department-card-name" style={{ 
-            margin: '0 0 0.25rem 0',
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            lineHeight: '1.3',
-            wordBreak: 'break-word',
-            hyphens: 'auto'
-          }}>{department.name}</h3>
-          <span className="department-card-id" style={{ 
-            fontSize: '0.8rem',
-            color: '#6c757d',
-            fontFamily: 'monospace'
-          }}>{department.id}</span>
+      <div className="department-card-header">
+        <div className="department-card-info">
+          <h3 className="department-card-name">{department.name}</h3>
+          <div className="department-card-position">{department.id}</div>
         </div>
-        <div className="department-card-actions" style={{ 
-          display: 'flex', 
-          gap: '0.5rem',
-          flexShrink: '0',
-          alignItems: 'flex-start'
-        }}>
+        <div className="department-card-actions">
           <button 
-            className="department-btn department-btn-success department-btn-sm"
+            className="view-platform-btn"
             onClick={() => onAddCourse(department)}
-            title="Add Course"
-            style={{ 
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.75rem',
-              borderRadius: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '32px',
-              height: '32px'
-            }}
+            title="View Platform"
           >
-            <i className="fas fa-plus" style={{ fontSize: '0.7rem' }}></i>
-          </button>
-          <button 
-            className="department-btn department-btn-primary department-btn-sm"
-            onClick={() => onEdit(department)}
-            title="Edit Department"
-            style={{ 
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.75rem',
-              borderRadius: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '32px',
-              height: '32px'
-            }}
-          >
-            <i className="fas fa-edit" style={{ fontSize: '0.7rem' }}></i>
-          </button>
-          <button 
-            className="department-btn department-btn-danger department-btn-sm"
-            onClick={() => onDelete(department.id)}
-            title="Delete Department"
-            style={{ 
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.75rem',
-              borderRadius: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: '32px',
-              height: '32px'
-            }}
-          >
-            <i className="fas fa-trash" style={{ fontSize: '0.7rem' }}></i>
+            <i className="fas fa-eye"></i>
+            View Platform
           </button>
         </div>
       </div>
@@ -138,7 +69,7 @@ const DepartmentCard = ({
             <i className="fas fa-book-open"></i>
             <p>No courses in this department</p>
             <button 
-              className="department-btn department-btn-outline-success department-btn-sm"
+              className="view-platform-btn"
               onClick={() => onAddCourse(department)}
             >
               <i className="fas fa-plus"></i>

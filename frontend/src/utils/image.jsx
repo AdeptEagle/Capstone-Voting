@@ -90,41 +90,35 @@ export function CandidateImage({ photoUrl, alt = 'Candidate Photo', className = 
     setIsLoading(false);
   };
 
-  const getSizeStyles = () => {
-    switch(size) {
-      case 'small':
-        return { width: '40px', height: '40px' };
-      case 'large':
-        return { width: '150px', height: '150px' };
-      case 'xl':
-        return { width: '200px', height: '200px' };
-      default:
-        return { width: '80px', height: '80px' };
-    }
-  };
-
   const imageUrl = getImageUrl(photoUrl);
-  const sizeStyles = getSizeStyles();
 
   // Show placeholder if no valid image URL or error occurred
   if (imageError || imageUrl === '/default-avatar.png') {
     return (
       <CandidatePhotoPlaceholder 
         className={className}
-        style={{ ...sizeStyles, ...style }}
+        style={style}
         size={size}
       />
     );
   }
 
   return (
-    <div className="position-relative" style={{ ...sizeStyles, ...style }}>
+    <div style={{ position: 'relative', display: 'inline-block', ...style }}>
       {isLoading && (
-        <div 
-          className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-          style={{ backgroundColor: '#f8f9fa', borderRadius: '50%' }}
-        >
-          <div className="spinner-border spinner-border-sm text-primary" role="status">
+        <div className="image-loading-placeholder" style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#f8f9fa',
+          borderRadius: 'inherit'
+        }}>
+          <div className="spinner-border spinner-border-sm text-muted" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -132,15 +126,16 @@ export function CandidateImage({ photoUrl, alt = 'Candidate Photo', className = 
       <img
         src={imageUrl}
         alt={alt}
-        className={`${className} rounded-circle`}
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          objectFit: 'cover',
-          display: isLoading ? 'none' : 'block'
-        }}
+        className={className}
         onError={handleImageError}
         onLoad={handleImageLoad}
+        style={{
+          display: isLoading ? 'none' : 'block',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          borderRadius: 'inherit'
+        }}
       />
     </div>
   );
@@ -173,7 +168,7 @@ export function CandidatePhotoPlaceholder({ className = '', style = {}, size = '
         fontSize: getIconSize(),
         color: '#6c757d',
         backgroundColor: '#e9ecef',
-        borderRadius: '50%',
+        borderRadius: 'inherit',
         border: '2px solid #dee2e6',
         ...style 
       }}

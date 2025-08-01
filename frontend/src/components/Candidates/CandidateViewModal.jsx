@@ -1,5 +1,5 @@
 import React from 'react';
-import { getImageUrl } from '../../utils/image';
+import { CandidateImage } from '../../utils/image';
 
 const CandidateViewModal = ({ 
   candidate, 
@@ -9,16 +9,6 @@ const CandidateViewModal = ({
   showActions = true 
 }) => {
   if (!show || !candidate) return null;
-
-  const handleImageError = (e) => {
-    e.target.style.display = 'none';
-    e.target.nextSibling.style.display = 'flex';
-  };
-
-  const handleImageLoad = (e) => {
-    e.target.style.display = 'block';
-    e.target.nextSibling.style.display = 'none';
-  };
 
   return (
     <>
@@ -41,60 +31,23 @@ const CandidateViewModal = ({
               <div className="row">
                 <div className="col-md-4 text-center">
                   <div className="candidate-profile-photo mb-3">
-                    {candidate.photoUrl ? (
-                      <>
-                        <img
-                          src={getImageUrl(candidate.photoUrl)}
-                          alt={candidate.name}
-                          className="rounded-circle"
-                          style={{ 
-                            width: '200px', 
-                            height: '200px', 
-                            objectFit: 'cover',
-                            border: '4px solid #e9ecef'
-                          }}
-                          onError={handleImageError}
-                          onLoad={handleImageLoad}
-                        />
-                        <div 
-                          className="rounded-circle d-flex align-items-center justify-content-center"
-                          style={{ 
-                            width: '200px', 
-                            height: '200px', 
-                            backgroundColor: '#f8f9fa',
-                            border: '4px solid #e9ecef',
-                            display: 'none'
-                          }}
-                        >
-                          <i className="fas fa-user fa-4x text-muted"></i>
-                        </div>
-                      </>
-                    ) : (
-                      <div 
-                        className="rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ 
-                          width: '200px', 
-                          height: '200px', 
-                          backgroundColor: '#f8f9fa',
-                          border: '4px solid #e9ecef',
-                          margin: '0 auto'
-                        }}
-                      >
-                        <i className="fas fa-user fa-4x text-muted"></i>
-                      </div>
-                    )}
+                    <CandidateImage
+                      photoUrl={candidate.photoUrl}
+                      alt={candidate.name}
+                      className="rounded-circle"
+                      style={{ 
+                        width: '200px', 
+                        height: '200px',
+                        objectFit: 'cover',
+                        border: '4px solid #e9ecef'
+                      }}
+                      size="xl"
+                    />
                   </div>
-                  
-                  <div className="candidate-quick-actions">
-                    <div className="d-grid gap-2">
-                      <button className="btn btn-outline-primary btn-sm">
-                        <i className="fas fa-share me-2"></i>Share Profile
-                      </button>
-                      <button className="btn btn-outline-success btn-sm">
-                        <i className="fas fa-download me-2"></i>Export Details
-                      </button>
-                    </div>
-                  </div>
+                  <h4 className="candidate-profile-name">{candidate.name}</h4>
+                  <p className="candidate-profile-position text-muted">
+                    {candidate.positionName || 'No Position'}
+                  </p>
                 </div>
                 
                 <div className="col-md-8">

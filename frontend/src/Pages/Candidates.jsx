@@ -15,6 +15,7 @@ import { usePersistentSort } from '../hooks/usePersistentSort';
 import { filterCandidates, filterAndSortCandidates, groupCandidatesByPosition, formatCandidateData } from '../utils/candidateUtils';
 import BulkDeleteModal from '../components/Common/BulkDeleteModal';
 import { uploadToCloudinary } from '../services/cloudinaryService';
+import { CandidateImage } from '../utils/image';
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState([]);
@@ -69,7 +70,7 @@ const Candidates = () => {
     const filtered = filterCandidates(candidates, searchTerm);
     const sorted = applySorting(filtered);
     setFilteredCandidates(sorted);
-  }, [candidates, searchTerm]);
+  }, [candidates, searchTerm, sortConfig, applySorting]);
 
   useEffect(() => {
     // Update selectAll state when filtered data or selection changes
@@ -164,9 +165,7 @@ const Candidates = () => {
       let photoUrl = formData.photoUrl;
       if (photoFile) {
         try {
-          console.log('🖼️ Uploading photo to Cloudinary:', photoFile.name);
           photoUrl = await uploadToCloudinary(photoFile);
-          console.log('✅ Photo uploaded to Cloudinary successfully:', photoUrl);
         } catch (uploadError) {
           console.error('❌ Cloudinary upload failed:', uploadError);
           setError(`Photo upload failed: ${uploadError.message}. Please try again or continue without photo.`);
@@ -421,7 +420,7 @@ const Candidates = () => {
                   className="sortable-header"
                   onClick={() => handleSort('name')}
                 >
-                                          Name <i className={getSortIcon('name')}></i>
+                  Name <i className={getSortIcon('name')}></i>
                 </th>
                 <th 
                   className="sortable-header"
@@ -433,7 +432,7 @@ const Candidates = () => {
                   className="sortable-header"
                   onClick={() => handleSort('departmentId')}
                 >
-                                          Department <i className={getSortIcon('departmentId')}></i>
+                  Department <i className={getSortIcon('departmentId')}></i>
                 </th>
                 <th>Course</th>
                 <th>Actions</th>
@@ -453,21 +452,13 @@ const Candidates = () => {
                   )}
                   <td>
                     <div className="candidate-photo-small">
-                      {candidate.photoUrl ? (
-                        <img
-                          src={candidate.photoUrl}
-                          alt={candidate.name}
-                          className="rounded-circle"
-                          style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <div 
-                          className="rounded-circle d-flex align-items-center justify-content-center bg-light"
-                          style={{ width: '40px', height: '40px' }}
-                        >
-                          <i className="fas fa-user text-muted"></i>
-                        </div>
-                      )}
+                      <CandidateImage
+                        photoUrl={candidate.photoUrl}
+                        alt={candidate.name}
+                        className="rounded-circle"
+                        style={{ width: '40px', height: '40px' }}
+                        size="small"
+                      />
                     </div>
                   </td>
                   <td>

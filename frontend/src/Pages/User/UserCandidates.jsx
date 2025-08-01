@@ -98,7 +98,7 @@ const UserCandidates = () => {
           <div className="header-info">
             <div className="info-card">
               <div className="info-value">{filteredCandidates.length}</div>
-              <div className="info-label">Candidates</div>
+              <div className="info-label">Total Candidates</div>
             </div>
             <div className="info-card">
               <div className="info-value">{Object.keys(candidatesByPosition).length}</div>
@@ -108,44 +108,23 @@ const UserCandidates = () => {
         </div>
       </div>
 
-      {/* Status Messages */}
       {error && (
-        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+        <div className="alert alert-danger mx-4" role="alert">
           <i className="fas fa-exclamation-triangle me-2"></i>
           {error}
-          <button type="button" className="btn-close" onClick={() => setError('')}></button>
         </div>
       )}
 
-      {/* Election Status Info */}
-      {activeElection && (
-        <div className="election-info-card">
-          <div className="election-info-header">
-            <h5 className="mb-0">
-              <i className="fas fa-vote-yea me-2"></i>
-              Current Election
-            </h5>
-            <span className={`badge ${activeElection.status === 'active' ? 'bg-success' : 'bg-secondary'}`}>
-              {activeElection.status.toUpperCase()}
-            </span>
-          </div>
-          <div className="election-info-body">
-            <p className="mb-1"><strong>{activeElection.title}</strong></p>
-            <p className="text-muted mb-0">{activeElection.description}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Search and Filter Controls */}
-      <div className="candidates-controls">
-        <div className="row align-items-center">
+      {/* Search and Filter */}
+      <div className="search-filter-section">
+        <div className="row g-3">
           <div className="col-md-6">
-            <div className="search-box">
-              <i className="fas fa-search"></i>
+            <div className="search-input-group">
+              <i className="fas fa-search search-icon"></i>
               <input
                 type="text"
-                className="form-control"
-                placeholder="Search candidates by name, position, or department..."
+                className="form-control search-input"
+                placeholder="Search candidates, positions, or departments..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -209,42 +188,56 @@ const UserCandidates = () => {
                 
                 <div className="candidates-grid">
                   {candidatesByPosition[positionName].map(candidate => (
-                    <div key={candidate.id} className="candidate-card">
+                    <div key={candidate.id} className="modern-card candidate-card">
                       <div className="candidate-card-header">
-                        <div className="candidate-photo-container">
-                          <CandidateImage 
-                            photoUrl={candidate.photoUrl}
-                            alt={candidate.name}
-                            className="candidate-photo"
-                            size="large"
-                          />
+                        <div className="candidate-card-info">
+                          <h3 className="candidate-card-name">{candidate.name}</h3>
+                          <div className="candidate-card-position">{candidate.positionName}</div>
+                        </div>
+                        <div className="candidate-card-actions">
+                          <button 
+                            className="view-platform-btn"
+                            onClick={() => {}} // Placeholder for future view platform functionality
+                            title="View Platform"
+                          >
+                            <i className="fas fa-eye"></i>
+                            View Platform
+                          </button>
                         </div>
                       </div>
-                      
-                      <div className="candidate-card-body">
-                        <h5 className="candidate-name">{candidate.name}</h5>
-                        <p className="candidate-position">{candidate.positionName}</p>
-                        
-                        {candidate.departmentName && (
-                          <div className="candidate-department">
-                            <i className="fas fa-building me-1"></i>
-                            <small className="candidate-info">{candidate.departmentName}</small>
-                          </div>
-                        )}
-                        
-                        {candidate.courseName && (
-                          <div className="candidate-course">
-                            <i className="fas fa-graduation-cap me-1"></i>
-                            <small className="candidate-info">{candidate.courseName}</small>
-                          </div>
-                        )}
-                        
-                        {candidate.description && (
-                          <div className="candidate-description">
-                            <p className="candidate-desc-text">{candidate.description}</p>
+
+                      <div className="candidate-photo-section">
+                        <CandidateImage 
+                          photoUrl={candidate.photoUrl}
+                          alt={candidate.name}
+                          className="candidate-photo"
+                          size="large"
+                        />
+                      </div>
+
+                      <div className="candidate-details-section">
+                        <div className="candidate-stat">
+                          <i className="fas fa-building"></i>
+                          <span>{candidate.departmentId || 'No Department'}</span>
+                        </div>
+                        {candidate.courseId && (
+                          <div className="candidate-stat">
+                            <i className="fas fa-graduation-cap"></i>
+                            <span>{candidate.courseId}</span>
                           </div>
                         )}
                       </div>
+
+                      {candidate.description && (
+                        <div className="candidate-platform-preview">
+                          <p>
+                            {candidate.description.length > 100 
+                              ? `${candidate.description.substring(0, 100)}...` 
+                              : candidate.description
+                            }
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
