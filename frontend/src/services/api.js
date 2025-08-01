@@ -412,6 +412,16 @@ export const createVote = async (voteData) => {
   }
 };
 
+export const createMultipleVotes = async (voteData) => {
+  try {
+    const response = await api.post('/votes/multiple', voteData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating multiple votes:', error);
+    throw error;
+  }
+};
+
 // Voter management functions
 export const createVoter = async (voterData) => {
   try {

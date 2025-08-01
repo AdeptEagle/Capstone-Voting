@@ -7,6 +7,9 @@ const router = express.Router();
 // Create a new vote
 router.post("/", VoteController.createVote);
 
+// Create multiple votes for a position
+router.post("/multiple", VoteController.createMultipleVotes);
+
 // Get all votes
 router.get("/", authenticate, VoteController.getVotes);
 

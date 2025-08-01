@@ -12,6 +12,16 @@ export class VoteController {
     }
   }
 
+  static async createMultipleVotes(req, res) {
+    try {
+      const voteData = req.body;
+      const result = await VotingService.processMultipleVotes(voteData);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   static async getVotes(req, res) {
     try {
       const { VoteModel } = await import("../models/VoteModel.js");
