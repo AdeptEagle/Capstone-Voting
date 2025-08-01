@@ -708,15 +708,20 @@ The frontend will run on `http://localhost:5173` (or similar Vite port)
 ### Login Credentials
 
 #### SuperAdmin (Default)
-- **URL:** http://localhost:5173/login
+- **URL:** http://localhost:5173/admin-login
 - **Username:** `superadmin`
 - **Password:** `superadmin123`
 - **Access:** Full system control, admin management
 
-#### Admin (Create via SuperAdmin)
-- **Username:** `admin1` (or any created admin)
-- **Password:** `adminpass123` (or set during creation)
+#### Admin (Default)
+- **Username:** `admin1`
+- **Password:** `admin123`
 - **Access:** Election management, results viewing
+
+#### Voter (Default)
+- **Email:** Any seeded voter email
+- **Password:** `voter123`
+- **Access:** Voting interface, results viewing
 
 ### Role-Based Access
 

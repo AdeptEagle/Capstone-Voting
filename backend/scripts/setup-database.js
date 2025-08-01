@@ -42,8 +42,8 @@ async function setupDatabase() {
     console.log('   - 367 Election Candidates');
     
     console.log('\n🔑 Default Login Credentials:');
-    console.log('   Superadmin: superadmin / password123');
-    console.log('   Admin: admin1123 / password123');
+    console.log('   Superadmin: superadmin / superadmin123');
+    console.log('   Admin: admin1 / admin123');
     
     console.log('\n🌐 Next Steps:');
     console.log('   1. Start the backend: npm start');

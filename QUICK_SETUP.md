@@ -57,11 +57,11 @@ npm run dev
 
 ### Superadmin
 - Username: `superadmin`
-- Password: `password123`
+- Password: `superadmin123`
 
 ### Admin
-- Username: `admin1123` 
-- Password: `password123`
+- Username: `admin1` 
+- Password: `admin123`
 
 ## Your Current Data Will Be Loaded
 - 4 Admins (including superadmin)
@@ -96,8 +96,22 @@ npm run reset-db
 ```bash
 # Database
 npm run setup-db          # Complete database setup
+npm run setup-superadmin  # Set up default superadmin credentials
 npm run seed              # Seed with clean data
 npm run reset-db          # Reset database
 npm run troubleshoot      # Database help
 npm run fix-db            # Auto-fix database issues
-``` 
+```
+
+## Setting Up Default Credentials
+
+After cloning the system, run this command to ensure the default superadmin credentials are properly set:
+
+```bash
+cd backend
+npm run setup-superadmin
+```
+
+This will create/update the superadmin account with:
+- **Username:** `superadmin`
+- **Password:** `superadmin123` 

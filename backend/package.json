@@ -10,6 +10,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "setup-db": "node scripts/setup-database.js",
+    "setup-superadmin": "node scripts/setup-superadmin.js",
     "seed": "node scripts/seed-data.js",
     "seed:reset": "npm run seed && echo 'Database seeded with comprehensive default data'",
     "troubleshoot": "node scripts/troubleshoot-db.js",
