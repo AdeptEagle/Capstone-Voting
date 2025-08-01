@@ -1,4 +1,4 @@
-import { createConnection } from '../config/database.js';
+import { createConnection } from "../config/database.js";
 
 // Simple UUID generator function
 const generateUUID = () => {
@@ -9,7 +9,26 @@ const generateUUID = () => {
   });
 };
 
-class ElectionAssignmentModel {
+// Helper function to format photo URLs consistently
+const formatPhotoUrl = (photoUrl) => {
+  if (!photoUrl || photoUrl.trim() === '') {
+    return null;
+  }
+  
+  // If it's already a full URL (http/https) or data URL, return as is
+  if (photoUrl.startsWith('http') || photoUrl.startsWith('data:')) {
+    return photoUrl;
+  }
+  
+  // Otherwise, construct full URL using environment variable or fallback
+  const baseUrl = process.env.BACKEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN 
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
+    : 'https://backend-production-219d.up.railway.app';
+    
+  return `${baseUrl}/uploads/${photoUrl}`;
+};
+
+export class ElectionAssignmentModel {
   // Get all positions assigned to a specific election
   static async getElectionPositions(electionId) {
     const db = createConnection();
@@ -45,15 +64,11 @@ class ElectionAssignmentModel {
         db.end();
         if (err) reject(err);
         else {
-          // Format photo URLs for candidates
-          const formattedResults = results.map(candidate => {
-                         if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
-               if (!candidate.photoUrl.startsWith('http')) {
-                 candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-               }
-             }
-            return candidate;
-          });
+                    // Format photo URLs consistently
+          const formattedResults = results.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(formattedResults);
         }
       });
@@ -103,9 +118,7 @@ class ElectionAssignmentModel {
         else {
                      // Format photo URLs for candidates
            const formattedResults = results.map(candidate => {
-             if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
-               candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-             }
+                         candidate.photoUrl = formatPhotoUrl(candidate.photoUrl);
              return candidate;
            });
           resolve(formattedResults);
@@ -225,18 +238,14 @@ class ElectionAssignmentModel {
         db.end();
         if (err) reject(err);
         else {
-          // Format photo URLs for candidates
-          const formattedResults = results.map(candidate => {
-            if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+          // Format photo URLs consistently
+          const formattedResults = results.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(formattedResults);
         }
       });
     });
   }
-}
-
-export default ElectionAssignmentModel; 
+} 

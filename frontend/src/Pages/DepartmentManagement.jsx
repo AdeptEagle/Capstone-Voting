@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getDepartments, getCoursesByDepartment } from '../services/api';
-import DepartmentCard from '../components/Departments/DepartmentCard';
 import DepartmentModal from '../components/Departments/DepartmentModal';
 import DepartmentDeleteModal from '../components/Departments/DepartmentDeleteModal';
 import CourseModal from '../components/Departments/CourseModal';
 import CourseDeleteModal from '../components/Departments/CourseDeleteModal';
-import DepartmentSearch from '../components/Departments/DepartmentSearch';
-import DepartmentHeader from '../components/Departments/DepartmentHeader';
-import DepartmentStats from '../components/Departments/DepartmentStats';
 import './DepartmentManagement.css';
 
 const DepartmentManagement = () => {
@@ -76,96 +72,262 @@ const DepartmentManagement = () => {
   const totalVoters = departments.reduce((total, dept) => 
     total + dept.courses?.reduce((courseTotal, course) => courseTotal + (course.voterCount || 0), 0) || 0, 0);
 
+  // Department icons mapping
+  const departmentIcons = {
+    'College of Business and Management': 'fa-chart-line',
+    'College of Computer Studies': 'fa-laptop-code',
+    'College of Education and Arts': 'fa-graduation-cap',
+    'College of Engineering': 'fa-cogs',
+    'College of Science': 'fa-flask',
+    'College of Medicine': 'fa-user-md',
+    'College of Law': 'fa-gavel',
+    'College of Arts and Letters': 'fa-paint-brush',
+    'College of Social Sciences': 'fa-users',
+    'College of Architecture': 'fa-building',
+    'default': 'fa-university'
+  };
+
+  const getDepartmentIcon = (deptName) => {
+    return departmentIcons[deptName] || departmentIcons['default'];
+  };
+
+  if (loading) {
+    return (
+      <div className="department-loading">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading departments...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="department-management">
-      {/* Header with Stats */}
-      <div className="department-header-container">
-        <DepartmentHeader 
-          onAddDepartment={() => {
-            setSelectedDepartment(null);
-            setShowDepartmentModal(true);
-          }}
-        />
-        <div className="department-stats-wrapper">
-          <div className="stat-card">
-            <i className="fas fa-building stat-icon"></i>
-            <div className="stat-content">
-              <span className="stat-value">{totalDepartments}</span>
-              <span className="stat-label">Departments</span>
-            </div>
+    <div className="department-management-container">
+      {/* Professional Dashboard Header */}
+      <div className="dashboard-header-pro">
+        <div className="dashboard-header-row">
+          <div>
+            <h1 className="dashboard-title-pro">Department Management</h1>
+            <p className="dashboard-subtitle-pro">Organize academic departments and their courses for the voting system.</p>
           </div>
-          <div className="stat-card">
-            <i className="fas fa-graduation-cap stat-icon"></i>
-            <div className="stat-content">
-              <span className="stat-value">{totalCourses}</span>
-              <span className="stat-label">Courses</span>
-            </div>
-          </div>
-          <div className="stat-card">
-            <i className="fas fa-users stat-icon"></i>
-            <div className="stat-content">
-              <span className="stat-value">{totalVoters}</span>
-              <span className="stat-label">Voters</span>
-            </div>
+          <div className="dashboard-header-actions">
+            <button 
+              className="btn btn-custom-blue"
+              onClick={() => {
+                setSelectedDepartment(null);
+                setShowDepartmentModal(true);
+              }}
+            >
+              <i className="fas fa-plus me-2"></i>
+              Add Department
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Search Bar */}
-      <DepartmentSearch 
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
+      {/* Stats Cards */}
+      <div className="department-stats-row">
+        <div className="stat-card-pro">
+          <div className="stat-icon">
+            <i className="fas fa-building"></i>
+          </div>
+          <div className="stat-content">
+            <div className="stat-number">{totalDepartments}</div>
+            <div className="stat-label">Total Departments</div>
+          </div>
+        </div>
+        <div className="stat-card-pro">
+          <div className="stat-icon">
+            <i className="fas fa-graduation-cap"></i>
+          </div>
+          <div className="stat-content">
+            <div className="stat-number">{totalCourses}</div>
+            <div className="stat-label">Total Courses</div>
+          </div>
+        </div>
+        <div className="stat-card-pro">
+          <div className="stat-icon">
+            <i className="fas fa-users"></i>
+          </div>
+          <div className="stat-content">
+            <div className="stat-number">{totalVoters}</div>
+            <div className="stat-label">Total Voters</div>
+          </div>
+        </div>
+      </div>
 
       {error && (
-        <div className="alert alert-danger mx-4" role="alert">
+        <div className="alert alert-danger" role="alert">
+          <i className="fas fa-exclamation-triangle me-2"></i>
           {error}
         </div>
       )}
 
+      {/* Search Section */}
+      <div className="search-section-pro">
+        <div className="search-input-container">
+          <i className="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            className="form-control search-input-pro"
+            placeholder="Search departments by name or code..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              className="btn btn-outline-secondary btn-sm clear-search"
+              onClick={() => setSearchTerm('')}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Departments Grid */}
-      <div className="departments-grid">
-        {loading ? (
-          <div className="loading-spinner">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
+      <div className="departments-grid-pro">
+        {filteredDepartments.length === 0 ? (
+          <div className="empty-state-pro">
+            <div className="empty-icon">
+              <i className="fas fa-university"></i>
             </div>
-          </div>
-        ) : filteredDepartments.length === 0 ? (
-          <div className="no-departments">
-            <i className="fas fa-school fa-3x mb-3"></i>
             <h3>No Departments Found</h3>
-            <p>{searchTerm ? 'Try adjusting your search' : 'Add your first department to get started'}</p>
+            <p>{searchTerm ? 'Try adjusting your search criteria' : 'Add your first department to get started'}</p>
+            {!searchTerm && (
+              <button
+                className="btn btn-custom-blue"
+                onClick={() => {
+                  setSelectedDepartment(null);
+                  setShowDepartmentModal(true);
+                }}
+              >
+                <i className="fas fa-plus me-2"></i>
+                Create First Department
+              </button>
+            )}
           </div>
         ) : (
           filteredDepartments.map(department => (
-            <DepartmentCard
-              key={department.id}
-              department={department}
-              onEdit={() => {
-                setSelectedDepartment(department);
-                setShowDepartmentModal(true);
-              }}
-              onDelete={() => {
-                setSelectedDepartment(department);
-                setShowDeleteModal(true);
-              }}
-              onAddCourse={() => {
-                setSelectedDepartment(department);
-                setSelectedCourse(null);
-                setShowCourseModal(true);
-              }}
-              onEditCourse={(course) => {
-                setSelectedDepartment(department);
-                setSelectedCourse(course);
-                setShowCourseModal(true);
-              }}
-              onDeleteCourse={(course) => {
-                setSelectedDepartment(department);
-                setSelectedCourse(course);
-                setShowCourseDeleteModal(true);
-              }}
-            />
+            <div key={department.id} className="department-box-pro">
+              {/* Department Header */}
+              <div className="department-header-pro">
+                <div className="department-info">
+                  <div className="department-icon-wrapper">
+                    <i className={`fas ${getDepartmentIcon(department.name)} department-icon-pro`}></i>
+                  </div>
+                  <div className="department-details">
+                    <h3 className="department-title">{department.name}</h3>
+                    <div className="department-code">Code: {department.code}</div>
+                    <div className="department-meta">
+                      <span className="course-count">
+                        <i className="fas fa-book me-1"></i>
+                        {department.courses?.length || 0} Courses
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="department-actions">
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => {
+                      setSelectedDepartment(department);
+                      setSelectedCourse(null);
+                      setShowCourseModal(true);
+                    }}
+                    title="Add Course"
+                  >
+                    <i className="fas fa-plus"></i>
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => {
+                      setSelectedDepartment(department);
+                      setShowDepartmentModal(true);
+                    }}
+                    title="Edit Department"
+                  >
+                    <i className="fas fa-edit"></i>
+                  </button>
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => {
+                      setSelectedDepartment(department);
+                      setShowDeleteModal(true);
+                    }}
+                    title="Delete Department"
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              {/* Courses Section */}
+              <div className="courses-section-pro">
+                <div className="courses-header">
+                  <h4>
+                    <i className="fas fa-graduation-cap me-2"></i>
+                    Courses
+                  </h4>
+                </div>
+                <div className="courses-grid">
+                  {department.courses && department.courses.length > 0 ? (
+                    department.courses.map(course => (
+                      <div key={course.id} className="course-box-pro">
+                        <div className="course-info">
+                          <div className="course-name">{course.name}</div>
+                          <div className="course-code">{course.code}</div>
+                          <div className="course-voters">
+                            <i className="fas fa-users me-1"></i>
+                            {course.voterCount || 0} voters
+                          </div>
+                        </div>
+                        <div className="course-actions">
+                          <button
+                            className="btn btn-outline-secondary btn-xs"
+                            onClick={() => {
+                              setSelectedDepartment(department);
+                              setSelectedCourse(course);
+                              setShowCourseModal(true);
+                            }}
+                            title="Edit Course"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-xs"
+                            onClick={() => {
+                              setSelectedDepartment(department);
+                              setSelectedCourse(course);
+                              setShowCourseDeleteModal(true);
+                            }}
+                            title="Delete Course"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-courses-pro">
+                      <i className="fas fa-book-open"></i>
+                      <span>No courses yet</span>
+                      <button
+                        className="btn btn-link btn-sm"
+                        onClick={() => {
+                          setSelectedDepartment(department);
+                          setSelectedCourse(null);
+                          setShowCourseModal(true);
+                        }}
+                      >
+                        Add first course
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           ))
         )}
       </div>

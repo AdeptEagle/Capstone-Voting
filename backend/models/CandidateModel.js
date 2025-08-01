@@ -1,5 +1,24 @@
 import { createConnection } from "../config/database.js";
 
+// Helper function to format photo URLs consistently
+const formatPhotoUrl = (photoUrl) => {
+  if (!photoUrl || photoUrl.trim() === '') {
+    return null;
+  }
+  
+  // If it's already a full URL (http/https) or data URL, return as is
+  if (photoUrl.startsWith('http') || photoUrl.startsWith('data:')) {
+    return photoUrl;
+  }
+  
+  // Otherwise, construct full URL using environment variable or fallback
+  const baseUrl = process.env.BACKEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN 
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
+    : 'https://backend-production-219d.up.railway.app';
+    
+  return `${baseUrl}/uploads/${photoUrl}`;
+};
+
 export class CandidateModel {
   static async getAll(showAll = false) {
     const db = createConnection();
@@ -32,13 +51,11 @@ export class CandidateModel {
         db.end();
         if (err) reject(err);
         else {
-          // Convert photoUrl to full URL if it's a filename (not already a URL)
-          const candidatesWithPhotoUrl = data.map(candidate => {
-            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+          // Format photo URLs consistently
+          const candidatesWithPhotoUrl = data.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(candidatesWithPhotoUrl);
         }
       });
@@ -66,13 +83,11 @@ export class CandidateModel {
         db.end();
         if (err) reject(err);
         else {
-          // Convert photoUrl to full URL if it's a filename (not already a URL)
-          const candidatesWithPhotoUrl = data.map(candidate => {
-            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+          // Format photo URLs consistently
+          const candidatesWithPhotoUrl = data.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(candidatesWithPhotoUrl);
         }
       });
@@ -186,10 +201,11 @@ export class CandidateModel {
           if (data.length === 0) resolve(null);
           else {
             const candidate = data[0];
-            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            resolve(candidate);
+            const formattedCandidate = {
+              ...candidate,
+              photoUrl: formatPhotoUrl(candidate.photoUrl)
+            };
+            resolve(formattedCandidate);
           }
         }
       });
@@ -213,13 +229,11 @@ export class CandidateModel {
         db.end();
         if (err) reject(err);
         else {
-          // Convert photoUrl to full URL if it's a filename (not base64)
-          const candidatesWithPhotoUrl = data.map(candidate => {
-            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+          // Format photo URLs consistently
+          const candidatesWithPhotoUrl = data.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(candidatesWithPhotoUrl);
         }
       });
@@ -243,13 +257,11 @@ export class CandidateModel {
         db.end();
         if (err) reject(err);
         else {
-          // Convert photoUrl to full URL if it's a filename (not base64)
-          const candidatesWithPhotoUrl = data.map(candidate => {
-            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+          // Format photo URLs consistently
+          const candidatesWithPhotoUrl = data.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(candidatesWithPhotoUrl);
         }
       });

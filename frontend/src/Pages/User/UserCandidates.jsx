@@ -14,9 +14,12 @@ const UserCandidates = () => {
     const fetchCandidates = async () => {
       try {
         const data = await getCandidates();
+        console.log('UserCandidates - Received data:', data);
+        console.log('UserCandidates - First candidate photoUrl:', data[0]?.photoUrl);
         setCandidates(data);
         setLoading(false);
       } catch (err) {
+        console.error('UserCandidates - Error:', err);
         setError('Failed to load candidates');
         setLoading(false);
       }
@@ -36,17 +39,22 @@ const UserCandidates = () => {
   if (loading) return <div className="loading">Loading candidates...</div>;
   if (error) return <div className="error">{error}</div>;
 
+  console.log('UserCandidates - Rendering candidates:', candidates.length);
+
   return (
     <div className="user-candidates-container">
       <h2>Current Candidates</h2>
       <div className="candidates-grid">
-        {candidates.map((candidate, index) => (
-          <CandidateCard
-            key={candidate.id}
-            candidate={{ ...candidate, number: index + 1 }}
-            onView={handleViewPlatform}
-          />
-        ))}
+        {candidates.map((candidate, index) => {
+          console.log(`UserCandidates - Candidate ${index}:`, candidate.name, 'photoUrl:', candidate.photoUrl);
+          return (
+            <CandidateCard
+              key={candidate.id}
+              candidate={{ ...candidate, number: index + 1 }}
+              onView={handleViewPlatform}
+            />
+          );
+        })}
       </div>
 
       {selectedCandidate && (

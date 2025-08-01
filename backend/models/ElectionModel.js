@@ -1,6 +1,25 @@
 import { createConnection } from "../config/database.js";
 import crypto from "crypto";
 
+// Helper function to format photo URLs consistently
+const formatPhotoUrl = (photoUrl) => {
+  if (!photoUrl || photoUrl.trim() === '') {
+    return null;
+  }
+  
+  // If it's already a full URL (http/https) or data URL, return as is
+  if (photoUrl.startsWith('http') || photoUrl.startsWith('data:')) {
+    return photoUrl;
+  }
+  
+  // Otherwise, construct full URL using environment variable or fallback
+  const baseUrl = process.env.BACKEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN 
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
+    : 'https://backend-production-219d.up.railway.app';
+    
+  return `${baseUrl}/uploads/${photoUrl}`;
+};
+
 export class ElectionModel {
   static async getAll() {
     const db = createConnection();
@@ -163,13 +182,11 @@ export class ElectionModel {
           console.error('Database error in getActiveElectionResults:', err);
           reject(err);
         } else {
-          // Convert photoUrl to full URL if it's a filename
-          const resultsWithPhotoUrl = data.map(result => {
-            if (result.photoUrl && !result.photoUrl.startsWith('http') && !result.photoUrl.startsWith('data:')) {
-              result.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${result.photoUrl}`;
-            }
-            return result;
-          });
+          // Format photo URLs consistently
+          const resultsWithPhotoUrl = data.map(result => ({
+            ...result,
+            photoUrl: formatPhotoUrl(result.photoUrl)
+          }));
           resolve(resultsWithPhotoUrl);
         }
       });
@@ -215,13 +232,11 @@ export class ElectionModel {
           console.error('Database error in getElectionCandidates:', err);
           reject(err);
         } else {
-          // Convert photoUrl to full URL if it's a filename
-          const candidatesWithPhotoUrl = data.map(candidate => {
-            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
-              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
-            }
-            return candidate;
-          });
+          // Format photo URLs consistently
+          const candidatesWithPhotoUrl = data.map(candidate => ({
+            ...candidate,
+            photoUrl: formatPhotoUrl(candidate.photoUrl)
+          }));
           resolve(candidatesWithPhotoUrl);
         }
       });

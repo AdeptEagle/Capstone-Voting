@@ -25,10 +25,12 @@ const BallotCandidates = () => {
     try {
       setLoading(true);
       const data = await getCandidateAssignmentStatus(activeElection.id);
+      console.log('BallotCandidates - Received data:', data);
+      console.log('BallotCandidates - First candidate photoUrl:', data[0]?.photoUrl);
       setCandidates(data);
       setError('');
     } catch (err) {
-      console.error('Error fetching candidates:', err);
+      console.error('BallotCandidates - Error fetching candidates:', err);
       setError('Failed to fetch candidates');
     } finally {
       setLoading(false);

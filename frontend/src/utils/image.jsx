@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Get backend URL from environment or use Railway backend URL
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://backend-production-219d.up.railway.app';
@@ -77,23 +77,35 @@ export const getCandidatePhotoUrl = getImageUrl;
 
 // Enhanced image component with error handling
 export function CandidateImage({ photoUrl, alt = 'Candidate Photo', className = '', style = {}, size = 'normal' }) {
-  const [imageError, setImageError] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
-  const handleImageError = () => {
-    setImageError(true);
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    console.log('CandidateImage - Input photoUrl:', photoUrl);
+    const url = getImageUrl(photoUrl);
+    console.log('CandidateImage - Processed URL:', url);
+    setImageUrl(url);
+    setIsLoading(true);
+    setHasError(false);
+  }, [photoUrl]);
 
   const handleImageLoad = () => {
-    setImageError(false);
+    console.log('CandidateImage - Image loaded successfully:', imageUrl);
     setIsLoading(false);
+    setHasError(false);
   };
 
-  const imageUrl = getImageUrl(photoUrl);
+  const handleImageError = () => {
+    console.log('CandidateImage - Image failed to load:', imageUrl);
+    setHasError(true);
+    setIsLoading(false);
+    // Fallback to placeholder
+    setImageUrl('/default-avatar.png');
+  };
 
   // Show placeholder if no valid image URL or error occurred
-  if (imageError || imageUrl === '/default-avatar.png') {
+  if (hasError || imageUrl === '/default-avatar.png') {
     return (
       <CandidatePhotoPlaceholder 
         className={className}
