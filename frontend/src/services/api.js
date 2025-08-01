@@ -161,6 +161,16 @@ export const getCandidates = async () => {
   }
 };
 
+export const getAllCandidates = async () => {
+  try {
+    const response = await api.get('/candidates?all=true');
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching all candidates:', error);
+    return [];
+  }
+};
+
 export const createCandidate = async (candidateData) => {
   try {
     const response = await api.post('/candidates', candidateData);

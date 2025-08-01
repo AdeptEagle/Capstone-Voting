@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getElections, getPositions, getCandidates, getDepartments } from '../services/api';
+import { getElections, getPositions, getCandidates, getAllCandidates, getDepartments } from '../services/api';
 import './Elections.css';
 
 // Import new components and hooks
@@ -117,6 +117,13 @@ const Elections = () => {
     setExistingCandidates([]);
   };
 
+  // Enhanced open create modal with candidate fetching
+  const openCreateModalWithCandidates = async () => {
+    openCreateModal(resetForm);
+    // Fetch existing candidates for selection in Step 3
+    await fetchExistingCandidates();
+  };
+
   const onCreateElection = async (e) => {
     e.preventDefault();
     try {
@@ -220,7 +227,7 @@ const Elections = () => {
   const fetchExistingCandidates = async () => {
     try {
       setLoadingCandidates(true);
-      const candidates = await getCandidates();
+      const candidates = await getAllCandidates();
       setExistingCandidates(candidates || []);
     } catch (error) {
       console.error('Error fetching candidates:', error);
@@ -271,7 +278,7 @@ const Elections = () => {
           <div className="dashboard-actions-pro">
             <button
               className="btn btn-success btn-lg"
-              onClick={() => openCreateModal(resetForm)}
+              onClick={openCreateModalWithCandidates}
             >
               <i className="fas fa-plus me-2"></i>
               Create New Ballot
@@ -307,7 +314,7 @@ const Elections = () => {
               <p className="text-muted mb-4">Get started by creating your first election ballot</p>
               <button
                 className="btn btn-primary btn-lg"
-                onClick={() => openCreateModal(resetForm)}
+                onClick={openCreateModalWithCandidates}
               >
                 <i className="fas fa-plus me-2"></i>
                 Create Your First Ballot
@@ -335,7 +342,7 @@ const Elections = () => {
           <div className="floating-create-btn">
             <button
               className="btn btn-success btn-lg rounded-circle"
-              onClick={() => openCreateModal(resetForm)}
+              onClick={openCreateModalWithCandidates}
               title="Create New Ballot"
             >
               <i className="fas fa-plus me-2"></i>

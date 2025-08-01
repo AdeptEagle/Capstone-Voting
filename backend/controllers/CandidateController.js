@@ -4,7 +4,11 @@ export class CandidateController {
   static async getAllCandidates(req, res) {
     try {
       // Check if user is admin or superadmin to show all candidates
-      const showAll = req.user && (req.user.role === 'admin' || req.user.role === 'superadmin');
+      // Also allow showing all candidates if explicitly requested via query parameter for ballot creation
+      const isAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'superadmin');
+      const requestAll = req.query.all === 'true';
+      const showAll = isAdmin || requestAll;
+      
       const candidates = await CandidateModel.getAll(showAll);
       res.json(candidates);
     } catch (error) {
