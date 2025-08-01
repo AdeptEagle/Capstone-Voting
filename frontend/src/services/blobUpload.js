@@ -17,8 +17,19 @@ export const uploadImageToBlob = async (file) => {
     
     // Check if token is available
     const token = import.meta.env.VITE_BLOB_READ_WRITE_TOKEN;
+    console.log('🔍 Blob token check:', {
+      hasToken: !!token,
+      tokenLength: token ? token.length : 0,
+      tokenPrefix: token ? token.substring(0, 20) : 'none'
+    });
+    
     if (!token) {
       throw new Error('Blob upload token not configured. Please contact administrator to set up image uploads.');
+    }
+    
+    // Validate token format
+    if (!token.startsWith('vercel_blob_rw_')) {
+      throw new Error('Invalid blob token format. Token should start with "vercel_blob_rw_"');
     }
     
     const { url } = await put(file.name, file, {
