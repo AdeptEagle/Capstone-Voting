@@ -148,23 +148,35 @@ const Vote = () => {
       let voteCount = 0;
       const totalVotes = positionsToVote.reduce((total, pos) => total + selectedVotes[pos.id].length, 0);
       
+      // Submit votes position by position
       for (let i = 0; i < positionsToVote.length; i++) {
         const pos = positionsToVote[i];
         const candidateIds = selectedVotes[pos.id];
         
-        for (let j = 0; j < candidateIds.length; j++) {
-          const candidateId = candidateIds[j];
-          voteCount++;
-          const isLastVote = voteCount === totalVotes;
+        // Submit votes for this position
+        try {
+          console.log(`Submitting votes for position ${pos.name} (${candidateIds.length} votes)`);
           
-          console.log(`Submitting vote: voterId=${voterId}, candidateId=${candidateId}, isLastVote=${isLastVote}`);
-          
-          await createVote({
-            voterId: voterId, // Use the correct voter ID
-            candidateId,
-            positionId: pos.id, // Add the position ID
-            isLastVote: isLastVote
-          });
+          for (let j = 0; j < candidateIds.length; j++) {
+            const candidateId = candidateIds[j];
+            voteCount++;
+            const isLastVote = voteCount === totalVotes;
+            
+            console.log(`Submitting vote ${j + 1}/${candidateIds.length} for position ${pos.name}: candidateId=${candidateId}`);
+            
+            await createVote({
+              voterId: voterId,
+              candidateId,
+              positionId: pos.id,
+              isLastVote: isLastVote
+            });
+            
+            console.log(`Vote ${j + 1}/${candidateIds.length} for position ${pos.name} submitted successfully`);
+          }
+        } catch (error) {
+          // If there's an error, show which position failed
+          const errorMessage = error.response?.data?.error || 'Failed to submit votes';
+          throw new Error(`Error voting for ${pos.name}: ${errorMessage}`);
         }
       }
       
