@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Alert } from 'react-bootstrap';
-import { api } from '../services/api';
+import { getCandidates, createCandidate, updateCandidate, deleteCandidate, deleteMultipleCandidates, getPositions, getDepartments, getCoursesByDepartment } from '../services/api';
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
@@ -85,9 +85,9 @@ const Candidates = () => {
     try {
       setLoading(true);
       const [candidatesData, positionsData, departmentsData] = await Promise.all([
-        api.getCandidates(),
-        api.getPositions(),
-        api.getDepartments()
+        getCandidates(),
+        getPositions(),
+        getDepartments()
       ]);
 
       // Transform candidates data to include position names
@@ -115,7 +115,7 @@ const Candidates = () => {
 
     try {
       setLoadingCourses(true);
-      const coursesData = await api.getCoursesByDepartment(departmentId);
+      const coursesData = await getCoursesByDepartment(departmentId);
       setCourses(coursesData);
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -177,9 +177,9 @@ const Candidates = () => {
       const candidateData = formatCandidateData(formData, photoUrl);
 
       if (editingCandidate) {
-        await api.updateCandidate(editingCandidate.id, candidateData);
+        await updateCandidate(editingCandidate.id, candidateData);
       } else {
-        await api.createCandidate(candidateData);
+        await createCandidate(candidateData);
       }
 
       await fetchData();
@@ -217,7 +217,7 @@ const Candidates = () => {
   const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this candidate? This action cannot be undone.')) {
       try {
-        await api.deleteCandidate(id);
+        await deleteCandidate(id);
         await fetchData();
       } catch (error) {
         console.error('Error deleting candidate:', error);
@@ -257,7 +257,7 @@ const Candidates = () => {
       const candidatesToDelete = candidates.filter(candidate => selectedCandidates.includes(candidate.id));
       const deleteCount = selectedCandidates.length;
       
-      await api.deleteMultipleCandidates(selectedCandidates);
+      await deleteMultipleCandidates(selectedCandidates);
       
       setSelectedCandidates([]);
       setSelectAll(false);
