@@ -53,6 +53,9 @@ export class VotingService {
       const IDGenerator = await import('../utils/idGenerator.js');
       const voteId = await IDGenerator.default.getNextVoteID();
       
+      console.log(`Generated vote ID: ${voteId}`);
+      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${candidate.positionId}`);
+      
       // BEGIN TRANSACTION - ACID Atomicity
       await new Promise((resolve, reject) => {
         db.beginTransaction((err) => {
@@ -66,45 +69,67 @@ export class VotingService {
         await new Promise((resolve, reject) => {
           const query = "INSERT INTO votes (id, voterId, candidateId, electionId, positionId) VALUES (?, ?, ?, ?, ?)";
           const values = [voteId, voterId, candidateId, activeElection.id, candidate.positionId];
+          console.log(`Executing vote insert query with values:`, values);
           db.query(query, values, (err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error('Vote insert error:', err);
+              reject(err);
+            } else {
+              console.log(`Vote recorded successfully: ${voteId}`);
+              resolve();
+            }
           });
         });
         
-        console.log(`Vote recorded successfully: ${id}`);
-        
         // Only set hasVoted = true if this is the last vote
         if (isLastVote) {
+          console.log(`This is the last vote, updating voter ${voterId} hasVoted flag to true`);
           await new Promise((resolve, reject) => {
             const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
-            db.query(query, [voterId], (err) => {
-              if (err) reject(err);
-              else resolve();
+            db.query(query, [voterId], (err, result) => {
+              if (err) {
+                console.error('Voter update error:', err);
+                reject(err);
+              } else {
+                console.log(`Voter ${voterId} hasVoted flag updated successfully. Rows affected: ${result.affectedRows}`);
+                resolve();
+              }
             });
           });
           console.log(`Voter ${voterId} locked out after completing all votes`);
+        } else {
+          console.log(`This is not the last vote (${isLastVote}), keeping voter ${voterId} hasVoted flag as false`);
         }
         
         // COMMIT TRANSACTION - ACID Durability
         await new Promise((resolve, reject) => {
           db.commit((err) => {
-            if (err) reject(err);
-            else resolve();
+            if (err) {
+              console.error('Transaction commit error:', err);
+              reject(err);
+            } else {
+              console.log('Transaction committed successfully');
+              resolve();
+            }
           });
         });
         
         return { message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded" };
         
       } catch (error) {
+        console.error('Error during vote processing, rolling back transaction:', error);
         // ROLLBACK TRANSACTION - ACID Consistency
         await new Promise((resolve) => {
-          db.rollback(() => resolve());
+          db.rollback(() => {
+            console.log('Transaction rolled back');
+            resolve();
+          });
         });
         throw error;
       }
       
     } catch (error) {
+      console.error('Vote processing error:', error);
       throw error;
     } finally {
       db.end();

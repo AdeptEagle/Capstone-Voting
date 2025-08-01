@@ -187,7 +187,7 @@ async function createDatabase() {
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
           FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
           FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_vote (voterId, electionId, positionId)
+          UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
         )`
       },
       {
