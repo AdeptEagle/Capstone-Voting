@@ -66,16 +66,15 @@ export class VotingService {
       console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
       
       if (existingVotes >= position.voteLimit) {
-<<<<<<< HEAD
         throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}. Please select a different position or candidate.`);
       }
       
       // Check if voter has already voted for this candidate
-      const db = createConnection();
+      const duplicateCheckDb = createConnection();
       try {
         const duplicateCheck = await new Promise((resolve, reject) => {
           const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?";
-          db.query(query, [voterId, activeElection.id, candidateId], (err, result) => {
+          duplicateCheckDb.query(query, [voterId, activeElection.id, candidateId], (err, result) => {
             if (err) reject(err);
             else resolve(result[0].count);
           });
@@ -85,7 +84,7 @@ export class VotingService {
           throw new Error(`You have already voted for this candidate in ${position.name}. Please select a different candidate.`);
         }
       } finally {
-        db.end();
+        duplicateCheckDb.end();
       }
       
       // Get next vote ID
@@ -104,9 +103,8 @@ export class VotingService {
       });
       
       try {
-        // Check for duplicate vote
+        // Check for duplicate vote and record the vote using VoteModel
         try {
-          // Record the vote using VoteModel
           await VoteModel.create({
             id: voteId,
             voterId,
@@ -120,35 +118,6 @@ export class VotingService {
           }
           throw err;
         }
-=======
-        throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}`);
-      }
-      
-      // Get next vote ID
-      const IDGenerator = await import('../utils/idGenerator.js');
-      const voteId = await IDGenerator.default.getNextVoteID();
-      
-      console.log(`Generated vote ID: ${voteId}`);
-      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${positionId}`);
-      
-      // BEGIN TRANSACTION - ACID Atomicity
-      await new Promise((resolve, reject) => {
-        db.beginTransaction((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-      
-      try {
-        // Record the vote using VoteModel
-        await VoteModel.create({
-          id: voteId,
-          voterId,
-          candidateId,
-          electionId: activeElection.id,
-          positionId
-        });
->>>>>>> 6b42ea70c75fea6b13e01283512a0f7cb55b2590
         
         // Only set hasVoted = true if this is the last vote
         if (isLastVote) {
