@@ -4,14 +4,6 @@ import { authenticate, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Simple test route to verify no auth is required
-router.get('/test', (req, res) => {
-  res.json({ message: 'Test route works without auth', timestamp: new Date().toISOString() });
-});
-
-// Get departments with their courses (public - using specific path to avoid conflicts)
-router.get('/all-with-courses', DepartmentController.getAllWithCourses);
-
 // Public routes (no authentication required)
 router.get('/', DepartmentController.getAll);
 

@@ -222,16 +222,6 @@ export const getDepartments = async () => {
   }
 };
 
-export const getDepartmentsWithCourses = async () => {
-  try {
-    const response = await api.get('/departments/all-with-courses');
-    return Array.isArray(response.data) ? response.data : [];
-  } catch (error) {
-    console.error('Error fetching departments with courses:', error);
-    return [];
-  }
-};
-
 export const getCoursesByDepartment = async (departmentId) => {
   try {
     const response = await api.get(`/departments/${departmentId}/courses`);

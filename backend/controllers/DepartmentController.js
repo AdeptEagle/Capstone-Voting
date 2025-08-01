@@ -13,17 +13,6 @@ class DepartmentController {
     }
   }
 
-  // Get all departments with their courses
-  static async getAllWithCourses(req, res) {
-    try {
-      const departments = await DepartmentModel.getAllWithCourses();
-      res.json(departments);
-    } catch (error) {
-      console.error('Error getting departments with courses:', error);
-      res.status(500).json({ error: 'Failed to get departments with courses' });
-    }
-  }
-
   // Get department by ID
   static async getById(req, res) {
     try {

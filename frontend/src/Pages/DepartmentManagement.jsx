@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDepartmentsWithCourses } from '../services/api';
+import { getDepartments, getCoursesByDepartment } from '../services/api';
 import DepartmentModal from '../components/Departments/DepartmentModal';
 import DepartmentDeleteModal from '../components/Departments/DepartmentDeleteModal';
 import CourseModal from '../components/Departments/CourseModal';
@@ -25,9 +25,23 @@ const DepartmentManagement = () => {
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const data = await getDepartmentsWithCourses();
+      const data = await getDepartments();
       console.log('DepartmentManagement - Received departments:', data);
-      setDepartments(data);
+      
+      // Fetch courses for each department
+      const departmentsWithCourses = await Promise.all(
+        data.map(async (dept) => {
+          try {
+            const courses = await getCoursesByDepartment(dept.id);
+            return { ...dept, courses };
+          } catch (err) {
+            console.error(`Error fetching courses for ${dept.name}:`, err);
+            return { ...dept, courses: [] };
+          }
+        })
+      );
+      
+      setDepartments(departmentsWithCourses);
       setError('');
     } catch (err) {
       setError('Failed to load departments');
