@@ -30,148 +30,145 @@
 
 /* Modern Candidate Card */
 .candidate-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.candidate-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
   position: relative;
-  z-index: 1;
-}
-
-.candidate-card-info {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
+  min-height: 400px;
 }
 
-.candidate-card-name {
+.candidate-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.candidate-number {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  background: #2196f3;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.candidate-photo-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.candidate-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.candidate-name {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #1a1a1a;
   margin: 0;
   line-height: 1.2;
 }
 
-.candidate-card-position {
-  font-size: 1rem;
-  color: #4a5568;
+.candidate-position {
+  font-size: 1.1rem;
+  color: #2196f3;
   font-weight: 500;
+  margin-bottom: 0.5rem;
 }
 
-.candidate-photo-section {
-  position: relative;
-  width: 100%;
-  padding-top: 100%; /* 1:1 Aspect Ratio */
-  border-radius: 16px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.candidate-photo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 16px;
-  transition: transform 0.3s ease;
-}
-
-.candidate-photo:hover {
-  transform: scale(1.02);
-}
-
-.candidate-details-section {
+.candidate-details {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.candidate-stat {
+.detail-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  border: 1px solid rgba(203, 213, 224, 0.4);
-  font-size: 0.875rem;
-  color: #4a5568;
-  flex: 1;
-  min-width: 140px;
+  color: #666;
+  font-size: 0.95rem;
 }
 
-.candidate-stat i {
-  color: #4299e1;
-  font-size: 1rem;
+.detail-item i {
+  width: 1.2rem;
+  color: #2196f3;
 }
 
-.candidate-platform-preview {
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid rgba(203, 213, 224, 0.4);
+.view-platform-btn {
+  margin-top: auto;
+  padding: 0.75rem 1.5rem;
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
 }
 
-.candidate-platform-preview p {
-  margin: 0;
-  color: #4a5568;
-  font-size: 0.875rem;
-  line-height: 1.5;
+.view-platform-btn:hover {
+  background: #1976d2;
 }
 
-/* Selection Checkbox */
 .candidate-selection {
   position: absolute;
   top: 1rem;
-  right: 1rem;
-  z-index: 2;
+  left: 1rem;
 }
 
 .selection-checkbox {
   position: relative;
   display: inline-block;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
 }
 
 .selection-checkbox input {
-  position: absolute;
   opacity: 0;
-  cursor: pointer;
-  height: 0;
   width: 0;
+  height: 0;
 }
 
 .checkmark {
   position: absolute;
   top: 0;
   left: 0;
-  height: 24px;
-  width: 24px;
+  width: 20px;
+  height: 20px;
   background-color: white;
-  border: 2px solid #4299e1;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.selection-checkbox:hover input ~ .checkmark {
-  background-color: #ebf8ff;
+  border: 2px solid #2196f3;
+  border-radius: 4px;
 }
 
 .selection-checkbox input:checked ~ .checkmark {
-  background-color: #4299e1;
+  background-color: #2196f3;
 }
 
 .checkmark:after {
@@ -185,40 +182,13 @@
 }
 
 .selection-checkbox .checkmark:after {
-  left: 8px;
-  top: 4px;
+  left: 6px;
+  top: 2px;
   width: 5px;
   height: 10px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
-}
-
-/* View Platform Button */
-.view-platform-btn {
-  background: #3182ce;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 2px 8px rgba(49, 130, 206, 0.2);
-}
-
-.view-platform-btn:hover {
-  background: #2c5282;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
-}
-
-.view-platform-btn i {
-  font-size: 0.75rem;
 }
 
 /* Responsive Design */
