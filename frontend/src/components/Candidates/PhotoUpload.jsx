@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { uploadToCloudinary } from '../../services/cloudinaryService';
 
 const PhotoUpload = ({ 
   photoFile, 
@@ -7,6 +8,8 @@ const PhotoUpload = ({
   onRemovePhoto,
   disabled = false 
 }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const handleRemove = () => {
     if (onRemovePhoto) {
       onRemovePhoto();
@@ -24,10 +27,43 @@ const PhotoUpload = ({
         <input
           type="file"
           className="form-control"
-          accept="image/jpeg,image/jpg,image/png,image/gif"
-          onChange={onPhotoChange}
-          disabled={disabled}
+          accept="image/jpeg,image/jpg,image/png"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            setError('');
+            setLoading(true);
+            
+            try {
+              const imageUrl = await uploadToCloudinary(file);
+              onPhotoChange({
+                target: {
+                  files: [file],
+                  imageUrl: imageUrl
+                }
+              });
+            } catch (err) {
+              setError(err.message);
+              console.error('Error uploading image:', err);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={disabled || loading}
         />
+        {error && (
+          <div className="alert alert-danger mt-2">
+            <i className="fas fa-exclamation-circle me-2"></i>
+            {error}
+          </div>
+        )}
+        {loading && (
+          <div className="text-primary mt-2">
+            <i className="fas fa-spinner fa-spin me-2"></i>
+            Processing image...
+          </div>
+        )}
         
         <div className="upload-help text-muted small mt-1">
           Supported formats: JPG, PNG, GIF. Max size: 5MB

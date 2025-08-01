@@ -148,36 +148,37 @@ const Vote = () => {
       let voteCount = 0;
       const totalVotes = positionsToVote.reduce((total, pos) => total + selectedVotes[pos.id].length, 0);
       
-      // Submit votes position by position
-      for (let i = 0; i < positionsToVote.length; i++) {
-        const pos = positionsToVote[i];
-        const candidateIds = selectedVotes[pos.id];
-        
-        // Submit votes for this position
-        try {
-          console.log(`Submitting votes for position ${pos.name} (${candidateIds.length} votes)`);
+      try {
+        for (let i = 0; i < positionsToVote.length; i++) {
+          const pos = positionsToVote[i];
+          const candidateIds = selectedVotes[pos.id];
           
           for (let j = 0; j < candidateIds.length; j++) {
             const candidateId = candidateIds[j];
             voteCount++;
             const isLastVote = voteCount === totalVotes;
             
-            console.log(`Submitting vote ${j + 1}/${candidateIds.length} for position ${pos.name}: candidateId=${candidateId}`);
+            console.log(`Submitting vote: voterId=${voterId}, candidateId=${candidateId}, isLastVote=${isLastVote}`);
             
-            await createVote({
-              voterId: voterId,
-              candidateId,
-              positionId: pos.id,
-              isLastVote: isLastVote
-            });
-            
-            console.log(`Vote ${j + 1}/${candidateIds.length} for position ${pos.name} submitted successfully`);
+            try {
+              await createVote({
+                voterId: voterId,
+                candidateId,
+                positionId: pos.id,
+                isLastVote: isLastVote
+              });
+            } catch (voteError) {
+              // Extract error message from response
+              const errorMessage = voteError.response?.data?.error || voteError.message || 'Failed to submit vote';
+              throw new Error(`Error voting for position ${pos.name}: ${errorMessage}`);
+            }
           }
-        } catch (error) {
-          // If there's an error, show which position failed
-          const errorMessage = error.response?.data?.error || 'Failed to submit votes';
-          throw new Error(`Error voting for ${pos.name}: ${errorMessage}`);
         }
+      } catch (error) {
+        setError(error.message);
+        // Reset submission state but keep the confirmation dialog open
+        setSubmitting(false);
+        return; // Stop processing on error
       }
       
       setSuccess('Your votes have been submitted successfully! Thank you for participating.');

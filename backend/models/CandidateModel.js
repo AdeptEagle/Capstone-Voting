@@ -2,126 +2,257 @@ import { createConnection } from "../config/database.js";
 
 export class CandidateModel {
   static async getAll(showAll = false) {
-    const db = await createConnection();
-    try {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
       let query = `
-        SELECT c.*,
-               p.name as positionName,
-               p.voteLimit as positionVoteLimit,
-               COUNT(DISTINCT v.id) as voteCount
-        FROM candidates c
-        LEFT JOIN positions p ON c.positionId = p.id
-        LEFT JOIN votes v ON c.id = v.candidateId
+        SELECT c.*, p.name as positionName,
+               d.name as departmentName, co.name as courseName
+        FROM candidates c 
+        LEFT JOIN positions p ON c.positionId = p.id 
+        LEFT JOIN departments d ON c.departmentId = d.id
+        LEFT JOIN courses co ON c.courseId = co.id
       `;
-
+      
       if (!showAll) {
-        query += " WHERE c.isActive = 1";
+        query += `
+          WHERE c.id IN (
+            SELECT ec.candidateId 
+            FROM election_candidates ec 
+            INNER JOIN elections e ON ec.electionId = e.id 
+            WHERE e.status = 'active'
+          )
+        `;
       }
-
-      query += " GROUP BY c.id ORDER BY p.displayOrder ASC, c.name ASC";
-
-      const [rows] = await db.execute(query);
-      return rows;
-    } finally {
-      await db.release();
-    }
+      
+      query += `
+        ORDER BY d.name, co.name, p.name, c.name
+      `;
+      
+      db.query(query, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else {
+          // Convert photoUrl to full URL if it's a filename (not already a URL)
+          const candidatesWithPhotoUrl = data.map(candidate => {
+            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+            }
+            return candidate;
+          });
+          resolve(candidatesWithPhotoUrl);
+        }
+      });
+    });
   }
 
-  static async getById(id) {
-    const db = await createConnection();
-    try {
-      const [rows] = await db.execute(`
-        SELECT c.*,
-               p.name as positionName,
-               p.voteLimit as positionVoteLimit,
-               COUNT(DISTINCT v.id) as voteCount
-        FROM candidates c
-        LEFT JOIN positions p ON c.positionId = p.id
-        LEFT JOIN votes v ON c.id = v.candidateId
-        WHERE c.id = ?
-        GROUP BY c.id
-      `, [id]);
-      return rows[0] || null;
-    } finally {
-      await db.release();
-    }
+  static async getAllForElection(electionId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT c.*, p.name as positionName,
+               d.name as departmentName, co.name as courseName
+        FROM candidates c 
+        LEFT JOIN positions p ON c.positionId = p.id 
+        LEFT JOIN departments d ON c.departmentId = d.id
+        LEFT JOIN courses co ON c.courseId = co.id
+        WHERE c.id IN (
+          SELECT ec.candidateId 
+          FROM election_candidates ec 
+          WHERE ec.electionId = ?
+        )
+        ORDER BY d.name, co.name, p.name, c.name
+      `;
+      db.query(query, [electionId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else {
+          // Convert photoUrl to full URL if it's a filename (not already a URL)
+          const candidatesWithPhotoUrl = data.map(candidate => {
+            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+            }
+            return candidate;
+          });
+          resolve(candidatesWithPhotoUrl);
+        }
+      });
+    });
   }
 
   static async create(candidateData) {
-    const db = await createConnection();
-    try {
-      const query = "INSERT INTO candidates (id, name, positionId, image, platform, partyList, isActive) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      // Generate UUID if no id provided
+      const id = candidateData.id || 'candidate-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      
+      const query = "INSERT INTO candidates (id, name, positionId, departmentId, courseId, photoUrl, description) VALUES (?, ?, ?, ?, ?, ?, ?)";
       const values = [
-        candidateData.id,
+        id,
         candidateData.name,
         candidateData.positionId,
-        candidateData.image || null,
-        candidateData.platform || null,
-        candidateData.partyList || null,
-        candidateData.isActive || true
+        candidateData.departmentId || null,
+        candidateData.courseId || null,
+        candidateData.photoUrl || null,
+        candidateData.description || null
       ];
-      await db.execute(query, values);
-      return { message: "Candidate created successfully!" };
-    } finally {
-      await db.release();
-    }
+      
+      db.query(query, values, (err, data) => {
+        db.end();
+        if (err) {
+          console.error('Error creating candidate:', err);
+          reject(err);
+        } else {
+          resolve({ 
+            message: "Candidate created successfully!",
+            id: id,
+            candidate: { ...candidateData, id }
+          });
+        }
+      });
+    });
   }
 
   static async update(id, candidateData) {
-    const db = await createConnection();
-    try {
-      const query = "UPDATE candidates SET name = ?, positionId = ?, image = ?, platform = ?, partyList = ?, isActive = ? WHERE id = ?";
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = "UPDATE candidates SET name = ?, positionId = ?, departmentId = ?, courseId = ?, photoUrl = ?, description = ? WHERE id = ?";
       const values = [
         candidateData.name,
         candidateData.positionId,
-        candidateData.image,
-        candidateData.platform,
-        candidateData.partyList,
-        candidateData.isActive,
+        candidateData.departmentId || null,
+        candidateData.courseId || null,
+        candidateData.photoUrl,
+        candidateData.description || null,
         id
       ];
-      await db.execute(query, values);
-      return { message: "Candidate updated successfully!" };
-    } finally {
-      await db.release();
-    }
+      db.query(query, values, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Candidate updated successfully!" });
+      });
+    });
   }
 
   static async delete(id) {
-    const db = await createConnection();
-    try {
-      await db.execute("DELETE FROM candidates WHERE id = ?", [id]);
-      return { message: "Candidate deleted successfully!" };
-    } finally {
-      await db.release();
-    }
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = "DELETE FROM candidates WHERE id = ?";
+      db.query(query, [id], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ message: "Candidate deleted successfully!" });
+      });
+    });
   }
 
-  static async getByPosition(positionId) {
-    const db = await createConnection();
-    try {
-      const [rows] = await db.execute(`
-        SELECT c.*,
-               COUNT(DISTINCT v.id) as voteCount
-        FROM candidates c
-        LEFT JOIN votes v ON c.id = v.candidateId
-        WHERE c.positionId = ?
-        GROUP BY c.id
-        ORDER BY c.name ASC
-      `, [positionId]);
-      return rows;
-    } finally {
-      await db.release();
-    }
+  static async deleteMultiple(ids) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      if (!ids || ids.length === 0) {
+        db.end();
+        return reject(new Error("No candidates selected for deletion"));
+      }
+      
+      const placeholders = ids.map(() => '?').join(',');
+      const query = `DELETE FROM candidates WHERE id IN (${placeholders})`;
+      
+      db.query(query, ids, (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else resolve({ 
+          message: `${data.affectedRows} candidate(s) deleted successfully!`,
+          deletedCount: data.affectedRows
+        });
+      });
+    });
   }
 
-  static async toggleActive(id, isActive) {
-    const db = await createConnection();
-    try {
-      await db.execute("UPDATE candidates SET isActive = ? WHERE id = ?", [isActive, id]);
-      return { message: `Candidate ${isActive ? 'activated' : 'deactivated'} successfully!` };
-    } finally {
-      await db.release();
-    }
+  static async getById(id) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT c.*, p.name as positionName,
+               d.name as departmentName, co.name as courseName
+        FROM candidates c 
+        LEFT JOIN positions p ON c.positionId = p.id 
+        LEFT JOIN departments d ON c.departmentId = d.id
+        LEFT JOIN courses co ON c.courseId = co.id
+        WHERE c.id = ?
+      `;
+      db.query(query, [id], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else {
+          if (data.length === 0) resolve(null);
+          else {
+            const candidate = data[0];
+            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+            }
+            resolve(candidate);
+          }
+        }
+      });
+    });
   }
-}
+
+  // Get candidates by department
+  static async getByDepartment(departmentId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT c.*, p.name as positionName,
+               co.name as courseName
+        FROM candidates c 
+        LEFT JOIN positions p ON c.positionId = p.id 
+        LEFT JOIN courses co ON c.courseId = co.id
+        WHERE c.departmentId = ?
+        ORDER BY co.name, p.name, c.name
+      `;
+      db.query(query, [departmentId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else {
+          // Convert photoUrl to full URL if it's a filename (not base64)
+          const candidatesWithPhotoUrl = data.map(candidate => {
+            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+            }
+            return candidate;
+          });
+          resolve(candidatesWithPhotoUrl);
+        }
+      });
+    });
+  }
+
+  // Get candidates by course
+  static async getByCourse(courseId) {
+    const db = createConnection();
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT c.*, p.name as positionName,
+               d.name as departmentName
+        FROM candidates c 
+        LEFT JOIN positions p ON c.positionId = p.id 
+        LEFT JOIN departments d ON c.departmentId = d.id
+        WHERE c.courseId = ?
+        ORDER BY d.name, p.name, c.name
+      `;
+      db.query(query, [courseId], (err, data) => {
+        db.end();
+        if (err) reject(err);
+        else {
+          // Convert photoUrl to full URL if it's a filename (not base64)
+          const candidatesWithPhotoUrl = data.map(candidate => {
+            if (candidate.photoUrl && !candidate.photoUrl.startsWith('http') && !candidate.photoUrl.startsWith('data:')) {
+              candidate.photoUrl = `https://backend-production-219d.up.railway.app/uploads/${candidate.photoUrl}`;
+            }
+            return candidate;
+          });
+          resolve(candidatesWithPhotoUrl);
+        }
+      });
+    });
+  }
+} 

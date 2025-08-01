@@ -6,7 +6,7 @@ import { createConnection } from "../config/database.js";
 
 export class VotingService {
   static async processVote(voteData) {
-    const db = await createConnection();
+    const db = createConnection();
     
     try {
       const { voterId, candidateId, positionId, isLastVote } = voteData;
@@ -61,67 +61,117 @@ export class VotingService {
         throw new Error("Candidate does not belong to the specified position");
       }
 
-      // BEGIN TRANSACTION - ACID Atomicity
-      await db.beginTransaction();
-
+      // Count existing votes for this position
+      const existingVotes = await VoteModel.countVotesByPosition(voterId, activeElection.id, positionId);
+      console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
+      
+      if (existingVotes >= position.voteLimit) {
+        throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}. Please select a different position or candidate.`);
+      }
+      
+      // Check if voter has already voted for this candidate
+      const db = createConnection();
       try {
-        // Count existing votes for this position (inside transaction)
-        const [rows] = await db.execute(
-          "SELECT COUNT(*) as voteCount FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ? FOR UPDATE",
-          [voterId, activeElection.id, positionId]
-        );
-        const existingVotes = rows[0].voteCount;
-
-        console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
+        const duplicateCheck = await new Promise((resolve, reject) => {
+          const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?";
+          db.query(query, [voterId, activeElection.id, candidateId], (err, result) => {
+            if (err) reject(err);
+            else resolve(result[0].count);
+          });
+        });
         
-        if (existingVotes >= position.voteLimit) {
-          throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}`);
+        if (duplicateCheck > 0) {
+          throw new Error(`You have already voted for this candidate in ${position.name}. Please select a different candidate.`);
         }
-        
-        // Get next vote ID
-        const IDGenerator = await import('../utils/idGenerator.js');
-        const voteId = await IDGenerator.default.getNextVoteID();
-        
-        console.log(`Generated vote ID: ${voteId}`);
-        console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${positionId}`);
-
-        // Record the vote
-        await db.execute(
-          "INSERT INTO votes (id, voterId, candidateId, electionId, positionId) VALUES (?, ?, ?, ?, ?)",
-          [voteId, voterId, candidateId, activeElection.id, positionId]
-        );
+      } finally {
+        db.end();
+      }
+      
+      // Get next vote ID
+      const IDGenerator = await import('../utils/idGenerator.js');
+      const voteId = await IDGenerator.default.getNextVoteID();
+      
+      console.log(`Generated vote ID: ${voteId}`);
+      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, electionId=${activeElection.id}, positionId=${positionId}`);
+      
+      // BEGIN TRANSACTION - ACID Atomicity
+      await new Promise((resolve, reject) => {
+        db.beginTransaction((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      try {
+        // Check for duplicate vote
+        try {
+          // Record the vote using VoteModel
+          await VoteModel.create({
+            id: voteId,
+            voterId,
+            candidateId,
+            electionId: activeElection.id,
+            positionId
+          });
+        } catch (err) {
+          if (err.code === 'ER_DUP_ENTRY') {
+            throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
+          }
+          throw err;
+        }
         
         // Only set hasVoted = true if this is the last vote
         if (isLastVote) {
           console.log(`This is the last vote, updating voter ${voterId} hasVoted flag to true`);
-          const [result] = await db.execute(
-            "UPDATE voters SET hasVoted = 1 WHERE id = ?",
-            [voterId]
-          );
-          console.log(`Voter ${voterId} hasVoted flag updated successfully. Rows affected: ${result.affectedRows}`);
+          await new Promise((resolve, reject) => {
+            const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
+            db.query(query, [voterId], (err, result) => {
+              if (err) {
+                console.error('Voter update error:', err);
+                reject(err);
+              } else {
+                console.log(`Voter ${voterId} hasVoted flag updated successfully. Rows affected: ${result.affectedRows}`);
+                resolve();
+              }
+            });
+          });
           console.log(`Voter ${voterId} locked out after completing all votes`);
         } else {
           console.log(`This is not the last vote (${isLastVote}), keeping voter ${voterId} hasVoted flag as false`);
         }
         
         // COMMIT TRANSACTION - ACID Durability
-        await db.commit();
-        console.log('Transaction committed successfully');
+        await new Promise((resolve, reject) => {
+          db.commit((err) => {
+            if (err) {
+              console.error('Transaction commit error:', err);
+              reject(err);
+            } else {
+              console.log('Transaction committed successfully');
+              resolve();
+            }
+          });
+        });
         
         return { message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded" };
         
       } catch (error) {
         console.error('Error during vote processing, rolling back transaction:', error);
         // ROLLBACK TRANSACTION - ACID Consistency
-        await db.rollback();
-        console.log('Transaction rolled back');
+        await new Promise((resolve) => {
+          db.rollback(() => {
+            console.log('Transaction rolled back');
+            resolve();
+          });
+        });
         throw error;
       }
+      
     } catch (error) {
       console.error('Vote processing error:', error);
       throw error;
     } finally {
-      await db.release();
+      db.end();
     }
   }
 
@@ -181,4 +231,4 @@ export class VotingService {
       throw error;
     }
   }
-}
+} 

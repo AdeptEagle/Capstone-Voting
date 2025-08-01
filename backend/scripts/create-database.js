@@ -2,21 +2,23 @@
 
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 console.log('🚀 Creating Complete Voting System Database');
 console.log('==========================================\n');
 
 // Database configuration
 const dbConfig = {
-  host: process.env.MYSQLHOST || process.env.DB_HOST || 'localhost',
-  user: process.env.MYSQLUSER || process.env.DB_USER || 'root',
-  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || 'root',
-  database: process.env.MYSQLDATABASE || process.env.DB_NAME || 'voting_system',
-  port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  port: 3306,
   charset: 'utf8mb4',
   timezone: '+00:00',
   multipleStatements: true
 };
+
+const DB_NAME = 'voting_system';
 
 async function createDatabase() {
   let connection;
@@ -25,20 +27,23 @@ async function createDatabase() {
     console.log('🔍 Testing MySQL connection...');
     connection = await mysql.createConnection({
       ...dbConfig,
-      database: undefined
+      multipleStatements: true
     });
     console.log('✅ MySQL connection successful\n');
     
     console.log('🏗️ Creating database and tables...');
     
-    // Drop and recreate database
-    await connection.execute(`DROP DATABASE IF EXISTS \`${dbConfig.database}\``);
-    await connection.execute(`CREATE DATABASE \`${dbConfig.database}\``);
-    console.log(`✅ Database '${dbConfig.database}' recreated`);
+    // Create database
+    await connection.execute(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\``);
+    console.log(`✅ Database '${DB_NAME}' created/verified`);
     
     // Close the current connection and create a new one with the database selected
     await connection.end();
-    connection = await mysql.createConnection(dbConfig);
+    connection = await mysql.createConnection({
+      ...dbConfig,
+      database: DB_NAME,
+      multipleStatements: true
+    });
     
     // Create all tables
     const tables = [
@@ -95,13 +100,16 @@ async function createDatabase() {
           id VARCHAR(36) PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
           positionId VARCHAR(36) NOT NULL,
-          image TEXT,
-          platform TEXT,
-          partyList VARCHAR(255),
-          isActive BOOLEAN DEFAULT TRUE,
+          departmentId VARCHAR(36),
+          courseId VARCHAR(36),
+          photoUrl TEXT,
+          description TEXT,
+          displayOrder INT NOT NULL DEFAULT 0,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE
+          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
+          FOREIGN KEY (departmentId) REFERENCES departments(id) ON DELETE SET NULL,
+          FOREIGN KEY (courseId) REFERENCES courses(id) ON DELETE SET NULL
         )`
       },
       {
@@ -137,6 +145,34 @@ async function createDatabase() {
         )`
       },
       {
+        name: 'election_positions',
+        sql: `CREATE TABLE IF NOT EXISTS election_positions (
+          id VARCHAR(36) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
+          positionId VARCHAR(36) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
+          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
+          UNIQUE KEY unique_election_position (electionId, positionId)
+        )`
+      },
+      {
+        name: 'election_candidates',
+        sql: `CREATE TABLE IF NOT EXISTS election_candidates (
+          id VARCHAR(36) PRIMARY KEY,
+          electionId VARCHAR(20) NOT NULL,
+          candidateId VARCHAR(36) NOT NULL,
+          positionId VARCHAR(36) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
+          FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
+          FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
+          UNIQUE KEY unique_election_candidate (electionId, candidateId)
+        )`
+      },
+      {
         name: 'votes',
         sql: `CREATE TABLE IF NOT EXISTS votes (
           id VARCHAR(36) PRIMARY KEY,
@@ -151,7 +187,21 @@ async function createDatabase() {
           FOREIGN KEY (electionId) REFERENCES elections(id) ON DELETE CASCADE,
           FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
           FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_vote (voterId, electionId, candidateId)
+          UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
+        )`
+      },
+      {
+        name: 'password_reset_tokens',
+        sql: `CREATE TABLE IF NOT EXISTS password_reset_tokens (
+          id VARCHAR(36) PRIMARY KEY,
+          email VARCHAR(255) NOT NULL,
+          token VARCHAR(255) NOT NULL UNIQUE,
+          user_type ENUM('admin', 'voter') NOT NULL,
+          expires_at TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_token (token),
+          INDEX idx_email (email),
+          INDEX idx_expires (expires_at)
         )`
       }
     ];
@@ -167,8 +217,8 @@ async function createDatabase() {
     console.log('👑 Creating superadmin account...');
     const superadminPassword = await bcrypt.hash('devEagle123', 10);
     await connection.execute(
-      `INSERT INTO admins (id, username, email, password, role) VALUES (?, ?, ?, ?, ?)`,
-      ['superadmin-001', 'DevEagle', 'devEagle@votingsystem.com', superadminPassword, 'superadmin']
+      `INSERT INTO admins (id, username, email, password, role) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE role = ?, password = ?`,
+      ['superadmin-001', 'DevEagle', 'devEagle@votingsystem.com', superadminPassword, 'superadmin', 'superadmin', superadminPassword]
     );
     
     // 2. Create departments with specific IDs
@@ -182,8 +232,8 @@ async function createDatabase() {
 
     for (const dept of departments) {
       await connection.execute(
-        `INSERT INTO departments (id, name, created_by) VALUES (?, ?, ?)`,
-        [dept.id, dept.name, dept.created_by]
+        `INSERT INTO departments (id, name, created_by) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name = ?`,
+        [dept.id, dept.name, dept.created_by, dept.name]
       );
     }
     
@@ -213,8 +263,8 @@ async function createDatabase() {
 
     for (const course of courses) {
       await connection.execute(
-        `INSERT INTO courses (id, name, departmentId, created_by) VALUES (?, ?, ?, ?)`,
-        [course.id, course.name, course.departmentId, course.created_by]
+        `INSERT INTO courses (id, name, departmentId, created_by) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?`,
+        [course.id, course.name, course.departmentId, course.created_by, course.name]
       );
     }
     
@@ -234,14 +284,14 @@ async function createDatabase() {
       { id: 'pos-011', name: 'Business Manager', voteLimit: 1, displayOrder: 11 },
       { id: 'pos-012', name: 'Assistant Business Manager', voteLimit: 1, displayOrder: 12 },
       { id: 'pos-013', name: 'Board Member', voteLimit: 3, displayOrder: 13 },
-      { id: 'pos-014', name: 'Senator', voteLimit: 8, displayOrder: 14 },
+      { id: 'pos-014', name: 'Senator', voteLimit: 5, displayOrder: 14 },
       { id: 'pos-015', name: 'Representative', voteLimit: 2, displayOrder: 15 }
     ];
 
     for (const position of positions) {
       await connection.execute(
-        `INSERT INTO positions (id, name, voteLimit, displayOrder) VALUES (?, ?, ?, ?)`,
-        [position.id, position.name, position.voteLimit, position.displayOrder]
+        `INSERT INTO positions (id, name, voteLimit, displayOrder) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?`,
+        [position.id, position.name, position.voteLimit, position.displayOrder, position.name]
       );
     }
     
@@ -256,8 +306,8 @@ async function createDatabase() {
     };
 
     await connection.execute(
-      `INSERT INTO voters (name, email, studentId, departmentId, courseId) VALUES (?, ?, ?, ?, ?)`,
-      [sampleVoter.name, sampleVoter.email, sampleVoter.studentId, sampleVoter.departmentId, sampleVoter.courseId]
+      `INSERT INTO voters (name, email, studentId, departmentId, courseId) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?`,
+      [sampleVoter.name, sampleVoter.email, sampleVoter.studentId, sampleVoter.departmentId, sampleVoter.courseId, sampleVoter.name]
     );
     
     console.log('\n✅ Database creation and seeding completed successfully!');
@@ -317,4 +367,4 @@ async function createDatabase() {
 }
 
 // Run the database creation
-createDatabase();
+createDatabase(); 

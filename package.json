@@ -5,22 +5,13 @@
   "type": "module",
   "scripts": {
     "test:ballot": "node test-single-ballot-system.js",
-    "test:quick": "node test-quick-ballot.js",
-    "test:votes": "node run-vote-tests.js"
+    "test:quick": "node test-quick-ballot.js"
   },
   "dependencies": {
-    "mysql2": "^3.14.3",
     "node-fetch": "^3.3.2"
   },
-  "devDependencies": {
-    "chai": "^5.2.1"
-  },
-  "keywords": [
-    "voting",
-    "election",
-    "test",
-    "automation"
-  ],
+  "devDependencies": {},
+  "keywords": ["voting", "election", "test", "automation"],
   "author": "Voting System Team",
   "license": "MIT"
 }
