@@ -7,6 +7,9 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.get('/', DepartmentController.getAll);
 
+// Get departments with their courses (public - needed for department management display)
+router.get('/with-courses', DepartmentController.getAllWithCourses);
+
 // Get courses in a department (public - needed for user registration and candidate creation)
 router.get('/:id/courses', DepartmentController.getCourses);
 

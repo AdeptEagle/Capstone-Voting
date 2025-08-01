@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getDepartments, getCoursesByDepartment } from '../services/api';
+import { getDepartmentsWithCourses } from '../services/api';
 import DepartmentModal from '../components/Departments/DepartmentModal';
 import DepartmentDeleteModal from '../components/Departments/DepartmentDeleteModal';
 import CourseModal from '../components/Departments/CourseModal';
@@ -25,7 +25,8 @@ const DepartmentManagement = () => {
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const data = await getDepartments();
+      const data = await getDepartmentsWithCourses();
+      console.log('DepartmentManagement - Received departments:', data);
       setDepartments(data);
       setError('');
     } catch (err) {
