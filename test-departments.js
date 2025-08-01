@@ -8,7 +8,17 @@ const testDepartments = async () => {
   console.log('================================\n');
   
   try {
-    console.log('1. Testing /departments endpoint...');
+    console.log('1. Testing simple /departments/test route...');
+    const testResponse = await fetch(`${baseUrl}/departments/test`);
+    console.log(`   Status: ${testResponse.status} ${testResponse.statusText}`);
+    if (testResponse.ok) {
+      const testData = await testResponse.json();
+      console.log(`   ✅ Test route works: ${testData.message}`);
+    } else {
+      console.log(`   ❌ Error: ${await testResponse.text()}`);
+    }
+    
+    console.log('\n2. Testing /departments endpoint...');
     const deptResponse = await fetch(`${baseUrl}/departments`);
     console.log(`   Status: ${deptResponse.status} ${deptResponse.statusText}`);
     
@@ -22,7 +32,7 @@ const testDepartments = async () => {
       console.log(`   ❌ Error: ${await deptResponse.text()}`);
     }
     
-    console.log('\n2. Testing /departments/all-with-courses endpoint...');
+    console.log('\n3. Testing /departments/all-with-courses endpoint...');
     const withCoursesResponse = await fetch(`${baseUrl}/departments/all-with-courses`);
     console.log(`   Status: ${withCoursesResponse.status} ${withCoursesResponse.statusText}`);
     
@@ -41,7 +51,7 @@ const testDepartments = async () => {
       console.log(`   ❌ Error: ${await withCoursesResponse.text()}`);
     }
     
-    console.log('\n3. Testing a specific department courses...');
+    console.log('\n4. Testing a specific department courses...');
     // Try first department
     const firstDeptResponse = await fetch(`${baseUrl}/departments`);
     if (firstDeptResponse.ok) {
