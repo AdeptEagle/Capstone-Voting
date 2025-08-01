@@ -4,7 +4,7 @@ import { getCandidates, createCandidate, updateCandidate, deleteCandidate, delet
 import { checkCurrentUser } from '../services/auth';
 import { useElection } from '../contexts/ElectionContext';
 import ElectionStatusMessage from '../components/ElectionStatusMessage';
-import { uploadImageToBlob } from '../services/blobUpload';
+import { uploadImageToBlob, uploadImageFallback } from '../services/blobUpload';
 import './Candidates.css';
 
 // Import new components and utilities
@@ -165,8 +165,15 @@ const Candidates = () => {
       if (photoFile) {
         try {
           console.log('🖼️ Uploading photo:', photoFile.name);
-          photoUrl = await uploadImageToBlob(photoFile);
-          console.log('✅ Photo uploaded successfully:', photoUrl);
+          // Try Vercel Blob first, fallback to data URL if token not configured
+          try {
+            photoUrl = await uploadImageToBlob(photoFile);
+            console.log('✅ Photo uploaded to Vercel Blob successfully:', photoUrl);
+          } catch (blobError) {
+            console.warn('⚠️ Vercel Blob not available, using fallback:', blobError.message);
+            photoUrl = await uploadImageFallback(photoFile);
+            console.log('✅ Photo converted to data URL successfully');
+          }
         } catch (uploadError) {
           console.error('❌ Photo upload failed:', uploadError);
           setError(`Photo upload failed: ${uploadError.message}. Candidate will be saved without photo.`);
