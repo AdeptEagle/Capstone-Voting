@@ -43,10 +43,25 @@ async function fixVoteConstraint() {
     
     // Add the new constraint with candidateId
     console.log('➕ Adding new unique_vote constraint with candidateId...');
-    await connection.execute(`
-      ALTER TABLE votes 
-      ADD UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
-    `);
+    try {
+      // First try to add the constraint directly
+      await connection.execute(`
+        ALTER TABLE votes 
+        ADD UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
+      `);
+    } catch (addError) {
+      if (addError.code === 'ER_DUP_KEYNAME') {
+        // If constraint exists, drop and recreate it
+        console.log('🔄 Constraint exists, recreating it...');
+        await connection.execute('ALTER TABLE votes DROP INDEX unique_vote');
+        await connection.execute(`
+          ALTER TABLE votes 
+          ADD UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
+        `);
+      } else {
+        throw addError;
+      }
+    }
     console.log('✅ New constraint added successfully');
     
     // Verify the new constraint

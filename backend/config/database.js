@@ -265,7 +265,7 @@ async function createTables(verbose = true) {
           FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
           FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
           FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_vote (electionId, positionId, voterId, candidateId)
+          UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
         )`
       },
       {
