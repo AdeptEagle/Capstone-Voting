@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getPositions, getCandidates, getVoters, createVote, createMultipleVotes, getElectionCandidates, getElectionPositions } from '../../services/api';
+import { getPositions, getCandidates, getVoters, createVote, createMultipleVotes, getElectionCandidates, getElectionPositions, getVotingStatus } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useElection } from '../../contexts/ElectionContext';
 import ElectionStatusMessage from '../../components/ElectionStatusMessage';
@@ -22,6 +22,7 @@ const Vote = () => {
   const [hasVoted, setHasVoted] = useState(false);
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
   const [selectedVotes, setSelectedVotes] = useState({});
+  const [votingStatus, setVotingStatus] = useState({}); // NEW: Track voting status for each position
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -34,6 +35,32 @@ const Vote = () => {
   const navigate = useNavigate();
   const { canVote, hasActiveElection, triggerImmediateRefresh, activeElection } = useElection();
   const [imgError, setImgError] = useState({}); // Track image errors by candidate ID
+
+  // NEW: Load voting status for each position
+  const loadVotingStatus = async () => {
+    if (!activeElection || !user) return;
+    
+    try {
+      const statusPromises = positions.map(async (position) => {
+        try {
+          const status = await getVotingStatus(activeElection.id, position.id);
+          return { positionId: position.id, status };
+        } catch (error) {
+          console.error(`Error loading status for position ${position.id}:`, error);
+          return { positionId: position.id, status: null };
+        }
+      });
+      
+      const statuses = await Promise.all(statusPromises);
+      const statusMap = {};
+      statuses.forEach(({ positionId, status }) => {
+        statusMap[positionId] = status;
+      });
+      setVotingStatus(statusMap);
+    } catch (error) {
+      console.error('Error loading voting status:', error);
+    }
+  };
 
   useEffect(() => {
     // Trigger immediate election status refresh
@@ -69,37 +96,47 @@ const Vote = () => {
     fetchData();
   }, [activeElection?.id]);
 
+  // NEW: Load voting status when positions and user are available
+  useEffect(() => {
+    if (positions.length > 0 && user && activeElection) {
+      loadVotingStatus();
+    }
+  }, [positions, user, activeElection]);
+
+  // ✅ UPDATE: Enhanced candidate selection with voting status
   const handleSelect = (positionId, candidateId) => {
     const currentPosition = positions.find(p => p.id === positionId);
-    const voteLimit = currentPosition?.voteLimit || 1;
+    const currentStatus = votingStatus[positionId];
+    
+    if (!currentPosition) return;
+
+    const voteLimit = currentPosition.voteLimit || 1;
+    const currentVotes = currentStatus?.votingStatus?.currentVotes || 0;
+    const remainingVotes = voteLimit - currentVotes;
     
     setSelectedVotes(prev => {
       const currentSelections = prev[positionId] || [];
       
-      if (voteLimit === 1) {
-        // Single selection - replace the selection
-        return { ...prev, [positionId]: [candidateId] };
-      } else {
-        // Multiple selection - toggle the selection
-        const isSelected = currentSelections.includes(candidateId);
-        if (isSelected) {
-          // Remove from selection
-          return { 
-            ...prev, 
-            [positionId]: currentSelections.filter(id => id !== candidateId) 
-          };
-        } else {
-          // Add to selection (if under limit)
-          if (currentSelections.length < voteLimit) {
-            return { 
-              ...prev, 
-              [positionId]: [...currentSelections, candidateId] 
-            };
-          }
-          // Already at limit, don't add
-          return prev;
-        }
+      // Check if candidate is already selected
+      if (currentSelections.includes(candidateId)) {
+        // Remove selection
+        return {
+          ...prev,
+          [positionId]: currentSelections.filter(id => id !== candidateId)
+        };
       }
+      
+      // Check if we can add more votes based on remaining votes
+      if (currentSelections.length >= remainingVotes) {
+        alert(`You can only select ${remainingVotes} more candidate(s) for ${currentPosition.name}`);
+        return prev;
+      }
+      
+      // Add selection
+      return {
+        ...prev,
+        [positionId]: [...currentSelections, candidateId]
+      };
     });
   };
 
@@ -123,6 +160,7 @@ const Vote = () => {
     setShowIdConfirmation(true);
   };
 
+  // ✅ UPDATE: Enhanced vote submission with better error handling
   const handleIdConfirmation = async () => {
     if (idConfirmation.toLowerCase() !== 'confirm') {
       setError('Please type "CONFIRM" exactly to proceed');
@@ -133,65 +171,83 @@ const Vote = () => {
     setError('');
     setSuccess('');
     
-    // Use the voter ID from the voters table, not the JWT user ID
     if (!user) {
       setError('User information not found. Please log in again.');
       setSubmitting(false);
       return;
     }
     
-    const voterId = user.id; // This is the voter's ID from the voters table
-    const studentId = user.studentId;
+    const voterId = user.id;
     
     try {
-      // Submit votes for all positions
-      const positionsToVote = positions.filter(pos => selectedVotes[pos.id] && selectedVotes[pos.id].length > 0);
-      let voteCount = 0;
-      const totalVotes = positionsToVote.reduce((total, pos) => total + selectedVotes[pos.id].length, 0);
-      
-      // NEW: Process votes by position as groups
-      for (let i = 0; i < positionsToVote.length; i++) {
-        const pos = positionsToVote[i];
-        const candidateIds = selectedVotes[pos.id];
-        
-        // Calculate if this is the last position to vote on
-        const remainingPositions = positionsToVote.slice(i + 1);
-        const remainingVotes = remainingPositions.reduce((total, p) => total + selectedVotes[p.id].length, 0);
-        const isLastVote = remainingVotes === 0;
-        
-        console.log(`Processing position ${pos.name}: ${candidateIds.length} candidates, isLastVote=${isLastVote}`);
-        
-        try {
-          // Use the new group voting method
-          await createMultipleVotes({
-            voterId: voterId,
-            positionId: pos.id,
-            candidateIds: candidateIds,
-            isLastVote: isLastVote
+      // Convert selections to vote objects
+      const votes = [];
+      Object.entries(selectedVotes).forEach(([positionId, candidateIds]) => {
+        candidateIds.forEach(candidateId => {
+          votes.push({
+            electionId: activeElection.id,
+            positionId,
+            candidateId
           });
-          
-          console.log(`Position ${pos.name} votes submitted successfully`);
-        } catch (voteError) {
-          // Extract error message from response
-          const errorMessage = voteError.response?.data?.error || voteError.message || 'Failed to submit vote';
-          console.error(`Position ${pos.name} failed:`, errorMessage);
-          
-          throw new Error(`Error voting for position ${pos.name}: ${errorMessage}`);
-        }
+        });
+      });
+
+      if (votes.length === 0) {
+        setError('Please select at least one candidate before submitting.');
+        setSubmitting(false);
+        return;
       }
+
+      console.log('Submitting votes:', votes);
       
-      // All votes submitted successfully
-      setSuccess('Your votes have been submitted successfully! Thank you for participating.');
-      setHasVoted(true);
-      setShowIdConfirmation(false);
-      setShowFinalScreen(true);
+      try {
+        // Use the new multiple votes API with improved error handling
+        const response = await createMultipleVotes({ 
+          voterId: voterId,
+          votes: votes
+        });
+        
+        console.log('Votes cast successfully:', response);
+        
+        if (response.success) {
+          setSuccess('Your votes have been submitted successfully! Thank you for participating.');
+          setHasVoted(true);
+          setShowIdConfirmation(false);
+          setShowFinalScreen(true);
+          
+          // Reload voting status to reflect changes
+          setTimeout(() => {
+            loadVotingStatus();
+          }, 1000);
+        } else {
+          setError(response.message || 'Failed to submit votes');
+        }
+        
+      } catch (error) {
+        console.error('Vote submission error:', error);
+        
+        // Handle specific voting errors with improved error messages
+        if (error.response?.data?.errors) {
+          const errorMessages = error.response.data.errors.map(err => 
+            `Position ${err.positionId}: ${err.error}`
+          ).join('\n');
+          setError(`Some votes failed:\n${errorMessages}`);
+        } else if (error.response?.data?.error) {
+          setError(error.response.data.error);
+        } else {
+          setError(error.message || 'Failed to submit votes');
+        }
+        
+        // Reset submission state but keep the confirmation dialog open
+        setSubmitting(false);
+        return; // Stop processing on error
+      }
       
     } catch (err) {
       console.error('Vote submission error:', err);
       setError(err.message || 'Failed to submit votes');
-      // Reset submission state but keep the confirmation dialog open
       setSubmitting(false);
-      return; // Stop processing on error
+      return;
     } finally {
       setSubmitting(false);
     }
@@ -226,6 +282,48 @@ const Vote = () => {
 
   const canSelectMore = () => {
     return getSelectionCount() < getVoteLimit();
+  };
+
+  // ✅ NEW: Helper function to get voting status for a position
+  const getVotingStatusForPosition = (positionId) => {
+    return votingStatus[positionId] || null;
+  };
+
+  // ✅ NEW: Helper function to get remaining votes for a position
+  const getRemainingVotes = (positionId) => {
+    const position = positions.find(p => p.id === positionId);
+    const status = getVotingStatusForPosition(positionId);
+    
+    if (!position || !status) return position?.voteLimit || 0;
+    
+    return Math.max(0, position.voteLimit - status.votingStatus.currentVotes);
+  };
+
+  // ✅ NEW: Helper function to check if candidate is already voted for
+  const isCandidateVotedFor = (positionId, candidateId) => {
+    const status = getVotingStatusForPosition(positionId);
+    if (!status) return false;
+    
+    return status.candidates.some(c => c.id === candidateId && c.isVotedFor);
+  };
+
+  // ✅ NEW: Helper function to get vote progress text
+  const getVoteProgressText = (positionId) => {
+    const position = positions.find(p => p.id === positionId);
+    const status = getVotingStatusForPosition(positionId);
+    
+    if (!position || !status) return '';
+    
+    const { currentVotes, remainingVotes } = status.votingStatus;
+    const totalVotes = position.voteLimit;
+    
+    if (currentVotes === 0) {
+      return `Vote for up to ${totalVotes} candidate(s)`;
+    } else if (remainingVotes === 0) {
+      return `You have voted for all ${currentVotes} candidate(s)`;
+    } else {
+      return `Voted: ${currentVotes}/${totalVotes}, Remaining: ${remainingVotes}`;
+    }
   };
 
   if (loading) {
@@ -340,74 +438,98 @@ const Vote = () => {
         <h2 className="vote-position-title">
           {getCurrentPosition()?.name}
         </h2>
-        <p className="vote-position-subtitle">
-          {getVoteLimit() === 1 
-            ? 'Select your preferred candidate for this position'
-            : `Select up to ${getVoteLimit()} candidates for this position (${getSelectionCount()}/${getVoteLimit()} selected)`
-          }
-        </p>
+        
+        {/* ✅ NEW: Voting Status Information */}
+        <div className="vote-status-info">
+          <p className="vote-position-subtitle">
+            {getVoteProgressText(getCurrentPosition()?.id)}
+          </p>
+          
+          {/* Show remaining votes if any */}
+          {getRemainingVotes(getCurrentPosition()?.id) > 0 && (
+            <div className="vote-remaining-info">
+              <span className="badge bg-info">
+                {getRemainingVotes(getCurrentPosition()?.id)} vote(s) remaining
+              </span>
+            </div>
+          )}
+        </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
         {success && <div className="alert alert-success">{success}</div>}
 
         <div className="vote-candidates-grid">
-          {getCurrentCandidates().map((candidate, index) => (
-            <div 
-              key={candidate.id} 
-              className={`vote-candidate-card-modern ${isCandidateSelected(candidate.id) ? 'selected' : ''} ${!isCandidateSelected(candidate.id) && !canSelectMore() ? 'disabled' : ''}`}
-              onClick={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
-            >
-              <div className="vote-candidate-card-header">
-                <div className="vote-candidate-rank-badge">
-                  <span className="rank-number">{index + 1}</span>
-                </div>
-                <div className="vote-candidate-photo-container">
-                  {candidate.photoUrl && !imgError[candidate.id] ? (
-                    <img 
-                      src={getImageUrl(candidate.photoUrl)}
-                      alt={candidate.name} 
-                      className="vote-candidate-photo"
-                      onError={e => {
-                        setImgError(prev => ({ ...prev, [candidate.id]: true }));
-                        e.target.style.display = 'none';
-                        const placeholder = e.target.parentNode?.querySelector('.candidate-photo-placeholder');
-                        if (placeholder) {
-                          placeholder.style.display = 'flex';
-                        }
-                      }}
+          {getCurrentCandidates().map((candidate, index) => {
+            const isVotedFor = isCandidateVotedFor(getCurrentPosition()?.id, candidate.id);
+            const isSelected = isCandidateSelected(candidate.id);
+            
+            return (
+              <div 
+                key={candidate.id} 
+                className={`vote-candidate-card-modern ${isSelected ? 'selected' : ''} ${isVotedFor ? 'voted-for' : ''} ${!isSelected && !canSelectMore() ? 'disabled' : ''}`}
+                onClick={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
+              >
+                <div className="vote-candidate-card-header">
+                  <div className="vote-candidate-rank-badge">
+                    <span className="rank-number">{index + 1}</span>
+                  </div>
+                  
+                  {/* ✅ NEW: Show voted badge if already voted for */}
+                  {isVotedFor && (
+                    <div className="vote-candidate-voted-badge">
+                      <i className="fas fa-check-circle"></i>
+                      <span>Voted</span>
+                    </div>
+                  )}
+                  
+                  <div className="vote-candidate-photo-container">
+                    {candidate.photoUrl && !imgError[candidate.id] ? (
+                      <img 
+                        src={getImageUrl(candidate.photoUrl)}
+                        alt={candidate.name} 
+                        className="vote-candidate-photo"
+                        onError={e => {
+                          setImgError(prev => ({ ...prev, [candidate.id]: true }));
+                          e.target.style.display = 'none';
+                          const placeholder = e.target.parentNode?.querySelector('.candidate-photo-placeholder');
+                          if (placeholder) {
+                            placeholder.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <CandidatePhotoPlaceholder className="candidate-photo-placeholder" style={{ display: candidate.photoUrl && !imgError[candidate.id] ? 'none' : 'flex' }} />
+                  </div>
+                  <div className="vote-candidate-overlay">
+                    <h3 className="vote-candidate-overlay-name">
+                      {candidate.name}
+                      <span className="verified"><i className="fas fa-check-circle"></i></span>
+                    </h3>
+                    <div className="vote-candidate-overlay-position">{candidate.positionName}</div>
+                    <p className="vote-candidate-overlay-description">
+                      {candidate.description ? 
+                        candidate.description.substring(0, 120) + (candidate.description.length > 120 ? '...' : '') :
+                        'Learn more about this candidate and their vision for the position.'
+                      }
+                    </p>
+                  </div>
+                  <div className="vote-candidate-selection-overlay">
+                    <input
+                      type={getVoteLimit() === 1 ? "radio" : "checkbox"}
+                      name={`position-${getCurrentPosition()?.id}`}
+                      value={candidate.id}
+                      checked={isSelected}
+                      onChange={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
+                      disabled={!isSelected && !canSelectMore()}
+                      className="vote-selection-input"
                     />
-                  ) : null}
-                  <CandidatePhotoPlaceholder className="candidate-photo-placeholder" style={{ display: candidate.photoUrl && !imgError[candidate.id] ? 'none' : 'flex' }} />
+                    <span className={`vote-selection-indicator ${getVoteLimit() === 1 ? 'radio-custom' : 'checkbox-custom'}`}></span>
+                  </div>
                 </div>
-                <div className="vote-candidate-overlay">
-                  <h3 className="vote-candidate-overlay-name">
-                    {candidate.name}
-                    <span className="verified"><i className="fas fa-check-circle"></i></span>
-                  </h3>
-                  <div className="vote-candidate-overlay-position">{candidate.positionName}</div>
-                  <p className="vote-candidate-overlay-description">
-                    {candidate.description ? 
-                      candidate.description.substring(0, 120) + (candidate.description.length > 120 ? '...' : '') :
-                      'Learn more about this candidate and their vision for the position.'
-                    }
-                  </p>
-                </div>
-                <div className="vote-candidate-selection-overlay">
-                  <input
-                    type={getVoteLimit() === 1 ? "radio" : "checkbox"}
-                    name={`position-${getCurrentPosition()?.id}`}
-                    value={candidate.id}
-                    checked={isCandidateSelected(candidate.id)}
-                    onChange={() => handleSelect(getCurrentPosition()?.id, candidate.id)}
-                    disabled={!isCandidateSelected(candidate.id) && !canSelectMore()}
-                    className="vote-selection-input"
-                  />
-                  <span className={`vote-selection-indicator ${getVoteLimit() === 1 ? 'radio-custom' : 'checkbox-custom'}`}></span>
-                </div>
-              </div>
 
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {getCurrentCandidates().length === 0 && (

@@ -8,149 +8,18 @@ import { PositionModel } from "../models/PositionModel.js";
 import { TransactionHelper } from "../utils/transactionHelper.js";
 
 export class VotingService {
-  static async processVote(voteData) {
-    const { voterId, candidateId, positionId, isLastVote } = voteData;
+  
+  // NEW: Validate vote for position with proper multiple vote handling
+  static async validateVoteForPosition(voterId, electionId, positionId, candidateId) {
+    const db = createConnection();
     
-    // Log vote submission for traceability
-    console.log(`Vote submission: VoterID=${voterId}, CandidateID=${candidateId}, PositionID=${positionId}, isLastVote=${isLastVote}`);
-    
-    return await TransactionHelper.executeInTransaction(async (db) => {
-      // First check if there's an active election
+    try {
+      // Check if election is active
       const activeElection = await ElectionModel.getActive();
-      if (!activeElection) {
+      if (!activeElection || activeElection.id !== electionId) {
         throw new Error("No active election found");
       }
       
-      console.log('Active election found:', activeElection);
-      
-      // Check if election is active
-      if (activeElection.status !== 'active') {
-        throw new Error("Election is not active");
-      }
-      
-      // Check if voter has already completed voting (hasVoted flag)
-      const voter = await VoterModel.getById(voterId);
-      if (!voter) {
-        throw new Error("Voter not found");
-      }
-      
-      console.log('Voter query results:', voter);
-      
-      if (voter.hasVoted) {
-        console.log(`Voter ${voterId} has already voted (hasVoted=${voter.hasVoted})`);
-        throw new Error("You have already voted in this election");
-      }
-      
-      console.log(`Voter ${voterId} has not voted yet, proceeding with vote recording`);
-      
-      // Get the candidate details
-      const candidate = await CandidateModel.getById(candidateId);
-      if (!candidate) {
-        throw new Error("Candidate not found");
-      }
-
-      // Get the position and check vote limit
-      const position = await PositionModel.getById(positionId);
-      if (!position) {
-        throw new Error("Position not found");
-      }
-
-      // Verify candidate belongs to this position
-      if (candidate.positionId !== positionId) {
-        throw new Error("Candidate does not belong to the specified position");
-      }
-
-      // Count existing votes for this position by this voter
-      const existingVotes = await VoteModel.countVotesByPosition(voterId, activeElection.id, positionId);
-      console.log(`Current votes for position ${position.name}: ${existingVotes} (limit: ${position.voteLimit})`);
-      
-      if (existingVotes >= position.voteLimit) {
-        throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}. Please select a different position or candidate.`);
-      }
-      
-      // Check if voter has already voted for this specific candidate in this position
-      const duplicateCheck = await new Promise((resolve, reject) => {
-        const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ? AND positionId = ?";
-        db.query(query, [voterId, activeElection.id, candidateId, positionId], (err, result) => {
-          if (err) reject(err);
-          else resolve(result[0].count);
-        });
-      });
-      
-      console.log(`Duplicate check for voter ${voterId}, candidate ${candidateId}, position ${positionId}: ${duplicateCheck} existing votes`);
-      
-      if (duplicateCheck > 0) {
-        console.log(`❌ Duplicate vote detected: voter ${voterId} already voted for candidate ${candidateId} in position ${positionId}`);
-        throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
-      }
-      
-      // Get next vote ID
-      const IDGenerator = await import('../utils/idGenerator.js');
-      const voteId = await IDGenerator.default.getNextVoteID();
-      
-      console.log(`Generated vote ID: ${voteId}`);
-      console.log(`About to record vote: voterId=${voterId}, candidateId=${candidateId}, positionId=${positionId}`);
-      
-      // Record the vote using VoteModel
-      try {
-        await VoteModel.create({
-          id: voteId,
-          voterId,
-          candidateId,
-          electionId: activeElection.id,
-          positionId
-        });
-        console.log(`Vote recorded successfully: ${voteId}`);
-      } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
-          throw new Error(`Duplicate vote detected: You have already voted for this candidate in this position`);
-        }
-        throw err;
-      }
-      
-      // Only set hasVoted = true if this is the last vote
-      if (isLastVote) {
-        console.log(`This is the last vote, updating voter ${voterId} hasVoted flag to true`);
-        await new Promise((resolve, reject) => {
-          const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
-          db.query(query, [voterId], (err, result) => {
-            if (err) {
-              console.error('Voter update error:', err);
-              reject(err);
-            } else {
-              console.log(`Voter ${voterId} hasVoted flag updated successfully. Rows affected: ${result.affectedRows}`);
-              resolve();
-            }
-          });
-        });
-        console.log(`Voter ${voterId} locked out after completing all votes`);
-      } else {
-        console.log(`This is not the last vote (${isLastVote}), keeping voter ${voterId} hasVoted flag as false`);
-      }
-      
-      return { 
-        message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded",
-        voteId,
-        position: position.name,
-        candidate: candidate.name
-      };
-    });
-  }
-
-  // NEW: Process multiple votes for a position as a group
-  static async processMultipleVotes(voteData) {
-    const { voterId, positionId, candidateIds, isLastVote } = voteData;
-    
-    console.log(`Processing multiple votes: VoterID=${voterId}, PositionID=${positionId}, Candidates=${candidateIds.length}, isLastVote=${isLastVote}`);
-    
-    return await TransactionHelper.executeInTransaction(async (db) => {
-      // First check if there's an active election
-      const activeElection = await ElectionModel.getActive();
-      if (!activeElection) {
-        throw new Error("No active election found");
-      }
-      
-      // Check if election is active
       if (activeElection.status !== 'active') {
         throw new Error("Election is not active");
       }
@@ -165,15 +34,79 @@ export class VotingService {
         throw new Error("You have already voted in this election");
       }
       
-      // Get the position and check vote limit
+      // Get position details and vote limit
       const position = await PositionModel.getById(positionId);
       if (!position) {
         throw new Error("Position not found");
       }
       
-      // Check if we're within the vote limit for this position
-      if (candidateIds.length > position.voteLimit) {
-        throw new Error(`You can only vote for up to ${position.voteLimit} candidates for ${position.name}`);
+      // Verify candidate belongs to this position
+      const candidate = await CandidateModel.getById(candidateId);
+      if (!candidate || candidate.positionId !== positionId) {
+        throw new Error("Candidate does not belong to the specified position");
+      }
+      
+      // Check current vote count for this voter and position
+      const currentVotes = await new Promise((resolve, reject) => {
+        const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?";
+        db.query(query, [voterId, electionId, positionId], (err, result) => {
+          if (err) reject(err);
+          else resolve(result[0].count);
+        });
+      });
+      
+      // Check if voter has already voted for this specific candidate
+      const duplicateCheck = await new Promise((resolve, reject) => {
+        const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ? AND positionId = ?";
+        db.query(query, [voterId, electionId, candidateId, positionId], (err, result) => {
+          if (err) reject(err);
+          else resolve(result[0].count);
+        });
+      });
+      
+      if (duplicateCheck > 0) {
+        throw new Error(`You have already voted for this candidate in ${position.name}`);
+      }
+      
+      // Check if voter has reached the vote limit for this position
+      if (currentVotes >= position.voteLimit) {
+        throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}`);
+      }
+      
+      return {
+        valid: true,
+        currentVotes,
+        limit: position.voteLimit,
+        remainingVotes: position.voteLimit - currentVotes
+      };
+      
+    } catch (error) {
+      return {
+        valid: false,
+        error: error.message
+      };
+    } finally {
+      db.end();
+    }
+  }
+
+  // NEW: Handle multiple votes with proper validation
+  static async processMultipleVotes(voteData) {
+    const { voterId, positionId, candidateIds, isLastVote } = voteData;
+    
+    console.log(`Processing multiple votes: VoterID=${voterId}, PositionID=${positionId}, Candidates=${candidateIds.length}, isLastVote=${isLastVote}`);
+    
+    return await TransactionHelper.executeInTransaction(async (db) => {
+      // Get active election
+      const activeElection = await ElectionModel.getActive();
+      if (!activeElection) {
+        throw new Error("No active election found");
+      }
+      
+      // Get position details
+      const position = await PositionModel.getById(positionId);
+      if (!position) {
+        throw new Error("Position not found");
       }
       
       // Check for duplicate candidates in the selection
@@ -182,8 +115,13 @@ export class VotingService {
         throw new Error("You cannot vote for the same candidate multiple times");
       }
       
-      // Check if voter has already voted for any of these candidates in this position
-      const existingVotes = await new Promise((resolve, reject) => {
+      // Check if we're within the vote limit for this position
+      if (candidateIds.length > position.voteLimit) {
+        throw new Error(`You can only vote for up to ${position.voteLimit} candidates for ${position.name}`);
+      }
+      
+      // Check current votes for this position
+      const currentVotes = await new Promise((resolve, reject) => {
         const query = "SELECT candidateId FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?";
         db.query(query, [voterId, activeElection.id, positionId], (err, result) => {
           if (err) reject(err);
@@ -191,16 +129,16 @@ export class VotingService {
         });
       });
       
-      // Check for conflicts with existing votes
-      const conflicts = candidateIds.filter(candidateId => existingVotes.includes(candidateId));
-      if (conflicts.length > 0) {
-        throw new Error(`You have already voted for some of these candidates in ${position.name}`);
-      }
-      
       // Check total votes for this position by this voter
-      const totalVotesForPosition = existingVotes.length + candidateIds.length;
+      const totalVotesForPosition = currentVotes.length + candidateIds.length;
       if (totalVotesForPosition > position.voteLimit) {
         throw new Error(`You can only vote for up to ${position.voteLimit} candidates for ${position.name}`);
+      }
+      
+      // Check for conflicts with existing votes
+      const conflicts = candidateIds.filter(candidateId => currentVotes.includes(candidateId));
+      if (conflicts.length > 0) {
+        throw new Error(`You have already voted for some of these candidates in ${position.name}`);
       }
       
       // Record all votes for this position
@@ -244,7 +182,60 @@ export class VotingService {
         message: isLastVote ? "All votes recorded and voter locked out" : "Votes recorded",
         voteIds,
         position: position.name,
-        candidateCount: candidateIds.length
+        candidateCount: candidateIds.length,
+        currentVotes: currentVotes.length + candidateIds.length,
+        limit: position.voteLimit
+      };
+    });
+  }
+
+  // LEGACY: Keep for backward compatibility
+  static async processVote(voteData) {
+    const { voterId, candidateId, positionId, isLastVote } = voteData;
+    
+    console.log(`Vote submission: VoterID=${voterId}, CandidateID=${candidateId}, PositionID=${positionId}, isLastVote=${isLastVote}`);
+    
+    return await TransactionHelper.executeInTransaction(async (db) => {
+      // Get active election
+      const activeElection = await ElectionModel.getActive();
+      if (!activeElection) {
+        throw new Error("No active election found");
+      }
+      
+      // Validate the vote
+      const validation = await this.validateVoteForPosition(voterId, activeElection.id, positionId, candidateId);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+      
+      // Record the vote
+      const IDGenerator = await import('../utils/idGenerator.js');
+      const voteId = await IDGenerator.default.getNextVoteID();
+      
+      await VoteModel.create({
+        id: voteId,
+        voterId,
+        candidateId,
+        electionId: activeElection.id,
+        positionId
+      });
+      
+      // Only set hasVoted = true if this is the last vote
+      if (isLastVote) {
+        await new Promise((resolve, reject) => {
+          const query = "UPDATE voters SET hasVoted = 1 WHERE id = ?";
+          db.query(query, [voterId], (err, result) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+      }
+      
+      return { 
+        message: isLastVote ? "All votes recorded and voter locked out" : "Vote recorded",
+        voteId,
+        position: validation.position?.name,
+        candidate: validation.candidate?.name
       };
     });
   }
@@ -386,6 +377,54 @@ export class VotingService {
       };
     } catch (error) {
       console.error('Error fetching voter status:', error);
+      throw error;
+    }
+  }
+
+  // NEW: Get position by ID
+  static async getPositionById(positionId) {
+    try {
+      const db = createConnection();
+      const [rows] = await db.promise().query(
+        'SELECT * FROM positions WHERE id = ?',
+        [positionId]
+      );
+      db.end();
+      return rows[0] || null;
+    } catch (error) {
+      console.error('Error getting position by ID:', error);
+      throw error;
+    }
+  }
+
+  // NEW: Get voter's votes for a specific position
+  static async getVoterVotesForPosition(voterId, electionId, positionId) {
+    try {
+      const db = createConnection();
+      const [rows] = await db.promise().query(
+        'SELECT * FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?',
+        [voterId, electionId, positionId]
+      );
+      db.end();
+      return rows;
+    } catch (error) {
+      console.error('Error getting voter votes for position:', error);
+      throw error;
+    }
+  }
+
+  // NEW: Get candidates for a position
+  static async getCandidatesForPosition(positionId) {
+    try {
+      const db = createConnection();
+      const [rows] = await db.promise().query(
+        'SELECT * FROM candidates WHERE positionId = ? ORDER BY name',
+        [positionId]
+      );
+      db.end();
+      return rows;
+    } catch (error) {
+      console.error('Error getting candidates for position:', error);
       throw error;
     }
   }

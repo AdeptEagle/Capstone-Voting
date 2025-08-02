@@ -4,31 +4,43 @@ import { authenticate } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Create a new vote
-router.post("/", VoteController.createVote);
+// ✅ UPDATE: Multiple votes endpoint (authenticated)
+router.post("/multiple", authenticate, VoteController.createMultipleVotes);
 
-// Create multiple votes for a position
-router.post("/multiple", VoteController.createMultipleVotes);
+// ✅ UPDATE: Single vote endpoint (authenticated)
+router.post("/single", authenticate, VoteController.createVote);
 
-// Get all votes
+// ✅ NEW: Handle votes array format from frontend (authenticated)
+router.post("/votes-array", authenticate, VoteController.handleMultipleVotesArray);
+
+// ✅ NEW: Get voting status for a position (authenticated)
+router.get("/status/:electionId/:positionId", authenticate, VoteController.getVotingStatus);
+
+// ✅ KEEP: Get voter's votes for an election (authenticated)
+router.get("/voter/:electionId", authenticate, VoteController.getVoterVotes);
+
+// ✅ KEEP: Check voting eligibility for a position (authenticated)
+router.get("/eligibility/:electionId/:positionId", authenticate, VoteController.checkVotingEligibility);
+
+// ✅ KEEP: Get all votes (admin only)
 router.get("/", authenticate, VoteController.getVotes);
 
-// Get voting results
+// ✅ KEEP: Get voting results
 router.get("/results", VoteController.getResults);
 
-// Get active election results only
+// ✅ KEEP: Get active election results only
 router.get("/active-results", VoteController.getActiveElectionResults);
 
-// Get real-time voting statistics
+// ✅ KEEP: Get real-time voting statistics
 router.get("/real-time-stats", VoteController.getRealTimeStats);
 
-// Get vote timeline data
+// ✅ KEEP: Get vote timeline data
 router.get("/vote-timeline", VoteController.getVoteTimeline);
 
-// Get vote timeline (alternative route for frontend)
+// ✅ KEEP: Get vote timeline (alternative route for frontend)
 router.get("/timeline", VoteController.getVoteTimeline);
 
-// Reset voter status (admin only)
+// ✅ KEEP: Reset voter status (admin only)
 router.put("/reset-voter/:voterId", authenticate, VoteController.resetVoterStatus);
 
 export default router; 

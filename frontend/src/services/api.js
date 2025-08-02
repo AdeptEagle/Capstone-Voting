@@ -401,10 +401,10 @@ export const assignCandidateToElection = async (electionId, candidateId) => {
   }
 };
 
-// Vote API functions
+// Vote-related API calls
 export const createVote = async (voteData) => {
   try {
-    const response = await api.post('/votes', voteData);
+    const response = await api.post('/votes/single', voteData);
     return response.data;
   } catch (error) {
     console.error('Error creating vote:', error);
@@ -414,10 +414,21 @@ export const createVote = async (voteData) => {
 
 export const createMultipleVotes = async (voteData) => {
   try {
-    const response = await api.post('/votes/multiple', voteData);
+    const response = await api.post('/votes/votes-array', voteData);
     return response.data;
   } catch (error) {
     console.error('Error creating multiple votes:', error);
+    throw error;
+  }
+};
+
+// NEW: Get voting status for a position
+export const getVotingStatus = async (electionId, positionId) => {
+  try {
+    const response = await api.get(`/votes/status/${electionId}/${positionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting voting status:', error);
     throw error;
   }
 };
