@@ -27,15 +27,15 @@ export class VotingService {
       
       const voteLimit = positionResult[0].voteLimit;
       
-      // Check if voter already voted for this specific candidate (in database)
+      // Check if voter already voted for this specific candidate in this position (in database)
       const [duplicateVote] = await db.promise().query(
-        'SELECT id FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?',
-        [voterId, electionId, candidateId]
+        'SELECT id FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ? AND candidateId = ?',
+        [voterId, electionId, positionId, candidateId]
       );
       
       if (duplicateVote.length > 0) {
         db.end();
-        throw new Error('You have already voted for this candidate');
+        throw new Error('You have already voted for this candidate in this position');
       }
       
       // Check if this candidate is already in the current transaction votes

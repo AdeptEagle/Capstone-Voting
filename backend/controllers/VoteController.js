@@ -55,6 +55,7 @@ export class VoteController {
         
         try {
           console.log(`Processing vote ${i + 1}/${sortedVotes.length}: Position ${positionId}, Candidate ${candidateId}`);
+          console.log(`   Current processed votes in transaction: ${processedVotes.length}`);
           
           // Validate with current transaction context
           const validation = await VotingService.validateVoteForPosition(
@@ -65,16 +66,25 @@ export class VoteController {
             processedVotes
           );
           
+          console.log(`   Validation result:`, validation);
+          
           if (validation.valid) {
             // Generate unique vote ID
             const IDGenerator = await import('../utils/idGenerator.js');
             const voteId = await IDGenerator.default.getNextVoteID();
             
+            console.log(`   Inserting vote with ID: ${voteId}`);
+            
             await new Promise((resolve, reject) => {
               const query = 'INSERT INTO votes (id, electionId, positionId, candidateId, voterId) VALUES (?, ?, ?, ?, ?)';
               db.query(query, [voteId, electionId, positionId, candidateId, voterId], (err) => {
-                if (err) reject(err);
-                else resolve();
+                if (err) {
+                  console.error(`   ❌ Database error:`, err.message);
+                  reject(err);
+                } else {
+                  console.log(`   ✅ Vote inserted successfully`);
+                  resolve();
+                }
               });
             });
             
@@ -97,6 +107,7 @@ export class VoteController {
           }
         } catch (error) {
           console.error(`❌ Vote failed for position ${positionId}:`, error.message);
+          console.error(`   Error details:`, error);
           errors.push({
             success: false,
             electionId,
