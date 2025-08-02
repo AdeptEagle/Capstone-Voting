@@ -247,6 +247,12 @@ const startServer = async () => {
       await ensureDatabaseAndTables();
       console.log('✅ Database initialized successfully');
       
+      // Force fix votes table constraint
+      console.log('🔧 Force fixing votes table constraint...');
+      const { fixVotesTableConstraint } = await import('./config/database.js');
+      await fixVotesTableConstraint(true);
+      console.log('✅ Votes table constraint verified/fixed');
+      
       // Initialize election timer service
       console.log('⏰ Initializing election timer service...');
       await ElectionTimerService.initialize();

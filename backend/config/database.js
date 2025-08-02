@@ -265,7 +265,7 @@ async function createTables(verbose = true) {
           FOREIGN KEY (positionId) REFERENCES positions(id) ON DELETE CASCADE,
           FOREIGN KEY (candidateId) REFERENCES candidates(id) ON DELETE CASCADE,
           FOREIGN KEY (voterId) REFERENCES voters(id) ON DELETE CASCADE,
-          UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)
+          UNIQUE KEY unique_voter_candidate (voterId, electionId, candidateId)
         )`
       },
       {
@@ -308,7 +308,8 @@ async function createTables(verbose = true) {
       { name: 'idx_election_positions_electionId', sql: 'CREATE INDEX IF NOT EXISTS idx_election_positions_electionId ON election_positions(electionId)' },
       { name: 'idx_election_candidates_electionId', sql: 'CREATE INDEX IF NOT EXISTS idx_election_candidates_electionId ON election_candidates(electionId)' },
       { name: 'idx_votes_electionId', sql: 'CREATE INDEX IF NOT EXISTS idx_votes_electionId ON votes(electionId)' },
-      { name: 'idx_votes_voterId', sql: 'CREATE INDEX IF NOT EXISTS idx_votes_voterId ON votes(voterId)' }
+      { name: 'idx_votes_voterId', sql: 'CREATE INDEX IF NOT EXISTS idx_votes_voterId ON votes(voterId)' },
+      { name: 'idx_votes_position_voter', sql: 'CREATE INDEX IF NOT EXISTS idx_votes_position_voter ON votes(positionId, voterId, electionId)' }
     ];
 
     // Create indexes silently (they might already exist)
@@ -370,16 +371,65 @@ async function fixVotesTableConstraint(verbose = true) {
   
   try {
     if (verbose) {
-      console.log('🔧 Checking votes table constraint...');
+      console.log('🔧 Fixing votes table constraint...');
     }
     
-    // Check if the correct constraint exists
-    const constraintCheck = await new Promise((resolve, reject) => {
+    // Drop ALL existing constraints on votes table
+    const existingConstraints = await new Promise((resolve, reject) => {
+      db.query(`
+        SELECT CONSTRAINT_NAME 
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+        WHERE TABLE_NAME = 'votes' 
+        AND TABLE_SCHEMA = '${DB_NAME}'
+        AND CONSTRAINT_NAME != 'PRIMARY'
+      `, (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    // Drop each existing constraint
+    for (const constraint of existingConstraints) {
+      try {
+        await new Promise((resolve) => {
+          db.query(`ALTER TABLE votes DROP INDEX ${constraint.CONSTRAINT_NAME}`, (err) => {
+            if (verbose && !err) {
+              console.log(`   Dropped constraint: ${constraint.CONSTRAINT_NAME}`);
+            }
+            resolve(); // Always resolve, ignore errors
+          });
+        });
+      } catch (error) {
+        // Ignore errors when dropping constraints
+      }
+    }
+    
+    // Add the correct constraint: prevent same voter from voting for same candidate
+    // This allows multiple votes per position but prevents duplicate candidate votes
+    await new Promise((resolve, reject) => {
+      db.query("ALTER TABLE votes ADD UNIQUE KEY unique_voter_candidate (voterId, electionId, candidateId)", (err) => {
+        if (err) {
+          if (verbose) {
+            console.error('Error adding constraint:', err.message);
+          }
+          reject(err);
+        } else {
+          if (verbose) {
+            console.log('✅ Added correct constraint: unique_voter_candidate');
+          }
+          resolve();
+        }
+      });
+    });
+    
+    // Verify the constraint was added correctly
+    const verifyConstraint = await new Promise((resolve, reject) => {
       db.query(`
         SELECT CONSTRAINT_NAME, COLUMN_NAME 
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
         WHERE TABLE_NAME = 'votes' 
-        AND CONSTRAINT_NAME = 'unique_vote'
+        AND CONSTRAINT_NAME = 'unique_voter_candidate'
+        AND TABLE_SCHEMA = '${DB_NAME}'
         ORDER BY ORDINAL_POSITION
       `, (err, result) => {
         if (err) reject(err);
@@ -387,53 +437,19 @@ async function fixVotesTableConstraint(verbose = true) {
       });
     });
     
-    const expectedColumns = ['voterId', 'electionId', 'positionId', 'candidateId'];
-    const actualColumns = constraintCheck.map(row => row.COLUMN_NAME);
+    const verifyColumns = verifyConstraint.map(row => row.COLUMN_NAME);
+    if (verbose) {
+      console.log('Verified constraint columns:', verifyColumns);
+    }
     
-    console.log('Current constraint columns:', actualColumns);
-    console.log('Expected constraint columns:', expectedColumns);
-    
-    // If constraint is correct, no action needed
-    if (JSON.stringify(actualColumns) === JSON.stringify(expectedColumns)) {
+    const expectedColumns = ['voterId', 'electionId', 'candidateId'];
+    if (JSON.stringify(verifyColumns) === JSON.stringify(expectedColumns)) {
       if (verbose) {
-        console.log('✅ Votes table constraint is already correct');
+        console.log('✅ Votes table constraint fixed and verified successfully');
+        console.log('   This now allows multiple votes per position while preventing duplicate candidate votes');
       }
-      return;
-    }
-    
-    // Fix the constraint
-    if (verbose) {
-      console.log('🔧 Fixing votes table constraint...');
-    }
-    
-    // Drop existing constraint if it exists
-    try {
-      await new Promise((resolve, reject) => {
-        db.query("ALTER TABLE votes DROP INDEX unique_vote", (err) => {
-          if (err && err.code !== 'ER_CANT_DROP_FIELD_OR_KEY') {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-    } catch (error) {
-      // Constraint might not exist, continue
-    }
-    
-    // Add correct constraint
-    await new Promise((resolve, reject) => {
-      db.query("ALTER TABLE votes ADD UNIQUE KEY unique_vote (voterId, electionId, positionId, candidateId)", (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-    
-    if (verbose) {
-      console.log('✅ Votes table constraint fixed successfully');
+    } else {
+      throw new Error('Constraint verification failed');
     }
     
   } catch (error) {
@@ -443,6 +459,54 @@ async function fixVotesTableConstraint(verbose = true) {
     // Don't throw error - this is not critical for server startup
   } finally {
     db.end();
+  }
+}
+
+// Validation function to check vote limits before inserting
+async function validateVoteForPosition(voterId, electionId, positionId, candidateId) {
+  const db = createConnection();
+  
+  try {
+    // Get the vote limit for this position
+    const positionResult = await runQuery(db, 
+      'SELECT voteLimit FROM positions WHERE id = ?', 
+      [positionId]
+    );
+    
+    if (positionResult.length === 0) {
+      throw new Error('Position not found');
+    }
+    
+    const voteLimit = positionResult[0].voteLimit;
+    
+    // Check if voter already voted for this specific candidate
+    const duplicateVote = await runQuery(db, 
+      'SELECT id FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?',
+      [voterId, electionId, candidateId]
+    );
+    
+    if (duplicateVote.length > 0) {
+      throw new Error('You have already voted for this candidate');
+    }
+    
+    // Check current vote count for this voter and position
+    const currentVotes = await runQuery(db, 
+      'SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?',
+      [voterId, electionId, positionId]
+    );
+    
+    const currentVoteCount = currentVotes[0].count;
+    
+    if (currentVoteCount >= voteLimit) {
+      throw new Error(`You have already cast ${voteLimit} vote(s) for this position`);
+    }
+    
+    db.end();
+    return { valid: true, currentVotes: currentVoteCount, limit: voteLimit };
+    
+  } catch (error) {
+    db.end();
+    throw error;
   }
 }
 
@@ -519,7 +583,9 @@ async function ensureDatabaseAndTables() {
 
     // Fix votes table constraint for ALL databases (fresh and existing)
     await fixVotesTableConstraint(isFreshSetup);
-    console.log('✅ Votes table constraint verified/fixed');
+    if (isFreshSetup) {
+      console.log('✅ Votes table constraint verified/fixed');
+    }
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
@@ -554,6 +620,7 @@ export {
   runQuery,
   testConnection,
   testMySQLConnection,
+  validateVoteForPosition,
   DB_NAME,
   IS_TEST 
-}; 
+};

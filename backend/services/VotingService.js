@@ -182,7 +182,7 @@ export class VotingService {
         throw new Error("You cannot vote for the same candidate multiple times");
       }
       
-      // Check if voter has already voted for any of these candidates
+      // Check if voter has already voted for any of these candidates in this position
       const existingVotes = await new Promise((resolve, reject) => {
         const query = "SELECT candidateId FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?";
         db.query(query, [voterId, activeElection.id, positionId], (err, result) => {
@@ -197,22 +197,35 @@ export class VotingService {
         throw new Error(`You have already voted for some of these candidates in ${position.name}`);
       }
       
+      // Check total votes for this position by this voter
+      const totalVotesForPosition = existingVotes.length + candidateIds.length;
+      if (totalVotesForPosition > position.voteLimit) {
+        throw new Error(`You can only vote for up to ${position.voteLimit} candidates for ${position.name}`);
+      }
+      
       // Record all votes for this position
       const voteIds = [];
       for (const candidateId of candidateIds) {
         const IDGenerator = await import('../utils/idGenerator.js');
         const voteId = await IDGenerator.default.getNextVoteID();
         
-        await VoteModel.create({
-          id: voteId,
-          voterId,
-          candidateId,
-          electionId: activeElection.id,
-          positionId
-        });
-        
-        voteIds.push(voteId);
-        console.log(`Vote recorded: ${voteId} for candidate ${candidateId}`);
+        try {
+          await VoteModel.create({
+            id: voteId,
+            voterId,
+            candidateId,
+            electionId: activeElection.id,
+            positionId
+          });
+          
+          voteIds.push(voteId);
+          console.log(`Vote recorded: ${voteId} for candidate ${candidateId}`);
+        } catch (err) {
+          if (err.code === 'ER_DUP_ENTRY') {
+            throw new Error(`Duplicate vote detected: You have already voted for this candidate in ${position.name}`);
+          }
+          throw err;
+        }
       }
       
       // Only set hasVoted = true if this is the last vote
@@ -250,6 +263,15 @@ export class VotingService {
       return await ResultsModel.getAllElectionResults();
     } catch (error) {
       console.error('Error fetching all election results:', error);
+      throw error;
+    }
+  }
+
+  static async getResults(showAll = false) {
+    try {
+      return await ResultsModel.getResults(showAll);
+    } catch (error) {
+      console.error('Error fetching results:', error);
       throw error;
     }
   }
