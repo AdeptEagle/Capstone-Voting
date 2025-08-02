@@ -46,4 +46,7 @@ router.get("/timeline", VoteController.getVoteTimeline);
 // ✅ KEEP: Reset voter status (admin only)
 router.put("/reset-voter/:voterId", authenticate, VoteController.resetVoterStatus);
 
+// ✅ DEBUG: Force fix database constraint (admin only)
+router.post("/debug/fix-constraint", authenticate, VoteController.forceFixConstraint);
+
 export default router; 

@@ -57,6 +57,27 @@ export class VoteController {
           console.log(`Processing vote ${i + 1}/${sortedVotes.length}: Position ${positionId}, Candidate ${candidateId}`);
           console.log(`   Current processed votes in transaction: ${processedVotes.length}`);
           
+          // Check if this vote already exists in database
+          const existingVote = await new Promise((resolve, reject) => {
+            const query = 'SELECT id FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ? AND candidateId = ?';
+            db.query(query, [voterId, electionId, positionId, candidateId], (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+            });
+          });
+          
+          if (existingVote.length > 0) {
+            console.log(`   ⚠️ Vote already exists in database:`, existingVote[0]);
+            errors.push({
+              success: false,
+              electionId,
+              positionId,
+              candidateId,
+              error: 'You have already voted for this candidate in this position'
+            });
+            continue;
+          }
+          
           // Validate with current transaction context
           const validation = await VotingService.validateVoteForPosition(
             voterId, 
@@ -386,6 +407,23 @@ export class VoteController {
       res.json({ message: "Voter status reset successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ✅ DEBUG: Force fix database constraint
+  static async forceFixConstraint(req, res) {
+    try {
+      console.log('🔧 Force fixing database constraint...');
+      const { fixVotesTableConstraint } = await import('../config/database.js');
+      await fixVotesTableConstraint(true);
+      res.json({ 
+        success: true, 
+        message: 'Database constraint fixed successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fixing constraint:', error);
+      res.status(500).json({ error: 'Failed to fix constraint', details: error.message });
     }
   }
 } 

@@ -183,6 +183,7 @@ const Vote = () => {
       // Convert selections to vote objects
       const votes = [];
       Object.entries(selectedVotes).forEach(([positionId, candidateIds]) => {
+        console.log(`Processing position ${positionId} with candidates:`, candidateIds);
         candidateIds.forEach(candidateId => {
           votes.push({
             electionId: activeElection.id,
@@ -192,6 +193,16 @@ const Vote = () => {
         });
       });
 
+      // Check for duplicate votes in the array
+      const voteKeys = votes.map(v => `${v.voterId}-${v.electionId}-${v.positionId}-${v.candidateId}`);
+      const uniqueKeys = [...new Set(voteKeys)];
+      if (voteKeys.length !== uniqueKeys.length) {
+        console.error('❌ DUPLICATE VOTES DETECTED:', votes);
+        setError('Duplicate votes detected. Please refresh and try again.');
+        setSubmitting(false);
+        return;
+      }
+
       if (votes.length === 0) {
         setError('Please select at least one candidate before submitting.');
         setSubmitting(false);
@@ -199,6 +210,12 @@ const Vote = () => {
       }
 
       console.log('Submitting votes:', votes);
+      console.log('Vote count by position:');
+      const positionCounts = {};
+      votes.forEach(vote => {
+        positionCounts[vote.positionId] = (positionCounts[vote.positionId] || 0) + 1;
+      });
+      console.log(positionCounts);
       
       try {
         // Use the new multiple votes API with improved error handling
