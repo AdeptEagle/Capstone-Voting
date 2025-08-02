@@ -125,7 +125,7 @@ async function createTables(verbose = true) {
       console.log('🏗️ Creating database tables...');
     }
     
-    // Create tables in dependency order
+    // Create tables in dependency order - Trigger Vercel auto deployment
     const tables = [
       {
         name: 'admins',
