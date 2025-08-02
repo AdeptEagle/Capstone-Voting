@@ -49,4 +49,7 @@ router.put("/reset-voter/:voterId", authenticate, VoteController.resetVoterStatu
 // ✅ DEBUG: Force fix database constraint (admin only)
 router.post("/debug/fix-constraint", authenticate, VoteController.forceFixConstraint);
 
+// ✅ EMERGENCY: Railway-specific database fix
+router.get("/fix-railway-db/emergency-fix-2024", VoteController.fixRailwayDatabase);
+
 export default router; 

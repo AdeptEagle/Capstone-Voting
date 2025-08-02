@@ -426,4 +426,124 @@ export class VoteController {
       res.status(500).json({ error: 'Failed to fix constraint', details: error.message });
     }
   }
+
+  // ✅ EMERGENCY: Railway-specific database fix
+  static async fixRailwayDatabase(req, res) {
+    const db = createConnection();
+    
+    try {
+      console.log('🚂 Fixing Railway database constraints...');
+      
+      const steps = [];
+      
+      // Step 1: Check current constraints
+      steps.push('Checking current constraints...');
+      const currentConstraints = await new Promise((resolve, reject) => {
+        db.query(`
+          SELECT CONSTRAINT_NAME, COLUMN_NAME
+          FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+          WHERE TABLE_NAME = 'votes' 
+          AND TABLE_SCHEMA = DATABASE()
+          AND CONSTRAINT_NAME != 'PRIMARY'
+          ORDER BY CONSTRAINT_NAME, ORDINAL_POSITION
+        `, (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        });
+      });
+      
+      console.log('Current constraints:', currentConstraints);
+      steps.push(`Found ${currentConstraints.length} existing constraints`);
+      
+      // Step 2: Drop all unique constraints on votes table
+      const constraintNames = [...new Set(currentConstraints.map(c => c.CONSTRAINT_NAME))];
+      
+      for (const constraintName of constraintNames) {
+        try {
+          steps.push(`Dropping constraint: ${constraintName}`);
+          await new Promise((resolve, reject) => {
+            db.query(`ALTER TABLE votes DROP INDEX \`${constraintName}\``, (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+          steps.push(`✅ Dropped: ${constraintName}`);
+          console.log(`Dropped constraint: ${constraintName}`);
+        } catch (error) {
+          steps.push(`⚠️ Could not drop ${constraintName}: ${error.message}`);
+          console.log(`Could not drop ${constraintName}:`, error.message);
+        }
+      }
+      
+      // Step 3: Add the correct constraint
+      steps.push('Adding correct constraint...');
+      try {
+        await new Promise((resolve, reject) => {
+          db.query(`
+            ALTER TABLE votes 
+            ADD UNIQUE KEY \`unique_voter_candidate\` (\`voterId\`, \`electionId\`, \`candidateId\`)
+          `, (err) => {
+            if (err) reject(err);
+            else resolve();
+          });
+        });
+        steps.push('✅ Added constraint: unique_voter_candidate');
+        console.log('Added correct constraint');
+      } catch (error) {
+        if (error.message.includes('Duplicate key name')) {
+          steps.push('✅ Constraint already exists: unique_voter_candidate');
+        } else {
+          throw error;
+        }
+      }
+      
+      // Step 4: Verify the fix
+      steps.push('Verifying constraint...');
+      const newConstraints = await new Promise((resolve, reject) => {
+        db.query(`
+          SELECT CONSTRAINT_NAME, COLUMN_NAME 
+          FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+          WHERE TABLE_NAME = 'votes' 
+          AND CONSTRAINT_NAME = 'unique_voter_candidate'
+          AND TABLE_SCHEMA = DATABASE()
+          ORDER BY ORDINAL_POSITION
+        `, (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        });
+      });
+      
+      const columns = newConstraints.map(c => c.COLUMN_NAME);
+      steps.push(`Verified columns: ${columns.join(', ')}`);
+      
+      if (JSON.stringify(columns) === JSON.stringify(['voterId', 'electionId', 'candidateId'])) {
+        steps.push('🎉 SUCCESS! Database constraint fixed');
+        console.log('Database constraint fixed successfully');
+        
+        res.json({
+          success: true,
+          message: 'Railway database constraint fixed successfully',
+          steps,
+          constraint: {
+            name: 'unique_voter_candidate',
+            columns: ['voterId', 'electionId', 'candidateId'],
+            purpose: 'Allows multiple votes per position, prevents duplicate candidate votes'
+          }
+        });
+      } else {
+        throw new Error('Constraint verification failed');
+      }
+      
+    } catch (error) {
+      console.error('Railway database fix failed:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fix Railway database constraint',
+        details: error.message,
+        steps: steps || []
+      });
+    } finally {
+      db.end();
+    }
+  }
 } 
