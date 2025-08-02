@@ -462,13 +462,11 @@ async function fixVotesTableConstraint(verbose = true) {
   }
 }
 
-// Validation function to check vote limits before inserting
-async function validateVoteForPosition(voterId, electionId, positionId, candidateId) {
-  const db = createConnection();
-  
+// Updated validation function that works with transactions
+async function validateVoteForPosition(connection, voterId, electionId, positionId, candidateId, currentTransactionVotes = []) {
   try {
     // Get the vote limit for this position
-    const positionResult = await runQuery(db, 
+    const positionResult = await runQuery(connection, 
       'SELECT voteLimit FROM positions WHERE id = ?', 
       [positionId]
     );
@@ -479,8 +477,8 @@ async function validateVoteForPosition(voterId, electionId, positionId, candidat
     
     const voteLimit = positionResult[0].voteLimit;
     
-    // Check if voter already voted for this specific candidate
-    const duplicateVote = await runQuery(db, 
+    // Check if voter already voted for this specific candidate (in database)
+    const duplicateVote = await runQuery(connection, 
       'SELECT id FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?',
       [voterId, electionId, candidateId]
     );
@@ -489,23 +487,42 @@ async function validateVoteForPosition(voterId, electionId, positionId, candidat
       throw new Error('You have already voted for this candidate');
     }
     
-    // Check current vote count for this voter and position
-    const currentVotes = await runQuery(db, 
+    // Check if this candidate is already in the current transaction votes
+    const duplicateInTransaction = currentTransactionVotes.some(vote => 
+      vote.candidateId === candidateId && vote.positionId === positionId
+    );
+    
+    if (duplicateInTransaction) {
+      throw new Error('You are trying to vote for the same candidate multiple times');
+    }
+    
+    // Get current vote count for this voter and position (from database)
+    const currentVotes = await runQuery(connection, 
       'SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?',
       [voterId, electionId, positionId]
     );
     
     const currentVoteCount = currentVotes[0].count;
     
-    if (currentVoteCount >= voteLimit) {
-      throw new Error(`You have already cast ${voteLimit} vote(s) for this position`);
+    // Count votes for this position in current transaction
+    const transactionVotesForPosition = currentTransactionVotes.filter(vote => vote.positionId === positionId).length;
+    
+    // Total votes would be: database votes + transaction votes + 1 (current vote)
+    const totalVotesAfterThis = currentVoteCount + transactionVotesForPosition + 1;
+    
+    if (totalVotesAfterThis > voteLimit) {
+      throw new Error(`You can only vote for ${voteLimit} candidate(s) in this position. You would have ${totalVotesAfterThis} votes.`);
     }
     
-    db.end();
-    return { valid: true, currentVotes: currentVoteCount, limit: voteLimit };
+    return { 
+      valid: true, 
+      currentVotes: currentVoteCount, 
+      transactionVotes: transactionVotesForPosition,
+      limit: voteLimit,
+      totalAfter: totalVotesAfterThis
+    };
     
   } catch (error) {
-    db.end();
     throw error;
   }
 }

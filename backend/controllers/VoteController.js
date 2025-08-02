@@ -23,123 +23,146 @@ export class VoteController {
     }
   }
 
-  // NEW: Handle votes array format from frontend
+  // ✅ UPDATE: Improved multiple votes handler with better validation
   static async handleMultipleVotesArray(req, res) {
+    const { votes } = req.body;
+    const voterId = req.user?.id || req.body.voterId;
+    
+    if (!votes || !Array.isArray(votes)) {
+      return res.status(400).json({ error: 'Invalid votes data' });
+    }
+
+    const db = createConnection();
+    
     try {
-      const { votes, voterId } = req.body;
-      
-      if (!votes || !Array.isArray(votes)) {
-        return res.status(400).json({ error: 'Invalid votes data' });
-      }
-
-      const db = createConnection();
-      
-      try {
-        // Start transaction
-        await new Promise((resolve, reject) => {
-          db.query('START TRANSACTION', (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
+      await new Promise((resolve, reject) => {
+        db.query('START TRANSACTION', (err) => {
+          if (err) reject(err);
+          else resolve();
         });
-        
-        const results = [];
-        const errors = [];
+      });
+      
+      const results = [];
+      const errors = [];
+      const processedVotes = []; // Track votes in this transaction
 
-        // Process each vote
-        for (const vote of votes) {
-          const { electionId, positionId, candidateId, isLastVote } = vote;
+      // Sort votes by position to make debugging easier
+      const sortedVotes = votes.sort((a, b) => a.positionId.localeCompare(b.positionId));
+
+      for (let i = 0; i < sortedVotes.length; i++) {
+        const vote = sortedVotes[i];
+        const { electionId, positionId, candidateId } = vote;
+        
+        try {
+          console.log(`Processing vote ${i + 1}/${sortedVotes.length}: Position ${positionId}, Candidate ${candidateId}`);
           
-          try {
-            // Validate the vote using the new validation function
-            const validation = await VotingService.validateVoteForPosition(voterId, electionId, positionId, candidateId);
+          // Validate with current transaction context
+          const validation = await VotingService.validateVoteForPosition(
+            voterId, 
+            electionId, 
+            positionId, 
+            candidateId, 
+            processedVotes
+          );
+          
+          if (validation.valid) {
+            // Generate unique vote ID
+            const IDGenerator = await import('../utils/idGenerator.js');
+            const voteId = await IDGenerator.default.getNextVoteID();
             
-            if (validation.valid) {
-              // Insert the vote
-              const IDGenerator = await import('../utils/idGenerator.js');
-              const voteId = await IDGenerator.default.getNextVoteID();
-              
-              await new Promise((resolve, reject) => {
-                const query = 'INSERT INTO votes (id, electionId, positionId, candidateId, voterId) VALUES (?, ?, ?, ?, ?)';
-                db.query(query, [voteId, electionId, positionId, candidateId, voterId], (err) => {
-                  if (err) reject(err);
-                  else resolve();
-                });
+            await new Promise((resolve, reject) => {
+              const query = 'INSERT INTO votes (id, electionId, positionId, candidateId, voterId) VALUES (?, ?, ?, ?, ?)';
+              db.query(query, [voteId, electionId, positionId, candidateId, voterId], (err) => {
+                if (err) reject(err);
+                else resolve();
               });
-              
-              results.push({
-                success: true,
-                voteId,
-                electionId,
-                positionId,
-                candidateId,
-                currentVotes: validation.currentVotes + 1,
-                limit: validation.limit
-              });
-            } else {
-              errors.push({
-                success: false,
-                electionId,
-                positionId,
-                candidateId,
-                error: validation.error
-              });
-            }
-          } catch (error) {
-            errors.push({
-              success: false,
-              electionId: vote.electionId,
-              positionId: vote.positionId,
-              candidateId: vote.candidateId,
-              error: error.message
             });
+            
+            // Add to processed votes for next validations
+            processedVotes.push({ electionId, positionId, candidateId });
+            
+            results.push({
+              success: true,
+              voteId,
+              electionId,
+              positionId,
+              candidateId,
+              currentVotes: validation.currentVotes,
+              transactionVotes: validation.transactionVotes,
+              totalAfter: validation.totalAfter,
+              limit: validation.limit
+            });
+            
+            console.log(`✅ Vote successful: ${validation.totalAfter}/${validation.limit} for position ${positionId}`);
           }
-        }
-
-        // If there are any errors, rollback the transaction
-        if (errors.length > 0) {
-          await new Promise((resolve) => {
-            db.query('ROLLBACK', () => resolve());
-          });
-          return res.status(400).json({ 
-            error: 'Some votes failed',
-            results,
-            errors 
+        } catch (error) {
+          console.error(`❌ Vote failed for position ${positionId}:`, error.message);
+          errors.push({
+            success: false,
+            electionId,
+            positionId,
+            candidateId,
+            error: error.message
           });
         }
-
-        // Commit the transaction if all votes succeeded
-        await new Promise((resolve, reject) => {
-          db.query('COMMIT', (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-        
-        // Update voter's hasVoted status if this was the last vote
-        const lastVote = votes.find(vote => vote.isLastVote);
-        if (lastVote) {
-          await new Promise((resolve, reject) => {
-            const query = 'UPDATE voters SET hasVoted = TRUE WHERE id = ?';
-            db.query(query, [voterId], (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-        }
-
-        res.json({ 
-          success: true,
-          message: 'All votes cast successfully',
-          results 
-        });
-
-      } finally {
-        db.end();
       }
+
+      // If there are any errors, rollback the transaction
+      if (errors.length > 0) {
+        await new Promise((resolve) => {
+          db.query('ROLLBACK', () => resolve());
+        });
+        console.log(`Rolling back transaction. ${results.length} succeeded, ${errors.length} failed.`);
+        return res.status(400).json({ 
+          error: 'Some votes failed',
+          results,
+          errors,
+          summary: {
+            total: votes.length,
+            successful: results.length,
+            failed: errors.length
+          }
+        });
+      }
+
+      // Commit the transaction if all votes succeeded
+      await new Promise((resolve, reject) => {
+        db.query('COMMIT', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      // Update voter's hasVoted status
+      await new Promise((resolve, reject) => {
+        const query = 'UPDATE voters SET hasVoted = TRUE WHERE id = ?';
+        db.query(query, [voterId], (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      console.log(`✅ All ${results.length} votes committed successfully`);
+
+      res.json({ 
+        success: true,
+        message: `All ${results.length} votes cast successfully`,
+        results,
+        summary: {
+          total: votes.length,
+          successful: results.length,
+          failed: 0
+        }
+      });
+
     } catch (error) {
+      await new Promise((resolve) => {
+        db.query('ROLLBACK', () => resolve());
+      });
       console.error('Error processing multiple votes:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    } finally {
+      db.end();
     }
   }
 

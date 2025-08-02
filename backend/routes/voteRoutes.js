@@ -13,6 +13,9 @@ router.post("/single", authenticate, VoteController.createVote);
 // ✅ NEW: Handle votes array format from frontend (authenticated)
 router.post("/votes-array", authenticate, VoteController.handleMultipleVotesArray);
 
+// ✅ SUPPORT: Both endpoints for compatibility
+router.post("/multiple-votes", authenticate, VoteController.handleMultipleVotesArray);
+
 // ✅ NEW: Get voting status for a position (authenticated)
 router.get("/status/:electionId/:positionId", authenticate, VoteController.getVotingStatus);
 

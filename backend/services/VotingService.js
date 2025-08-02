@@ -9,84 +9,75 @@ import { TransactionHelper } from "../utils/transactionHelper.js";
 
 export class VotingService {
   
-  // NEW: Validate vote for position with proper multiple vote handling
-  static async validateVoteForPosition(voterId, electionId, positionId, candidateId) {
-    const db = createConnection();
-    
+  // ✅ UPDATE: Enhanced validation function that works with transactions
+  static async validateVoteForPosition(voterId, electionId, positionId, candidateId, currentTransactionVotes = []) {
     try {
-      // Check if election is active
-      const activeElection = await ElectionModel.getActive();
-      if (!activeElection || activeElection.id !== electionId) {
-        throw new Error("No active election found");
+      const db = createConnection();
+      
+      // Get the vote limit for this position
+      const [positionResult] = await db.promise().query(
+        'SELECT voteLimit FROM positions WHERE id = ?', 
+        [positionId]
+      );
+      
+      if (positionResult.length === 0) {
+        db.end();
+        throw new Error('Position not found');
       }
       
-      if (activeElection.status !== 'active') {
-        throw new Error("Election is not active");
+      const voteLimit = positionResult[0].voteLimit;
+      
+      // Check if voter already voted for this specific candidate (in database)
+      const [duplicateVote] = await db.promise().query(
+        'SELECT id FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ?',
+        [voterId, electionId, candidateId]
+      );
+      
+      if (duplicateVote.length > 0) {
+        db.end();
+        throw new Error('You have already voted for this candidate');
       }
       
-      // Check if voter has already completed voting
-      const voter = await VoterModel.getById(voterId);
-      if (!voter) {
-        throw new Error("Voter not found");
+      // Check if this candidate is already in the current transaction votes
+      const duplicateInTransaction = currentTransactionVotes.some(vote => 
+        vote.candidateId === candidateId && vote.positionId === positionId
+      );
+      
+      if (duplicateInTransaction) {
+        db.end();
+        throw new Error('You are trying to vote for the same candidate multiple times');
       }
       
-      if (voter.hasVoted) {
-        throw new Error("You have already voted in this election");
+      // Get current vote count for this voter and position (from database)
+      const [currentVotes] = await db.promise().query(
+        'SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?',
+        [voterId, electionId, positionId]
+      );
+      
+      const currentVoteCount = currentVotes[0].count;
+      
+      // Count votes for this position in current transaction
+      const transactionVotesForPosition = currentTransactionVotes.filter(vote => vote.positionId === positionId).length;
+      
+      // Total votes would be: database votes + transaction votes + 1 (current vote)
+      const totalVotesAfterThis = currentVoteCount + transactionVotesForPosition + 1;
+      
+      if (totalVotesAfterThis > voteLimit) {
+        db.end();
+        throw new Error(`You can only vote for ${voteLimit} candidate(s) in this position. You would have ${totalVotesAfterThis} votes.`);
       }
       
-      // Get position details and vote limit
-      const position = await PositionModel.getById(positionId);
-      if (!position) {
-        throw new Error("Position not found");
-      }
-      
-      // Verify candidate belongs to this position
-      const candidate = await CandidateModel.getById(candidateId);
-      if (!candidate || candidate.positionId !== positionId) {
-        throw new Error("Candidate does not belong to the specified position");
-      }
-      
-      // Check current vote count for this voter and position
-      const currentVotes = await new Promise((resolve, reject) => {
-        const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND positionId = ?";
-        db.query(query, [voterId, electionId, positionId], (err, result) => {
-          if (err) reject(err);
-          else resolve(result[0].count);
-        });
-      });
-      
-      // Check if voter has already voted for this specific candidate
-      const duplicateCheck = await new Promise((resolve, reject) => {
-        const query = "SELECT COUNT(*) as count FROM votes WHERE voterId = ? AND electionId = ? AND candidateId = ? AND positionId = ?";
-        db.query(query, [voterId, electionId, candidateId, positionId], (err, result) => {
-          if (err) reject(err);
-          else resolve(result[0].count);
-        });
-      });
-      
-      if (duplicateCheck > 0) {
-        throw new Error(`You have already voted for this candidate in ${position.name}`);
-      }
-      
-      // Check if voter has reached the vote limit for this position
-      if (currentVotes >= position.voteLimit) {
-        throw new Error(`You have already cast the maximum number of votes (${position.voteLimit}) for ${position.name}`);
-      }
-      
-      return {
-        valid: true,
-        currentVotes,
-        limit: position.voteLimit,
-        remainingVotes: position.voteLimit - currentVotes
+      db.end();
+      return { 
+        valid: true, 
+        currentVotes: currentVoteCount, 
+        transactionVotes: transactionVotesForPosition,
+        limit: voteLimit,
+        totalAfter: totalVotesAfterThis
       };
       
     } catch (error) {
-      return {
-        valid: false,
-        error: error.message
-      };
-    } finally {
-      db.end();
+      throw error;
     }
   }
 

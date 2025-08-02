@@ -414,11 +414,30 @@ export const createVote = async (voteData) => {
 
 export const createMultipleVotes = async (voteData) => {
   try {
+    console.log('Submitting votes:', voteData);
+    
+    // Use the votes-array endpoint
     const response = await api.post('/votes/votes-array', voteData);
+    
+    console.log('Vote response:', response.data);
     return response.data;
+    
   } catch (error) {
-    console.error('Error creating multiple votes:', error);
-    throw error;
+    console.error('Voting API error:', error.response?.data);
+    
+    if (error.response?.data?.errors) {
+      // Create detailed error message
+      const errorDetails = error.response.data.errors.map(e => 
+        `Position ${e.positionId}: ${e.error}`
+      ).join('\n');
+      
+      const summary = error.response.data.summary;
+      const message = `Voting partially failed (${summary?.successful || 0}/${summary?.total || 0} successful):\n${errorDetails}`;
+      
+      throw new Error(message);
+    }
+    
+    throw new Error(error.response?.data?.error || 'Failed to submit votes');
   }
 };
 
