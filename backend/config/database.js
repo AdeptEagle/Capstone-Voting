@@ -21,9 +21,9 @@ if (process.env.MYSQL_URL) {
     charset: process.env.DB_CHARSET || 'utf8mb4',
     timezone: process.env.DB_TIMEZONE || '+00:00',
     // Connection pool settings for better ACID support
-    connectionLimit: 10,
-    acquireTimeout: 60000,
-    timeout: 60000,
+    connectionLimit: 30,  // Optimized for school-scale voting (500-700 students)
+    acquireTimeout: 30000,  // Faster response times
+    timeout: 30000,  // Reduced timeout for better performance
     reconnect: true,
     multipleStatements: true
   };
@@ -37,9 +37,9 @@ if (process.env.MYSQL_URL) {
     charset: process.env.DB_CHARSET || 'utf8mb4',
     timezone: process.env.DB_TIMEZONE || '+00:00',
     // Connection pool settings for better ACID support
-    connectionLimit: 10,
-    acquireTimeout: 60000,
-    timeout: 60000,
+    connectionLimit: 30,  // Optimized for school-scale voting (500-700 students)
+    acquireTimeout: 30000,  // Faster response times
+    timeout: 30000,  // Reduced timeout for better performance
     reconnect: true,
     multipleStatements: true
   };
@@ -55,7 +55,7 @@ const dbRoot = mysql.createConnection({
 const pool = mysql.createPool({
   ...dbConfig,
   database: DB_NAME,
-  connectionLimit: 10
+  connectionLimit: 30  // Optimized for school-scale voting (500-700 students)
 });
 
 // Helper to run a query and return a promise
