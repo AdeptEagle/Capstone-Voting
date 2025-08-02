@@ -12,7 +12,9 @@
     "create-db": "node scripts/create-database.js",
     "seed-data": "node scripts/seed-departments-courses.js",
     "seed-superadmin": "node scripts/seed-superadmin.js",
-    "setup-db": "npm run create-db && npm run seed-data && npm run seed-superadmin"
+    "setup-db": "npm run create-db && npm run seed-data && npm run seed-superadmin",
+    "fix-constraint": "node scripts/fix-votes-constraint.js",
+    "force-fix": "npm run fix-constraint"
   },
   "dependencies": {
     "axios": "^1.11.0",
