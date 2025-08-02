@@ -12,21 +12,13 @@
     "create-db": "node scripts/create-database.js",
     "seed-data": "node scripts/seed-departments-courses.js",
     "seed-superadmin": "node scripts/seed-superadmin.js",
-    "setup-db": "npm run create-db && npm run seed-data && npm run seed-superadmin",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "clean": "rm -rf node_modules package-lock.json",
-    "install:clean": "npm run clean && npm install",
-    "health": "curl http://localhost:3000/health",
-    "status": "curl http://localhost:3000/"
+    "setup-db": "npm run create-db && npm run seed-data && npm run seed-superadmin"
   },
   "dependencies": {
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "install": "^0.13.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
@@ -36,8 +28,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "node-fetch": "^3.3.2"
+    "eslint": "^8.57.0"
   },
   "engines": {
     "node": ">=18.0.0",
