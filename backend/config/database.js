@@ -20,11 +20,6 @@ if (process.env.MYSQL_URL) {
     port: parseInt(url.port) || 3306,
     charset: process.env.DB_CHARSET || 'utf8mb4',
     timezone: process.env.DB_TIMEZONE || '+00:00',
-    // Connection pool settings for better ACID support
-    connectionLimit: 30,  // Optimized for school-scale voting (500-700 students)
-    acquireTimeout: 30000,  // Faster response times
-    timeout: 30000,  // Reduced timeout for better performance
-    reconnect: true,
     multipleStatements: true
   };
 } else {
@@ -36,11 +31,6 @@ if (process.env.MYSQL_URL) {
     port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
     charset: process.env.DB_CHARSET || 'utf8mb4',
     timezone: process.env.DB_TIMEZONE || '+00:00',
-    // Connection pool settings for better ACID support
-    connectionLimit: 30,  // Optimized for school-scale voting (500-700 students)
-    acquireTimeout: 30000,  // Faster response times
-    timeout: 30000,  // Reduced timeout for better performance
-    reconnect: true,
     multipleStatements: true
   };
 }
@@ -51,11 +41,14 @@ const dbRoot = mysql.createConnection({
   multipleStatements: true
 });
 
-// Connection pool for better performance
+// Connection pool for better performance with pool-specific options
 const pool = mysql.createPool({
   ...dbConfig,
   database: DB_NAME,
-  connectionLimit: 30  // Optimized for school-scale voting (500-700 students)
+  connectionLimit: 30,  // Optimized for school-scale voting (500-700 students)
+  acquireTimeout: 30000,  // Pool-specific: time to acquire connection
+  timeout: 30000,  // Pool-specific: query timeout
+  reconnect: true  // Pool-specific: auto-reconnect
 });
 
 // Helper to run a query and return a promise
