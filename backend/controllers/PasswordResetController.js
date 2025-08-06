@@ -17,6 +17,16 @@ export class PasswordResetController {
         });
       }
       
+      // Ensure password reset table exists
+      try {
+        await PasswordResetService.ensurePasswordResetTable();
+      } catch (tableError) {
+        console.error('❌ Failed to ensure password reset table:', tableError);
+        return res.status(500).json({ 
+          error: 'System configuration error. Please contact administrator.' 
+        });
+      }
+      
       const result = await PasswordResetService.generateResetToken(email, userType);
       
       res.status(200).json({
@@ -32,8 +42,8 @@ export class PasswordResetController {
       });
     }
   }
-  
-  static async verifyResetToken(req, res) {
+
+  static async verifyToken(req, res) {
     try {
       const { token } = req.params;
       
@@ -48,6 +58,7 @@ export class PasswordResetController {
       res.status(200).json({
         success: true,
         message: 'Token is valid',
+        email: resetToken.email,
         userType: resetToken.user_type
       });
       
@@ -87,6 +98,21 @@ export class PasswordResetController {
       res.status(400).json({ 
         error: error.message || 'Failed to reset password' 
       });
+    }
+  }
+
+  static async verifyServiceHealth() {
+    try {
+      // Check if password reset table exists
+      await PasswordResetService.ensurePasswordResetTable();
+      
+      // Test email service initialization (without sending)
+      const EmailService = (await import('../services/EmailService.js')).default;
+      await EmailService.initializeTransporter();
+      
+      return { success: true, message: 'Password reset service is healthy' };
+    } catch (error) {
+      throw new Error(`Password reset service health check failed: ${error.message}`);
     }
   }
   

@@ -3,57 +3,67 @@ import nodemailer from 'nodemailer';
 class EmailService {
   constructor() {
     this.transporter = null;
-    this.isTestMode = process.env.NODE_ENV !== 'production';
   }
 
   async initializeTransporter() {
     if (this.transporter) return this.transporter;
 
-    // Check for Gmail credentials (try both variable names)
-    const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
-    const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
-    const hasGmailCredentials = gmailUser && gmailPass;
-
-    if (this.isTestMode || !hasGmailCredentials) {
-      // Use Ethereal for testing or when Gmail credentials are missing
-      const testAccount = await nodemailer.createTestAccount();
+    try {
+      // Check for Gmail credentials
+      const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
+      const gmailPass = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
       
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
+      console.log('📧 Initializing Gmail email transporter...');
+      console.log(`   Environment: ${process.env.NODE_ENV}`);
+      console.log(`   Gmail User: ${gmailUser ? 'Configured' : 'Missing'}`);
+      console.log(`   Gmail Password: ${gmailPass ? 'Configured' : 'Missing'}`);
 
-      if (!hasGmailCredentials && process.env.NODE_ENV === 'production') {
-        console.log('⚠️  Gmail credentials not found, using Ethereal for testing');
-        console.log('   Set GMAIL_USER and GMAIL_APP_PASSWORD environment variables for production email');
+      if (!gmailUser || !gmailPass) {
+        throw new Error('Gmail credentials are required. Please set GMAIL_USER and GMAIL_APP_PASSWORD environment variables.');
       }
-      console.log('📧 Email Service: Using Ethereal for testing');
-      console.log(`   Test Account: ${testAccount.user}`);
-      console.log(`   Preview URL: https://ethereal.email`);
-    } else {
-      // Use Gmail for production
+
+      // Create Gmail transporter
+      console.log('📧 Creating Gmail transporter...');
       this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: gmailUser,
           pass: gmailPass,
         },
+        // Additional options for better reliability
+        secure: false,
+        tls: {
+          rejectUnauthorized: false
+        }
       });
 
       console.log('📧 Email Service: Using Gmail for production');
       console.log(`   Gmail User: ${gmailUser}`);
-    }
 
-    return this.transporter;
+      // Verify transporter connection
+      console.log('📧 Verifying Gmail transporter connection...');
+      await this.transporter.verify();
+      console.log('✅ Gmail transporter verified successfully');
+
+      return this.transporter;
+
+    } catch (error) {
+      console.error('❌ Gmail transporter initialization failed:', error);
+      
+      if (error.code === 'EAUTH') {
+        throw new Error('Gmail authentication failed. Please check your Gmail credentials and ensure 2FA is enabled with an App Password.');
+      } else if (error.code === 'ECONNECTION') {
+        throw new Error('Gmail connection failed. Please check your internet connection and try again.');
+      } else {
+        throw new Error(`Gmail service initialization failed: ${error.message}`);
+      }
+    }
   }
 
   async sendPasswordResetEmail(email, resetToken, userType, userName) {
     try {
+      console.log(`📧 Sending password reset email to: ${email}`);
+      
       const transporter = await this.initializeTransporter();
       
       const resetUrl = `${process.env.FRONTEND_URL || 'https://capstone-voting.vercel.app'}/reset-password?token=${resetToken}&type=${userType}`;
@@ -61,44 +71,44 @@ class EmailService {
       const emailTemplate = this.createPasswordResetTemplate(userName, resetUrl, userType);
       
       const gmailUser = process.env.GMAIL_USER || process.env.SMTP_USER;
-      const isUsingEthereal = this.isTestMode || !gmailUser;
       
       const mailOptions = {
-        from: isUsingEthereal ? '"Voting System Test" <test@ethereal.email>' : `"Voting System" <${gmailUser}>`,
+        from: `"Voting System" <${gmailUser}>`,
         to: email,
         subject: 'Password Reset Request - Voting System',
         html: emailTemplate,
         text: this.createTextVersion(userName, resetUrl, userType)
       };
 
+      console.log('📧 Sending email via Gmail...');
       const info = await transporter.sendMail(mailOptions);
-
-      if (isUsingEthereal) {
-        console.log('📧 EMAIL SENT VIA ETHEREAL:');
-        console.log('===========================');
-        console.log(`To: ${email}`);
-        console.log(`Subject: ${mailOptions.subject}`);
-        console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-        console.log(`Reset URL: ${resetUrl}`);
-        if (process.env.NODE_ENV === 'production') {
-          console.log('⚠️  Using Ethereal in production - set Gmail credentials for real email delivery');
-        }
-        console.log('===========================');
-      } else {
-        console.log('📧 EMAIL SENT VIA GMAIL:');
-        console.log(`To: ${email}`);
-        console.log(`Subject: ${mailOptions.subject}`);
-      }
+      console.log('✅ Email sent successfully via Gmail');
+      console.log(`📧 Email Details:`);
+      console.log(`   To: ${email}`);
+      console.log(`   Subject: ${mailOptions.subject}`);
+      console.log(`   Message ID: ${info.messageId}`);
 
       return {
         success: true,
         messageId: info.messageId,
-        previewUrl: isUsingEthereal ? nodemailer.getTestMessageUrl(info) : null
+        previewUrl: null // No preview URL for Gmail
       };
 
     } catch (error) {
       console.error('❌ Email sending failed:', error);
-      throw new Error('Failed to send password reset email');
+      
+      // Provide specific error messages for different Gmail issues
+      if (error.code === 'EAUTH') {
+        throw new Error('Gmail authentication failed. Please check your Gmail credentials and ensure 2FA is enabled with an App Password.');
+      } else if (error.code === 'ECONNECTION') {
+        throw new Error('Gmail connection failed. Please check your internet connection and try again.');
+      } else if (error.code === 'ETIMEDOUT') {
+        throw new Error('Gmail timeout. Please try again later.');
+      } else if (error.code === 'EENVELOPE') {
+        throw new Error('Invalid email address. Please check the recipient email.');
+      } else {
+        throw new Error(`Failed to send password reset email: ${error.message}`);
+      }
     }
   }
 
@@ -198,7 +208,7 @@ If you have any questions, contact your system administrator.
 
   async testEmailService() {
     try {
-      console.log('🧪 Testing Email Service...');
+      console.log('🧪 Testing Gmail Email Service...');
       
       const testEmail = 'test@example.com';
       const testToken = 'test-token-123';
@@ -207,16 +217,13 @@ If you have any questions, contact your system administrator.
       
       const result = await this.sendPasswordResetEmail(testEmail, testToken, testUserType, testUserName);
       
-      console.log('✅ Email service test successful!');
+      console.log('✅ Gmail email service test successful!');
       console.log(`   Message ID: ${result.messageId}`);
-      if (result.previewUrl) {
-        console.log(`   Preview URL: ${result.previewUrl}`);
-      }
       
       return result;
       
     } catch (error) {
-      console.error('❌ Email service test failed:', error);
+      console.error('❌ Gmail email service test failed:', error);
       throw error;
     }
   }
