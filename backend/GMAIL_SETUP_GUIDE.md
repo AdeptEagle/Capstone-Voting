@@ -39,7 +39,7 @@ GMAIL_USER=your-gmail-address@gmail.com
 GMAIL_APP_PASSWORD=your-16-character-app-password
 
 # Frontend URL
-FRONTEND_URL=https://capstone-voting.vercel.app
+FRONTEND_URL=https://sscelection2025.vercel.app
 ```
 
 ### Example:

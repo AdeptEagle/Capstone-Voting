@@ -43,6 +43,8 @@ const corsOptions = {
     'http://localhost:4173',
     'https://capstone-voting.vercel.app',
     'https://capstone-voting.vercel.app/*',
+    'https://sscelection2025.vercel.app',
+    'https://sscelection2025.vercel.app/*',
     'https://*.vercel.app',
     'https://*.vercel.app/*'
   ],
@@ -56,7 +58,17 @@ app.use(cors(corsOptions));
 
 // Additional CORS headers for all routes
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://capstone-voting.vercel.app');
+  // Allow both old and new domains
+  const allowedOrigins = [
+    'https://capstone-voting.vercel.app',
+    'https://sscelection2025.vercel.app'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
